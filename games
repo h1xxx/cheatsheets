@@ -1,0 +1,20 @@
+dosbox
+======
+
+# start dosbox under console
+SDL_FBDEV=/dev/fb0 SDL_MOUSEDEV=/dev/input/event12 dosbox Games/
+
+
+
+mednafen
+========
+
+# start mednafen game emulator
+mednafen -psx.bios_eu scph7502\(41a\).bin  psx_games/tekken3.cue
+
+# configure gamepad
+press ctrl + shift + [n] to select controller type
+press alt + shift + [n] to configure buttons/axis
+each key needs to be pressed twice
+'rapid <key>' is just a key to be configured again for rapid pressing
+

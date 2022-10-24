@@ -1,0 +1,109 @@
+device configuration
+====================
+
+# list physical interfaces
+iw list
+
+# show detailed info on device
+iw dev wlan0 info
+
+# create monitor interface and set it to monitor mode listening on channel 1
+iw dev wlan0 del
+iw phy phy0 interface add wlan0 type monitor flags none control otherbss
+ip link set wlan0 promisc on
+ip link set wlan0 allmulticast on
+ip link set wlan0 multicast off
+ip link set wlan0 trailers off
+ip l set wlan0 up
+iw dev wlan0 set channel 11
+
+# create a monitor interface
+iw phy phy0 interface add mon0 type monitor flags none control otherbss
+---
+iw phy phy0 interface add wlan0 type monitor
+---
+iw dev wlan0 interface add mon0 type monitor
+
+# set a device as monitor type and change the frequency
+iw dev wlan0 set type monitor
+iw dev wlan0 set freq 2412
+---
+ip link set mon0 promisc on
+iw dev mon0 set channel 11
+
+# show information on the wireless interface
+iwconfig wlp3s0
+
+# set wifi power
+iw dev wlan0 set txpower fixed 30mBm
+---
+iwconfig wlan0 txpower 30
+
+# disconnet from the network
+iw wlp2s0 disconnect
+
+# list devices connected to wifi station
+iw dev wlan0 station dump
+
+# list wifi access points
+iw wlan0 scan
+
+
+
+hostapd
+=======
+
+# list errors in hostapd config
+sudo hostapd -d /etc/hostapd/hostapd.conf
+
+
+
+wpa_supplicant
+==============
+
+# ad hoc mode .conf file
+ctrl_interface=DIR=/run/wpa_supplicant GROUP=<user group>
+ap_scan=2			# scan for other clients in ad hoc mode
+network={
+	ssid="MySSID"
+	mode=1			# this is ad hoc mode
+	frequency=2432
+	proto=RSN
+	key_mgmt=WPA-PSK
+	pairwise=CCMP
+	group=CCMP
+	psk="pass123"
+}
+
+
+
+airmon
+======
+
+# send deauth frame
+aireplay-ng --ignore-negative-one --deauth 100 -a 31:2e:21:16:aa:aa wlan0
+
+
+
+network manager
+===============
+
+# list wireless devices
+nmcli radio all
+
+
+
+misc
+====
+
+# iw output fields interpretation
+capability: ESS				AP mode
+capability: IBSS			ad-hoc mode
+capability: Privacy			network is protected
+RSN: *                  		network is protected by WPA2
+WPA: *                  		network is protected by WPA1
+No RSN, no WPA, capability: Privacy	network is protected by WEP
+
+# disable ani if wifi is misbehaving
+echo 0 > /sys/kernel/debug/ieee80211/phy0/ath9k/ani
+

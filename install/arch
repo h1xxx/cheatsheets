@@ -1,0 +1,248 @@
+# in tty
+# ======
+arch64 nomodeset
+
+dhcpcd
+ssh-keygen -A
+echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+/sbin/sshd
+passwd
+
+ssh -o 'StrictHostKeyChecking no' -o  'UserKnownHostsFile /dev/null' -p 10122 root@localhost
+
+
+# after ssh
+# =========
+
+sgdisk --zap-all /dev/vda
+sgdisk --clear /dev/vda
+sgdisk -g /dev/vda
+sgdisk --new 1:+2M:+256M --typecode=1:ef02 /dev/vda
+
+sgdisk --attributes 1:set:2 /dev/vda
+sgdisk --new 2::-0 --typecode=2:8300 /dev/vda
+
+mkfs.ext4 -F /dev/vda1
+mkfs.ext4 -F /dev/vda2
+resize2fs -s /dev/vda1
+dd bs=440 count=1 conv=notrunc if=/usr/lib/syslinux/bios/gptmbr.bin of=/dev/vda
+
+mount /dev/vda2 /mnt/
+mkdir /mnt/boot /mnt/shared
+mount /dev/vda1 /mnt/boot
+
+pacman-key --init
+pacman-key --populate archlinux
+
+genfstab -U /mnt > /mnt/etc/fstab
+echo 'host0 /mnt/shared 9p trans=virtio,version=9p2000.L,_netdev 0 0' >> /mnt/etc/fstab                                                                            
+pacstrap /mnt base base-devel
+
+arch-chroot /mnt
+
+
+# commands in chroot
+# ==================
+
+ln -sf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
+hwclock --systohc
+
+mkdir -p /etc/conf.d
+echo keymap=pl > /etc/conf.d/keymaps
+echo KEYMAP=pl > /etc/vconsole.conf
+
+printf '%s\n%s\n' 'en_US.UTF-8 UTF-8' 'pl_PL.UTF-8 UTF-8' > /etc/locale.gen
+locale-gen
+
+echo arch-base > /etc/hostname
+cat <<EOF > /etc/hosts
+127.0.0.1        localhost
+::1              localhost
+EOF
+
+pacman --noconfirm -Sy
+pacman --noconfirm -S linux linux-lts openssh openssh syslinux
+pacman --noconfirm -S vim wget git dhcpcd usbutils lsof chrony bind-tools
+
+mkdir -p /boot/syslinux
+extlinux --install /boot/syslinux
+
+cat <<EOF > /boot/syslinux/syslinux.cfg
+PROMPT 0
+DEFAULT arch-lts
+TIMEOUT 10
+
+LABEL arch-lts
+MENU LABEL Arch Linux LTS
+LINUX ../vmlinuz-linux-lts
+APPEND root=/dev/vda2 rw net.ifnames=0 nomodeset quiet
+INITRD ../initramfs-linux-lts.img
+
+LABEL arch
+MENU LABEL Arch Linux
+LINUX ../vmlinuz-linux
+APPEND root=/dev/vda2 rw net.ifnames=0 nomodeset quiet
+INITRD ../initramfs-linux.img
+
+LABEL arch-fallback
+MENU LABEL Arch Linux fallback
+LINUX ../vmlinuz-linux-lts
+APPEND root=/dev/vda2 rw net.ifnames=0 nomodeset quiet
+INITRD ../initramfs-linux.img
+EOF
+
+useradd -m -p '' x
+usermod -a -G disk x
+usermod -a -G lp x
+usermod -a -G audio x
+usermod -a -G input x
+usermod -a -G video x
+usermod -a -G tty x
+usermod -a -G users x
+usermod -a -G network x
+usermod -a -G power x
+
+mkdir -p /root/.ssh /home/x/.ssh
+echo 'ssh-ed25519 <key>' > /root/.ssh/authorized_keys
+echo 'ssh-ed25519 <key>' > /home/x/.ssh/authorized_keys
+chmod 700 /root/.ssh/ /home/x/.ssh/
+chmod 600 /root/.ssh/authorized_keys /home/x/.ssh/authorized_keys
+chown -R x:x /home/x/
+rm -f /etc/ssh/ssh_host_dsa_key* /etc/ssh/ssh_host_ecdsa_key*
+echo 'ssh-ed25519 <key>' > /etc/ssh/ssh_host_ed25519_key.pub
+
+cat << EOF > /etc/ssh/ssh_host_ed25519_key
+-----BEGIN OPENSSH PRIVATE KEY-----
+<...>
+-----END OPENSSH PRIVATE KEY-----
+EOF
+chmod 600 /etc/ssh/ssh_host_ed25519_key
+
+systemctl enable sshd
+systemctl enable chronyd
+systemctl enable dhcpcd
+pacman -Sc
+
+passwd
+passwd x
+
+exit
+sync
+poweroff
+
+
+# gui
+# ===
+
+echo arch-gui > /etc/hostname
+sed -i 's| nomodeset||g' /boot/syslinux/syslinux.cfg
+
+pacman --noconfirm -S xorg-server xorg-xinit xorg-xrandr
+pacman --noconfirm -S alsa-utils alsa-plugins pulseaudio-alsa pulseaudio libpulse pavucontrol
+pacman --noconfirm -S qemu-guest-agent spice-vdagent
+pacman --noconfirm -S firefox chromium gimp libreoffice hunspell-en_US hunspell-pl
+pacman --noconfirm -S ttf-inconsolata ttf-dejavu ttf-droid ttf-liberation terminus-font
+pacman --noconfirm -S ttf-font-awesome noto-fonts noto-fonts-extra
+
+fc-cache -f
+systemctl enable qemu-guest-agent
+
+mkdir -p '/etc/systemd/system/getty@tty1.service.d'
+cat <<EOF >> /etc/systemd/system/getty\@tty1.service.d/autologin.conf
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -o '-p -f -- \\\\u' --noclear --autologin x - \$TERM
+EOF
+
+cat <<EOF >> /etc/modprobe.d/kms.conf
+options bochs modeset=1
+options qxl modeset=1
+EOF
+
+mkdir -p /etc/modules-load.d
+cat <<EOF >> /etc/modules-load.d/xorg.conf
+bochs
+qxl
+snd_seq
+EOF
+
+cat <<EOF > /etc/X11/xorg.conf.d/10-keyboard.conf
+Section "InputClass"
+        Identifier      "system-keyboard"
+        MatchIsKeyboard "on"
+        Option          "XkbLayout"             "pl,us"
+        Option          "GrabDevice"            "False"
+EndSection
+
+# enable switching to tty
+Section "Serverflags"
+        Option "DontVTSwitch" "off"
+EndSection
+EOF
+
+cat <<EOF > /etc/X11/xorg.conf.d/20-video.conf
+Section "Monitor"
+        Identifier      "Virtual-1"
+        VertRefresh     60
+        Modeline        "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync
+        Option          "PreferredMode"         "1920x1080_60.00"
+EndSection
+
+Section "Device"
+        Identifier  "Card0"
+        Driver      "modesetting"
+        BusID       "PCI:0:3:0"
+EndSection
+
+Section "Screen"
+        Identifier "Screen0"
+        Device     "Card0"
+        Monitor    "Virtual-1"
+        SubSection "Display"
+                Viewport   0 0
+                Depth     24
+        EndSubSection
+EndSection
+EOF
+
+cat > /home/x/.Xresources << EOF
+Xft.antialias: 0
+Xft.rgba:      rgb
+Xft.autohint:  0
+Xft.hinting:   1
+Xft.hintstyle: hintslight
+EOF
+ 
+
+# reboot
+# ======
+# mostly to get rid of nomodeset
+reboot
+
+X -configure
+mv xorg.conf.new /etc/X11/xorg.conf
+
+git clone https://git.suckless.org/dwm
+wget https://dwm.suckless.org/patches/autostart/dwm-autostart-20210120-cb3f58a.diff
+cd dwm
+git apply ../dwm-autostart-20210120-cb3f58a.diff
+cp config.def.h config.h
+sed -i 's|MODKEY Mod1Mask|MODKEY Mod4Mask|' config.h
+sed -i 's|#005577|#005c35|' config.h
+make clean install
+mkdir /home/x/.dwm/
+echo firefox > /home/x/.dwm/autostart.sh
+chmod +x /home/x/.dwm/autostart.sh
+cd
+git clone https://git.suckless.org/st
+cd st && make clean install
+
+echo 'exec dwm' > /home/x/.xinitrc
+echo '[ -z "${DISPLAY}" ] && [ "$(tty)" = /dev/tty1 ] && startx' >> /home/x/.bash_profile
+chown -R x:x /home/x/
+
+pacman -Sc
+sync
+
+reboot
+

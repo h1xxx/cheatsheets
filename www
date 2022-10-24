@@ -1,0 +1,192 @@
+w3m
+===
+
+# open an html file without an .html extension
+w3m -T text/html file1
+
+# parse an html file without an .html extension
+w3m -T text/html -dump file1
+
+# ddg query parameters
+w3m -dump https://duckduckgo.com/params
+
+# w3m aliases for quick search
+w3d() { command w3m duckduckgo.com/lite/?kd=-1\&kp=-2\&kl=us-en\&q="$*"; }
+w3y() { command w3m youtube.com/results?search_query="$*"; }
+
+# torrent magnet links handler, extbrowser option in ~/.w3m/config
+<Esc><M>	open the link in external browser
+<3><esc><M>	open the link in 3rd external browser
+
+# keyboard shortcuts
+H		help
+space/b		move the screen down/up
+ctrl+a		move coursor to the beggining of the line
+ctrl+e		move coursor to the end of the line
+esc-g		go to a specific line
+w/W		go to next/previos word
+[/]		go to first/last link
+tab/shift+tab		go to next/prev link
+U		go to URL
+u		peek current page URL
+c		peek links' URL
+ctrl+t		open link in a new tab
+I		view image
+esc-I		save image to a file
+B		move to previous page
+R		reload current page
+s		page selection menu
+T		open new tab
+ctrl+q		close current tab
+{/}		move to next/previous tab
+esc-t		tab selection menu
+esc-b		view bookmarks
+esc-a		add current page to bookmarks
+ctrl+h		view history
+v		view HTML code
+S		save the rendered output of current page to a file
+esc-s		save current page to a file
+o		show options
+
+# view a www page with javascript
+phantomjs save_page.js http://example.com > page.html
+with save_page.js:
+var system = require('system');
+var page = require('webpage').create();
+page.open(system.args[1], function()
+{
+	console.log(page.content);
+	phantom.exit();
+});
+
+
+
+wget
+====
+
+# a popular user-agent to use in requests
+ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
+
+# mirror/download the website with all the subdomains
+wget -mHpEk -U "${ua}" -e robots=off -T 10 -t 3 --retry-connrefused --restrict-file-names=unix --no-check-certificate --no-show-progres -o wget.log -D example.com http://example.com
+
+# mirror/download the website if all the content is under one domain
+wget -mpEk -U "${ua}" -e robots=off -T 10 -t 3 --retry-connrefused --restrict-file-names=unix --no-check-certificate --no-show-progres -o wget.log http://www.example.com
+
+# wget parameters for website mirroring
+-m, --mirror			-r -N -l 0 --no-remove-listing
+-H, --span-hosts		download from all the hosts
+-p, --page-requisites		get all the elements (images, CSS etc.)
+-E, --adjust-extension		save files with the extension from content type
+-k, --convert-links		convert links so that they work locally
+-U Gecko, --user-agent=Gecko	set the user-agent header
+-e robots=off			ignore robots.txt
+-T 10, --timeout=10		timeout on requests
+-t 3, --tries=3			number of retries on errors
+--retry-connrefused		try again if blocked
+--restrict-file-names=unix	modify filenames so that they will work in unix
+--no-check-certificate		don't check ssl certs
+--no-show-progres		disable progress bar
+-o wget.log			write stdout to wget.log file
+-D, --domains example.com	don't follow links outside of named domain
+
+# misc wget parameters
+-r, --recursive			also download all the links
+-N, --timestamping		turn on time-stamping
+-l 0				no recursive limit
+--no-remove-listing		don't remove dir .listing files
+-nc, --no-clobber		don't overwrite any existing files (not with -k)
+-np, --no-parent		don't follow links above the path
+-w 0.1, --wait 0.1		wait 0.1s between requests
+--random-wait			wait 0.5-1.5s between requests
+-P, --directory-prefix		directory to write all the files to
+
+# download via proxy
+wget [...] -e use_proxy=yes -e http_proxy=127.0.0.1:80 http://example.com/f.txt
+
+
+
+curl
+====
+
+# ignore ssl certificate errors and warnings
+curl -k domain.com
+---
+curl --insecure domain.com
+
+# follow redirection e.g. 302
+curl -L domain.com
+
+# post json data
+curl -H "Content-Type: application/json" -X POST -d '{"username":"xyz","password":"xyz"}' http://localhost:3000/api/login
+
+# submit a cookie
+curl -b cookie=c00k1355h0u1d8353cu23d example.com
+
+# check methods available for the webpage
+curl -i -X OPTIONS example.com
+
+# parameters' list
+-O	write output to a local file named like the remote file
+-J	with -O, save in Content-Disposition filename
+-i	include headers in response output
+-s	silence curl messages
+-A	user-agent
+-e	referer
+-L	follow redirections
+
+
+
+apache
+======
+
+# check apache modules loaded
+apachectl -M
+
+# unload (disable) and load (enable) apache modules
+a2dismod php7.1
+a2enmod php5.6
+
+
+
+url encoding
+============
+
+# decode url into ascii
+sed 's@+@ @g;s@%@\\x@g' | xargs -0 printf "%b" | sed 's/\&amp;/\&/g'
+---
+sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -e | sed 's/\&amp;/\&/g'
+
+# alias for decoding url into ascii - sed
+alias urldecode='sed "s@+@ @g;s@%@\\\\x@g" | xargs -0 printf "%b" | sed "s/\&amp;/\&/g"'
+echo 'q+werty&amp;%3D%2F%3B' | urldecode
+
+# alias for decoding url into ascii - python
+alias urldecode='python3 -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'
+urldecode 'q+werty&amp;%3D%2F%3B'
+
+# alias for encoding url from ascii - python
+alias urlencode='python3 -c "import sys, urllib.parse as ul; print (ul.quote_plus(sys.argv[1]))"'
+urlencode  'q werty&amp;=/;'
+
+
+
+misc
+====
+
+# nginx logs analyzers
+visitors --output text access.log
+---
+goaccess --geoip-database=/usr/share/GeoIP/GeoLite2-City.mmdb access.log
+
+# limit video download quality to 1080p
+youtube-dl -f bestvideo[height<=?1080]+bestaudio/best
+
+# extract chm file into html files
+extract_chmLib <chmfile> <outdir>
+
+# list of domain suffixes
+wget https://publicsuffix.org/list/public_suffix_list.dat
+
+
+

@@ -1,0 +1,6 @@
+apk
+===
+
+# find which package contains the file
+apk info --who-owns /path/to/the/file
+

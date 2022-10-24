@@ -1,0 +1,60 @@
+files
+=====
+
+# convert all filenames to uppercase
+for f in $(find -type f); do echo mv -- "${f}" "${f^^}"; done
+
+# rename mutliple files
+find . -type f -name '*' -print0 | while IFS= read -d '' f; do
+	echo mv "$f" "${f##*\/}_renamed";
+done
+
+
+
+networking
+==========
+
+# get local ip address
+ip -o a | grep -e "^.*: w" -e "^.*: e" | head -n1 | awk '{print $4}'
+
+
+
+scripts
+=======
+
+# check if root
+[ "$((UID))" -ne 0 ] && echo "Please run as root" && exit 1
+
+
+
+misc
+====
+
+# "encrypt" and "decrypt" a text from a file
+hex_encrypt_text() {
+	in=$(cat "$1")
+	in=$(openssl enc -base64 <<< $in)
+	len=${#in}
+	for i in $(seq 0 $((len - 1))); do
+		c=${in:$i:1}
+		c_i=$(echo -n "${c}" | od -i -A n)
+		c_i=$((c_i + 1))
+		[ $c_i -lt 16 ] &&  c_x=$(printf "0x0%x\n" $c_i)
+		[ $c_i -ge 16 ] &&  c_x=$(printf "0x%x\n" $c_i)
+		echo -n "$c_x "
+	done
+}
+hex_decrypt_text() {
+	in=$(cat "$1")
+	o=''
+	for c_x in $in; do
+	c_x=$(sed 's/0x//g' <<< $c_x)
+	c_x=$(tr 'a-z' 'A-Z' <<< $c_x)
+	c_i=$(echo "ibase=16; $c_x" | bc)
+	c_i=$((c_i - 1))
+	c=$(printf "\x$(printf "%x" $c_i)")
+	o=$o$c
+	done
+	openssl enc -base64 -d <<< $o
+}
+

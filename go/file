@@ -1,0 +1,185 @@
+file
+====
+
+# create or open and clear a file
+fd, err := os.OpenFile("/tmp/x.txt", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+defer file.Close()
+
+# write a string to a file
+w := bufio.NewWriter(fd)
+ _, _ = w.WriteString(fd)
+w.Flush()
+---
+_, err = io.Copy(fd, strings.NewReader("text"))
+
+# create an empty file
+fd, err := os.Create("emptyFile.txt")
+
+# create a symbolic link
+err = os.Symlink(targetStr, symlinkStr)
+
+# create a hard link
+err = os.Link(targetStr, symlinkStr)
+
+# file open flags
+O_RDONLY int = syscall.O_RDONLY		open the file read-only
+O_WRONLY int = syscall.O_WRONLY		open the file write-only
+O_RDWR   int = syscall.O_RDWR		open the file read-write
+O_APPEND int = syscall.O_APPEND		append data to the file when writing
+O_CREATE int = syscall.O_CREAT		create a new file if none exists
+O_EXCL   int = syscall.O_EXCL		used with O_CREATE, file must not exist
+O_SYNC   int = syscall.O_SYNC		open for synchronous I/O
+O_TRUNC  int = syscall.O_TRUNC		clear the file when opened
+
+# get a filename from  path
+filepath.Base("/foo/bar/baz.c")
+
+# get filename extension from path
+filepath.Ext("/foo/bar/baz.c")
+
+# get a directory name from path
+filepath.Dir("/foo/bar/baz.c")
+
+# clean path
+filepath.Clean("/foo//bar//baz.c")
+
+# get a list of files sorted by filename
+files, err := os.ReadDir(".")
+name := files[0].Name()
+
+# get a path for the home dir
+homeDir, err := os.UserHomeDir()
+
+# check if file is a directory
+info, err := os.Stat(<filename>)
+info.IsDir()
+
+# check if file exist
+_, err := os.Stat(<file path>)
+if errors.Is(err, os.ErrNotExist) {
+	fmt.Println("file doesn't exists")
+}
+
+# check if a file is a dir
+func pathIsDir(path string) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	fileInfo, err := file.Stat()
+	if fileInfo.IsDir() {
+		return true
+	}
+	return false
+}
+
+# check if a file is a symbolic link
+linfo, _ := os.Lstat("file1")
+linfo.Mode() & os.ModeSymlink == os.ModeSymlink
+
+# check if a file is a symbolic link to a dir
+linfo, _ := os.Lstat("file1")
+info, _ := os.Stat("test_link_file")
+linfo.Mode() & os.ModeSymlink == os.ModeSymlink && info.IsDir()
+
+# check if a file is a regular file
+linfo, _ := os.Lstat("file1")
+linfo.Mode().IsRegular()
+
+# get file mode, name, size and modification time
+info, err := os.Stat("temp.txt")
+fmt.Printf("Permission: %s\n", info.Mode())
+fmt.Printf("Permission: %s\n", info.Mode().String())
+fmt.Printf("Permission: %v\n", info.Mode().Perm()) // bits
+fmt.Printf("Name: %s\n", info.Name())
+fmt.Printf("Size: %d\n", info.Size())
+fmt.Printf("Modification Time: %s\n", info.ModTime())
+fmt.Printf("General Info: %d\n", info.Sys())
+
+# get file owner and group info
+import syscall
+info, err := os.Stat("file")
+stat := info.Sys().(*syscall.Stat_t)
+uid := stat.Uid
+gid := stat.Gid
+
+# get uid/gid for a user/group string
+uid := user.Lookup("root")
+gid := user.LookupGroup("root")
+
+# set owner of the file
+os.Chown("file1.txt", uid, gid)
+
+# get a file's mime type
+import "net/http"
+fd, err := os.Open("file.txt")
+buff := make([]byte, 512)
+_, err = fd.Read(buff)
+mime := http.DetectContentType(buff)
+
+# check if file is a text file
+import "unicode/utf8"
+fd, err := os.Open("file.txt")
+buff := make([]byte, 8192)
+_, err = fd.Read(buff)
+valid := utf8.Valid(buff)
+
+# check if dir/file is writable
+import "golang.org/x/sys/unix"
+func isWritable(path string) bool {
+	return unix.Access(path, unix.W_OK) == nil
+}
+
+# get a list of files (warning! fileinfo is from os.Lstat() not os.Stat())
+func walkDir(rootDir string) ([]string, error) {
+	var names []string
+	err := filepath.Walk(rootDir,
+		func(path string, linfo os.FileInfo, err error) error {
+			if !linfo.IsDir() {
+				names = append(names, path)
+			}
+			return nil
+		})
+	return names, err
+}
+
+# change file permissions
+err = os.Chmod("new.txt", 0700)
+
+# skip reading UTF-8 BOM (Byte Order Mark) from a text file
+var bom [3]byte
+_, err = io.ReadFull(fd, bom[:])
+if err != nil {
+	log.Fatal(err)
+}
+if bom[0] != 0xef || bom[1] != 0xbb || bom[2] != 0xbf {
+	// not a BOM, seek back to the beginning
+	_, err = fd.Seek(0, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+# skip reading UTF-8 BOM (Byte Order Mark) from a text file with bufio lib
+br := bufio.NewReader(fd)
+r, _, err := br.ReadRune()
+if err != nil {
+	log.Fatal(err)
+}
+if r != '\uFEFF' {
+	// not a BOM, put the rune back
+	br.UnreadRune()
+}
+
+# check if files have the same content
+func filesEqual(file1, file2 string) bool {
+	if !(fileExists(file1) && fileExists(file2)) {
+		return false
+	}
+	f1, err := ioutil.ReadFile(file1)
+	errExit(err, "can'r read file:\n  "+file1)
+	f2, err := ioutil.ReadFile(file2)
+	errExit(err, "can'r read file:\n  "+file2)
+	return bytes.Equal(f1, f2)
+}

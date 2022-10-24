@@ -1,0 +1,15 @@
+sqlite
+======
+
+# increase performance of the databas:
+set 'PRAGMA journal_mode=WAL;' in sqlite db
+set 'PRAGMA journal_mode=MEMORY;' in sqlite db
+use 'db.SetMaxOpenConns(1)' in go
+use this
+	tx, _ := db.Begin()
+	stmt, _ := tx.Prepare("insert into foo(stuff) values(?)")
+	defer stmt.Close()
+	for i := 0; i < 1000; i++ {
+		_, _ = stmt.Exec("just_a_string")
+	}
+

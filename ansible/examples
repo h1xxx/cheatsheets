@@ -1,0 +1,74 @@
+hosts file syntax example
+=========================
+
+# hosts file
+[back-end-and-infra:children]
+back-end-servers
+infrastructure
+[back-end-servers]
+database ansible_host=10.0.0.1 ansible_port=22 ansible_user=postgres
+webserver ansible_host=10.0.0.2 ansible_port=22 ansible_user=root
+[infrastructure]
+ldap ansible_host=10.0.0.100 ansible_port=22 ansible_user=root
+
+
+
+playbook hosts part syntax examples
+===================================
+
+# change user to root after login via su, needs to be ran with -K parameter
+- hosts: webservers
+  remote_user: yourname
+  become: yes
+  become_user: postgres
+  become_method: su
+
+# ping the host
+tasks:
+  - name: test connection
+    ping:
+
+# start the systemd service if it's not running
+tasks:
+  - name: make sure apache is running
+    service:
+      name: httpd
+      state: started
+
+# run a command
+tasks:
+  - name: enable selinux
+    command: /sbin/setenforce 1
+
+# run a command and set a 0 exit code if the command does not return 0
+tasks:
+- name: run this command and ignore the result
+  shell: /usr/bin/somecommand || /bin/true
+
+# run a command and set a 0 exit code if the command does not return 0
+tasks:
+- name: run this command and ignore the result
+  shell: /usr/bin/somecommand
+  ignore_errors: True
+
+# copy a file to the host
+tasks:
+  - name: Copy ansible inventory file to client
+    copy: src=/etc/ansible/hosts dest=/etc/ansible/hosts owner=root group=root mode=0644
+
+# use a variable defined in vars section with a template
+tasks:
+- name: create a virtual host file for {{ vhost }}
+  template:
+    src: somefile.j2
+    dest: /etc/httpd/conf.d/{{ vhost }}
+
+# restart services if the contents of a file change, restart handlers are
+# notified by tasks and are run after all tasks in a play are completed
+- name: template configuration file
+  template:
+    src: template.j2
+    dest: /etc/foo.conf
+  notify:
+     - restart memcached
+     - restart apache

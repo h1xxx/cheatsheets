@@ -1,0 +1,47 @@
+compile
+=======
+
+# compile and build a binary
+go build file1.go
+
+# compile and build a binary with vendor directory
+go build file1.go
+
+# check for race conditions
+go run -race <go file>
+go build -race <go file>
+
+# compile the glibc independent binary
+CGO_ENABLED=0 go build -ldflags "-w -s"
+
+
+
+code format
+===========
+
+# format go file according to standard format
+gofmt file1.go
+
+# remove unnencessary import and add missing ones
+goimports file1.go
+
+
+
+repos
+=====
+
+# get a binary with source code from git repo
+go get gopl.io/ch1/helloworld
+
+# get goimports command
+go get golang.org/x/tools/cmd/goimports
+
+# add a module to the project
+<< import toml "github.com/pelletier/go-toml" >>
+go mod init toml
+go mod tidy
+
+# download source code
+go mod download
+github.com/bettercap/bettercap@v0.0.0-20210417153115-568c166fe1c9
+

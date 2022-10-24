@@ -1,0 +1,190 @@
+install
+=======
+
+# syslinux command for text mode in qemu
+/boot/vmlinuz-lts rw nomodeset modules=loop,squashfs,sd-mod,usb-storage initrd=/boot/initramfs-lts
+
+setup-interfaces -a
+/etc/init.d/networking --quiet start
+setup-apkrepos -1
+apk add sgdisk
+
+sgdisk --zap-all /dev/vda
+sgdisk --clear /dev/vda
+sgdisk -g /dev/vda
+sgdisk --new 1:+2M:+256M --typecode=1:ef02 /dev/vda
+
+sgdisk --attributes 1:set:2 /dev/vda
+sgdisk --new 2::-0 --typecode=2:8300 /dev/vda
+
+reboot
+
+setup-keymap us us
+setup-hostname -n alpine-base
+setup-interfaces -a 
+/etc/init.d/networking --quiet start
+setup-timezone -z Europe/Warsaw
+
+/etc/init.d/hostname --quiet restart
+setup-apkrepos -1
+setup-sshd -c openssh
+setup-ntp -c chrony
+apk add e2fsprogs e2fsprogs-extra syslinux
+
+mkfs.ext4 -F /dev/vda1
+mkfs.ext4 -F /dev/vda2
+resize2fs -s /dev/vda1
+dd bs=440 count=1 conv=notrunc if=/usr/share/syslinux/gptmbr.bin of=/dev/vda
+
+mount -t ext4 /dev/vda2 /mnt/
+mkdir /mnt/boot
+mount -t ext4 /dev/vda1 /mnt/boot
+
+KERNELOPTS='nomodeset quiet' setup-disk /mnt
+
+poweroff
+
+vim /etc/update-extlinux.conf
+update-extlinux
+
+useradd	-m -p '' x
+adduser x disk
+adduser x lp
+adduser x audio
+adduser x input
+adduser x cdrom
+adduser x video
+adduser x tty
+adduser x cdrw
+adduser x usb
+adduser x users
+
+mkdir -p /root/.ssh /home/x/.ssh
+echo 'ssh-ed25519 <key>' > /root/.ssh/authorized_keys
+echo 'ssh-ed25519 <key>' > /home/x/.ssh/authorized_keys
+chmod 700 /root/.ssh/ /home/x/.ssh/
+chmod 600 /root/.ssh/authorized_keys /home/x/.ssh/authorized_keys
+rm -f /etc/ssh/ssh_host_dsa_key* /etc/ssh/ssh_host_ecdsa_key*
+echo 'ssh-ed25519 <key>' > /etc/ssh/ssh_host_ed25519_key.pub
+
+cat <<EOF > /etc/ssh/ssh_host_ed25519_key
+-----BEGIN OPENSSH PRIVATE KEY-----
+<...>
+-----END OPENSSH PRIVATE KEY-----
+EOF
+
+apk add vim sed attr grep util-linux pciutils usbutils binutils findutils readline lsof less curl wget
+
+passwd
+passwd x
+
+vim /etc/apk/repositories
+vim /etc/conf.d/chronyd
+FAST_STARTUP=yes
+
+# alsa
+apk add alsa-utils alsa-utils-doc alsa-lib alsaconf alsa-ucm-conf
+rc-service alsa start
+rc-update add alsa
+alsamixer
+
+# xorg
+apk add xorg-server xorg-server-common xorg-server-dev xorgproto xorgxrdp xorgxrdp-dev setxkbmap xrandr
+
+# xorg drivers for vm
+apk add libinput xf86-input-libinput xf86-video-modesetting
+apk add mesa-dri-swrast eudev qemu-guest-agent kbd
+rc-update add udev boot
+rc-update add qemu-guest-agent default
+
+cat <<EOF >> /etc/modprobe.d/kms.conf
+options bochs modeset=1
+options qxl modeset=1
+EOF
+
+cat <<EOF >> /etc/modules
+bochs
+qxl
+snd_seq
+EOF
+
+cat <<EOF >> /etc/X11/xorg.conf.d/10-keyboard.conf
+Section "InputClass"
+        Identifier      "system-keyboard"
+        MatchIsKeyboard "on"
+        Option          "XkbLayout"             "pl,us"
+        Option          "GrabDevice"            "False"
+EndSection
+
+# enable switching to tty
+Section "Serverflags"
+        Option "DontVTSwitch" "off"
+EndSection
+EOF
+
+cat <<EOF >> /etc/X11/xorg.conf.d/20-video.conf
+Section "Monitor"
+        Identifier      "Virtual-1"
+        VertRefresh     60
+        Modeline        "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync
+        Option          "PreferredMode"         "1920x1080_60.00"
+EndSection
+
+Section "Device"
+        Identifier  "Card0"
+        Driver      "modesetting"
+        BusID       "PCI:0:3:0"
+EndSection
+
+Section "Screen"
+        Identifier "Screen0"
+        Device     "Card0"
+        Monitor    "Virtual-1"
+        SubSection "Display"
+                Viewport   0 0
+                Depth     24
+        EndSubSection
+EndSection
+EOF
+
+X -configure
+mv xorg.conf.new /etc/X11/xorg.conf
+
+rm -r /etc/X11/xrdp/
+
+# fonts
+apk add terminus-font ttf-inconsolata ttf-dejavu font-noto ttf-font-awesome font-noto-extra ttf-liberation
+fc-cache -f
+cat > /home/x/.Xresources << EOF
+Xft.antialias: 0
+Xft.rgba:      rgb
+Xft.autohint:  0
+Xft.hinting:   1
+Xft.hintstyle: hintslight
+EOF
+
+# install deps for dwm and st
+apk add git make gcc g++ libx11-dev libxft-dev libxinerama-dev ncurses dbus-x11
+
+git clone https://git.suckless.org/dwm
+wget https://dwm.suckless.org/patches/autostart/dwm-autostart-20210120-cb3f58a.diff
+cd dwm 
+git apply ../dwm-autostart-20210120-cb3f58a.diff
+make clean install
+mkdir /home/x/.dwm/
+echo firefox > /home/x/.dwm/autostart.sh
+chmod +x /home/x/.dwm/autostart.sh
+cd ..
+git clone https://git.suckless.org/st
+cd st && make clean install
+
+echo 'exec dwm' > /home/x/.xinitrc
+echo '[ -z "${DISPLAY}" ] && [ "$(tty)" = /dev/tty1 ] && startx' > /home/x/.profile
+chown -R x:x /home/x/
+
+# autologin to user x
+sed -i 's|^tty1.*|tty1::respawn:/bin/login -f x|g' /etc/inittab
+
+# install browsers
+apk add firefox-esr adwaita-gtk2-theme adwaita-icon-theme ttf-dejavu chromium desktop-file-utils
+

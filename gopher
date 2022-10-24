@@ -1,0 +1,9 @@
+client
+======
+
+# sacc client
+git clone git://bitreich.org/sacc/
+
+# load gopher site via tor
+torsocks sacc gopher://felib5rybxp7hkrmzw5q37bx6sucwj7uztz2q273stpncsreru6syyqd.onion:70/1/linuxconsole
+

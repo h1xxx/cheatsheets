@@ -1,0 +1,241 @@
+irssi
+=====
+
+# commands' list
+/query <nick>		open a chat window
+/join <chan>		join a channel
+
+# set automatic logging
+/set autolog on
+
+# change theme
+/set theme theme_name
+
+# set highligting of your nick
+/highlight nick_name
+
+# disable autosaving settings on quit
+/set settings_autosave off
+
+# tmux visuall bell on when someone writes me a message
+/set beep_when_window_active on
+
+# print output of command in a chan message
+/exec -o date
+
+# reload the config file
+/reload
+
+# start and stop a script
+/script load <scriptname>
+/script unload <scriptname>
+
+# libera irssi config
+/server add libera irc.eu.libera.chat
+/set irc.server.libera.addresses "irc.eu.libera.chatt/6697"
+/set irc.server.libera.ssl on
+/set irc.server.libera.nicks "nick,nick2,nick3"
+/set irc.server.libera.username "user name"
+/set irc.server.libera.realname "real name"
+/set irc.server.libera.autoconnect on
+/set irc.server.libera.sasl_username "mynick"
+/set irc.server.libera.sasl_password "mypass"
+/set irc.server.freenode.command "/join #linux; /join ##security"
+/set irc.server.freenode.autojoin "#linux, ##security"
+
+# sasl register (liber, oftc)
+/msg NickServ REGISTER pass123 mail@example.com
+
+# connect to linuxconsole.net
+/server add lnxcons irc.linuxconsole.net/60697
+/set irc.server.lnxcons.password lnxcons_4tg.3rf
+/set irc.server.lnxcons.username yourusername
+/set irc.server.lnxcons.ssl on
+/connect lnxcons
+/join #general
+
+# highlight messages
+/set beep_msg_level MSGS HILIGHT DCCMSGS
+
+# save current configuration
+/save
+
+# autosendcmd authentication method
+/network add -autosendcmd "/msg nickserv identify <password> ;wait 2000" libera
+
+# info on another user
+/whois user1
+
+
+
+irssi otr and xmpp plugins
+==========================
+
+# load plugins and connect to your xmpp acocunt
+/load xmpp
+/load otr
+/xmppconnect login@jabber.server.com <password>
+
+# if you don't have an account you can register with
+/xmppregister
+
+# when you receive an invite do:
+/presence accept login@jabbber.server.com
+
+# to join the room with your buddy, open the query window, send an invite and quit the conversation
+/join buddy@jabber.com
+/query buddy@jabber.com
+/invite buddy@jabber.com
+/part
+
+# in the chat window type "%OTR%" to start key generation, then trust the key
+/otr trust buddy@jabber.com
+
+
+
+weechat
+=======
+
+# commands in weechat
+/help				show help
+/help command			show help for specific command
+/help weechat.look.highlight	display help for an option
+/set				display all options (weeChat and plugins)
+/set weechat.*			display weechat options
+/set irc.*			display irc plugin options
+/save				save settings (done automatically on exit)
+
+
+
+bitlbee
+=======
+
+# commands in &bitlbee control channel
+register <password>			setup bitlbee password
+identify <password>			login to bitlbee
+account add jabber <login> <password>	configure a jabber account
+account list				show list of accounts with id
+account 2 del				delete account with id 2
+add <account_id> <buddy@mail.com>	add a contact
+remove <buddy_nick>			remove a contact
+blist all				list all buddies
+/msg <user nick> hi			send a message to a nick on buddy list
+
+# register an account with the password, then login
+register <password>
+id <password>
+
+# add a jabber account and list all of them together with ids and delete one of them:
+account add jabber login@jabber.server.com <password>
+account list
+account 1 del
+
+# change active account
+account 0 off
+account 1 on
+
+# add buddy to contacts rename it and remove (0 is account ID)
+add 0 buddy@jabber.com
+rename buddy buddy_1
+remove buddy_1
+
+# list all contacts
+blist
+
+# configure bitlebee server in irssi
+/server add bitlbee localhost/6667	add a bitlbee server
+/set irc.server.bitlbee.autoconnect on	auto-connect to server at startup
+
+# configure a jabber account in &bitlbee
+account add <account_name>
+account set <account_name> jid user@jabber.at
+account set <account_name> password <password>
+autoconnect set <account_name>
+connect <account_name>
+
+# start otr encryption for a jabber account
+/otr gen
+/otr start buddy@jabber.at
+
+# add a contact
+add <account_id> <buddy@mail.com>
+
+
+
+profanity
+=========
+
+# add account
+/account add <account_name>
+/account set <account_name> jid user@jabber.at
+/account set <account_name> password <password>
+/autoconnect set <account_name>
+/connect <account_name>
+/otr gen
+/otr start buddy@jabber.at
+
+
+
+libera
+======
+
+# search for channels containing python in their channel name
+/msg alis list *python*
+
+# search for a channel whose topic contains the word foo
+/msg alis list * -topic *python*
+
+# list alis options
+/msg alis help list
+
+# ask chanserv who the chan owner is
+/msg chanserv info #<channel>
+
+# show info on your account
+/msg nickserv info
+
+# manage your server settings
+/msg nickserv help
+
+
+
+oftc
+====
+
+# register on oftc
+/msg nickserv REGISTER pass123 mail@example.com
+# verify account on https://services.oftc.net/
+/msg NickServ set private on
+/msg nickserv SET CLOAK ON
+/msg nickserv identify pass123
+$ openssl req -nodes -newkey rsa:2048 -keyout nick.key -x509 -days 3650 -out nick.cer
+$ cat nick.cer nick.key > nick.pem
+/server remove irc.oftc.net
+/network add OFTC
+/server add -auto -ssl -ssl_cert ~/.irssi/certs/nick.pem -ssl_verify -network OFTC irc.oftc.net 6697
+/msg nickserv identify <passw>
+/msg nickserv cert add
+/network add -autosendcmd "wait -oftc 2000" OFTC
+
+
+
+profanity xmpp server
+=====================
+
+# send offline messages
+cd /usr/lib64/prosody/modules/
+wget https://hg.prosody.im/prosody-modules/raw-file/tip/mod_smacks/mod_smacks.lua
+wget https://hg.prosody.im/prosody-modules/raw-file/tip/mod_cloud_notify/mod_cloud_notify.lua
+chmod 644 mod*
+
+
+
+ngircd irc server
+=================
+
+# admin commands
+/rehash			reload config
+/ban <channel>		view bans
+/MODE #chan1 +b nick1	ban someone from a channel
+/oper			become an irc admin
+

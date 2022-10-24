@@ -1,0 +1,40 @@
+arithmetic operations
+=====================
+
+# calculate a floating number with a given precision
+bc <<< 'scale=2; 100/3'
+printf "%.2f\n" "$(echo '100/3' | bc -l)"
+
+# calculate a floating number in a long format
+bc -l <<< '100/3'
+
+# increment a value stored in variable ${i}
+echo $(( i++ ))
+var=$((var+1))
+((var=var+1))
+((var+=1))
+((var++))
+let "var=var+1"
+let "var+=1"
+let "var++"
+
+
+
+arrays
+======
+
+# create an array
+array=(zero one two three four [5]=five)
+
+# get array size
+echo "array size: ${#array[*]}"
+
+# show array items
+for item in ${array[*]}; do
+	printf "%s\n" ${item}
+done
+
+# print array indexes and items
+for index in ${!array[*]}; do
+	printf "%4d: %s\n" "${index}" "${array[$index]}"
+done

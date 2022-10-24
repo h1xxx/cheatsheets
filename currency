@@ -1,0 +1,134 @@
+electrum
+========
+
+# payment session example
+electrum daemon -d
+electrum getinfo
+electrum load_wallet
+electrum getbalance
+electrum payto bc1qrw6194jlkxt8n370p30zy4wu0prjpu04s8wry3 0.00047 | tee trx.txt
+cat trx.txt | electrum deserialize -
+cat trx.txt | electrum broadcast - | tee tx.txt
+head -c64 tx.txt | electrum get_tx_status -
+electrum stop
+
+# wallet commands' list
+load_wallet			load the default wallet
+load_wallet -w wallet_file	load wallet from a specific file
+list_wallets			list wallets loaded
+close_wallet			unload the wallet
+
+# address commands' list
+listaddresses
+payto <address> <amount>
+
+# offline, non-daemon commands
+electrum -o listaddresses
+electrum -o payto <address> <amount>
+electrum -o -w /path/to/wallet/file listaddresses
+
+# show account balance
+electrum listunspent | jq 'map(.value)'
+electrum getbalance
+
+# show addresses with money
+electrum listaddresses --funded
+electrum listunspent
+
+# show status of a transaction (number of confirmations)
+electrum get_tx_status <txid>
+
+# make a payment, first command returns transaction id
+electrum payto bc1qrw6194jlkxt8n370p30zy4wu0prjpu04s8wry3 0.00047 | tee trx.txt
+cat trx.txt | electrum deserialize -
+cat trx.txt | electrum broadcast - | tee tx.txt
+
+# make a payment in separate commands using output from previous one
+electrum payto bc1qrw6194jlkxt8n370p30zy4wu0prjpu04s8wry3 0.00047
+electrum getbalance | grep confirmed
+echo '0200de7[...]da0900' | electrum deserialize -
+echo '02055e8[...]da0900' | electrum broadcast -
+
+# show number of confirmations for the last transaction
+electrum listunspent | jq '.[0].address' | xargs electrum getaddresshistory | jq '.[].tx_hash' | xargs -n1 electrum get_tx_status
+
+# show history of transaction (todo: confirm if works)
+electrum listunspent | jq '.[0].address' | xargs electrum getaddresshistory | jq '.[].tx_hash' | xargs -n1 electrum gettransaction | electrum deserialize -
+
+
+
+bitcoind
+========
+
+# payment session example
+bitcoin-cli getnewaddress
+bitcoin-cli setaccount 13cayhdy4kNgVYxzdFzPw6p8dWzTKxxv7W tmp_acc
+bitcoin-cli listaccounts
+bitcoin-cli getnewaddress tmp_acc_2
+bitcoin-cli getaccountaddress account_1
+bitcoin-cli getreceivedbyaddress 1GdhdHj6bLA7TN3V4cFxkXaTQqNcGmCJJd 0
+bitcoin-cli listtransactions
+bitcoin-cli getaddressesbyaccount "account_1"
+bitcoin-cli sendtoaddress xyz940259134588dfgdgjhreg 0.0001
+
+# send all the funds from a wallet
+bitcoin-cli sendtoaddress 16YjEemqct6sw3SMNMseJLXNdwLvJbPK4U  $(bitcoin-cli getbalance) "" "" true
+
+
+
+ethereum
+========
+
+# sync modes list
+full	gets the block headers, the block bodies, and validates every
+	element from genesis block
+fast	gets the block headers, the block bodies, it processes no
+	transactions until current block - 64(*), then it gets a
+	snapshot state from a full node and goes like a full sync
+light	gets only the current state, to verify elements, it needs to
+	ask to full (archive) nodes for the corresponding tree leaves
+
+# start a console
+geth console --syncmode light
+
+# create an account
+geth account new
+> personal.newAccount()
+
+# unlock account
+> personal.unlockAccount("<account address>", "<password>", <duration s>)
+
+# list accounts
+geth account list
+> eth.accounts
+> personal.listAccounts
+
+# list wallets
+> personal.listWallets
+
+# get account balance
+> eth.getBalance('<account>')
+
+# load js functions from a file
+> loadScript("/Users/username/gethload.js")
+
+# js function to list all balances
+function checkAllBalances() {
+    var totalBal = 0;
+    for (var acctNum in eth.accounts) {
+	var acct = eth.accounts[acctNum];
+	var acctBal = web3.fromWei(eth.getBalance(acct), "ether");
+	totalBal += parseFloat(acctBal);
+	console.log("  eth.accounts[" + acctNum + "]: \t" + acct + " \tbalance: " + acctBal + " ether");
+    }
+    console.log("  Total balance: " + totalBal + " ether");
+};
+
+
+
+misc
+====
+
+# get a current bitcoin price
+curl https://api.coindesk.com/v1/bpi/currentprice.json | jq
+

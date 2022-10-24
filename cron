@@ -1,0 +1,10 @@
+rules
+=====
+
+#  run a script every hour with cron
+0 * * * * /root/script.sh
+
+# run command after reboot
+@reboot /bin/touch /home/x
+@reboot sleep 20; /bin/systemctl restart hostapd
+

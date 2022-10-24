@@ -1,0 +1,54 @@
+manipulation
+============
+
+# get last extension of the filename (file.tar.gz -> gz)
+${filename_var##*.}
+
+# get last two extensions of the filename (file.tar.gz -> tar.gz)
+${filename_var#*.}
+
+# get a base name of the filename (file.tar.gz -> file)
+${filename_var%%.*}
+
+# get a base name of the filename with one extension (file.tar.gz -> file.tar)
+${filename_var%.*}
+
+# remove a prefix from a string
+${string_var#"prefix_str1"}
+
+# remove a suffix from a string
+${string_var%"suffix_str"}
+
+# find a substring in a string
+string='my long string'
+[[ ${string} == *"my long"* ]] && echo "it's there"
+
+# get substring between the 5th and 16th character
+${string_var:5:11}
+
+# get a string without the substring between the 5th and 11th character
+${string_var/${string_var:5:11}}
+
+# get the string between the 5th and 11th character replaced with another string
+${string_var/${string_var:5:11}/str_replacement}
+
+# replace a substring with another string
+${string_var/repl_this/with_this}
+
+# make the string uppercase
+${string_var^^}
+
+# make the string lowercase
+${string_var,,}
+
+
+
+misc
+====
+
+# store a newline in a variable
+var1=$'\n'
+
+# escape each special shell character in a string
+sed -e 's|[^a-zA-Z0-9,._+@%/-]|\\&|g' -e '1{$s|^$|""|}' -e '1!s|^|"|' -e '$!s|$|"|'
+

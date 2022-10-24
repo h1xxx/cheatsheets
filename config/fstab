@@ -1,0 +1,97 @@
+# /etc/fstab: static file system information
+
+### system values
+
+# <file system> <dir> <type> <options> <dump> <fsck/pass>
+
+# /dev/vda1
+UUID=27a25dec-260a-4a7e-895e-ea24752f2058 /boot ext4 rw,lazytime,relatime,noiversion,loud 0 2
+
+# /dev/vda2               
+UUID=b92538f8-880f-4e2b-a8f9-5c7f7f27980f / ext4 rw,lazytime,relatime,noiversion,loud 0 1
+
+# tmpfs
+tmpfs /tmp tmpfs rw,nosuid,noatime,nodev,mode=1755
+tmpfs /run tmpfs rw,nosuid,noatime,nodev,mode=1755
+
+
+### fields
+
+# <device> 	block special device or remote filesystem to be mounted 
+# <dir>		mount directory
+# <type> 	the file system type, auto type lets the mount command guess
+# 		what type the filesystem is
+# <options>	the associated mount options; see mount(8) and ext4(5).
+# <dump> 	is checked by the dump(8) utility. Set to 0 to disable dump.
+# <fsck> 	sets the order for filesystem checks at boot time; see fsck(8),
+#		for the root device it should be 1, for other partitions it
+#		should be 2 or greater, or 0 to disable checking.
+
+
+### useful options
+
+# defaults	use options: rw, suid, dev, exec, auto, nouser and async
+# noatime 	turns off files' atimes recording for increased performance;
+#		breaks mutt new mail detection
+# noauto	don't mount with `mount -a` and on boot
+# noexec 	do not permit execution of any binaries on the filesystem
+# lazytime	only update times (atime, mtime, ctime) on the in-memory
+# 		version of the file inode; this reduces writes to disk;
+#		the on-disk timestamps are updated only when:
+#		- the  inode  needs to be updated for some change
+#		- the application employs fsync(2), syncfs(2), or sync(2)
+#		- an undeleted inode is evicted from memory
+#		- more than 24h have passed since the inode was written to disk
+# relatime	update inode access times relative to modify or change time,
+#		access time is only updated if the previous access time was
+#		earlier than the current modify or change time; mutt needs this
+# user		anybody can mount the corresponding filesystem
+# owner		allow the device owner to mount the filesystem
+# group		allow the device group member to mount the filesystem
+# ro		read only
+# rw		read/write
+# noiversion	every time the inode is modified, the i_version field will
+#		not be incremented
+# loud   	turn off the silent flag
+# sync		flush all changes to disks without delay; async is default
+# loop		mounts an image as a loop device
+# notail	increases performance of ReiserFS at the expense of storage
+# 		efficiency 
+# nosuid	do not honor set-user-ID and set-group-ID bits or file
+#		capabilities when executing programs from this filesystem
+# nodev		do not try to detect the filesystem type
+
+
+### /proc options
+
+ Value                               Description
+hidepid=0	/proc/<pid>/* will be world readable; the default.
+hidepid=1	The /proc/<pid> directories are visible by all users, but
+		users can only access the /proc/<pid> directories they own.
+hidepid=2	Same as hidepid=1 but the /proc/<pid> directories of other
+		users are hidden.
+
+
+
+
+### examples
+
+# LABEL=boot /boot ext4 noauto,noatime 1 2
+# UUID=28e82203-57d1-4497-81ad-97655b856494 / ext4 noatime 0 1
+# LABEL=swap none swap sw 0 0
+# /dev/cdrom /mnt/cdrom auto noauto,ro 0 0
+# /dev/sda2 / ext4 rw,relatime,data=ordered 0 1
+# tmpfs /var/log tmpfs defaults,mode=0755 0 0
+# tmpfs /var/log/apt tmpfs defaults 0 0
+# tmpfs /tmp tmpfs rw,nosuid,noatime,nodev,size=4G,mode=1777
+# tmpfs /run tmpfs rw,nosuid,noatime,nodev,mode=1755
+# none /var/cache unionfs dirs=/tmp:/var/cache=ro 0 0
+
+# /dev/vda2
+#UUID=da9f4b63-a81f-48bc-bcdd-b7bbac93ca50 / ext4 rw,lazytime,relatime,noiversion,loud 0 1
+
+# /dev/vda3 
+#UUID=1128be4c-1e06-39bf-88f4-15c7afa8ede2 /home ext4 rw,lazytime,relatime,noiversion,loud 0 2
+
+#host0 /home/ftp/chroot_root 9p trans=virtio,version=9p2000.L 0 0
+

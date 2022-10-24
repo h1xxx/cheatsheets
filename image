@@ -1,0 +1,80 @@
+e-books
+=======
+
+# convert e-books
+ebook-convert book.epub book.mobi
+---
+ebook-convert book.azw3 book.pdf
+---
+ebook-convert file.pdf file.txt
+
+# convert ebook to html
+einfo -pp book.epub >> book.html
+
+# read ebook in w3m
+einfo -pp book.epub | \w3m -T text/html
+
+
+
+ImageMagick
+===========
+
+# get image info
+convert <src file> -print "Type: %m Size: %b Dims: %wx%h" /dev/null
+
+# change file format
+convert <src file> -append <dest file>
+
+# resize image, reduce dimensions (create a thumbnail)
+convert -resize 25% <src file> <dest file>
+convert -resize 1024x768 <src file> <dest file>
+convert -resize 1024 <src file> <dest file>
+
+# resize image, reduce dimensions (create a thumbnail) inplace
+mogrify -resize 25% <src file> <dest file>
+
+# merge (combine) images into one (+ horizontally, - vertically)
+convert +append <src files> <dest file>
+
+# merge (combine) images into a collage (-tile 2x: two cols, -tile x2: two rows)
+montage +append <src files> <dest file>
+
+# crop an image - take a little evenly off the top or sides
+convert <src file> -crop 640x250+0+0 <dest file>
+
+# crop an image - leave only the bottom
+convert <src file> -crop 640x250+0+230 <dest file>
+
+# add a caption to an image
+convert <src file> -pointsize 14 -font helvetica -fill yellow -draw 'text 270,160 "example" ' <dest file>
+
+# rotate image clockwise
+convert <src file> -rotate 90 <dest file>
+
+# compress all png images and put them into pdf
+vim /etc/ImageMagick-7/policy.xml
+# edit to: <policy domain="coder" rights="read|write" pattern="PDF" />
+convert -resize 800 -quality 90 <png input files> <pdf output file>
+
+
+
+scanner
+=======
+
+# check if scanner is found and get the scanner name e.g. pixma:04A91912_45D9B5
+scanimage -L
+
+# scan the image
+scanimage --device-name 'pixma:04A91912_45D9B5' --resolution 300 --format png > out.png
+
+
+
+misc
+====
+
+# transform image files
+exiftran --help
+
+# view autoresized image on fb0
+fbi -a -d /dev/fb0
+

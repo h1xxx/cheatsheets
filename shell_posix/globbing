@@ -1,0 +1,14 @@
+misc
+====
+
+# [] character classes, e.g. [:alnum:]
+alnum alpha ascii blank cntrl digit graph
+lower print punct space upper word xdigit
+
+# common regular expressions
+*               matches 0 or more occurences of previous char
+.               matches one char
+[134a-z]        matches all char in brackets
+[^134a-z]       matches none of the chars in brackets
+^xyz            matches xyz if xyz is first in the line
+$               matches previous chars if thet are last in the line

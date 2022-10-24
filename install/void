@@ -1,0 +1,42 @@
+# add 0 timeout, nomodeset and enable grub txt in /etc/default/grub
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# configure ssh
+# add keys for root and users
+vi /etc/ssh/sshd_config - PermitRootLogin yes
+vi /etc/passwd - bash as shell for root
+
+# update system and install base pkgs
+xbps-install -Su
+xbps-install -S vim
+
+# set autologin in /etc/sv/agetty-tty1/conf
+'--autologin x --noclear'
+
+# add shared drive in /etc/fstab
+host0   /mnt/shared    9p      trans=virtio,version=9p2000.L,msize=524288   0 0
+
+# install gui pkgs
+xbps-install -S xorg-minimal xorg-fonts alsa-utils dwm st firefox libavcodec
+xbps-install -S xorg-minimal xorg-fonts xf86-input-evdev xf86-video-vesa dwm st firefox libavcodec
+
+echo 'exec dwm' > /home/x/.xinitrc
+
+# disable nomodeset in grub
+
+# /etc/X11/xorg.conf.d/10.keyboard.conf
+Section "InputClass"
+	Identifier "system-keyboard"
+	MatchIsKeyboard "on"
+	Option "XkbLayout"      "pl,us"
+	Option "GrabDevice"     "False"
+EndSection
+
+# Section "Serverflags"
+	Option "DontVTSwitch" "off"
+EndSection
+
+# autostart x in /home/x/.bash_profile
+if [ -z "$DISPLAY" ] && [ "$(fgconsole)" -eq 1 ]; then
+	startx
+fi

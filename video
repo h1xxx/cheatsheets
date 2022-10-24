@@ -1,0 +1,100 @@
+mpv
+===
+
+# list preset audio equalizer
+mpv --af=help
+
+# set audio eqalizer
+mpv --af=equalizer=1.4:-2.9:-2.4:0.0:2.4:3.3:5.3:5.7:6.7:5.8 <file>
+
+# list default options
+mpv --list-options
+
+# play a file backwards (in reverse)
+mpv --play-dir=- <file>
+
+# fast mpv presets for slow machines
+mpv --vd-lavc-fast --video-unscaled=yes --demuxer-thread=no
+
+# even faster mpv presets for slow machines
+mpv --vd-lavc-fast --video-unscaled=yes --demuxer-thread=no --sws-fast --sws-scaler=fast-bilinear
+
+# remove tearing on slow machines
+mpv --speed=1.005 --audio-pitch-correction=no
+
+# limits loud noise but also makes quiet noise louder
+mpv af=loudnorm
+
+# list all cards and connectors
+mpv --drm-connector=help
+
+# play a video on a specific card and connector
+mpv -vo drm --drm-connector=VGA-1 file.mkv
+---
+mpv --drm-connector=1.VGA-1 --vo=drm --drm-mode=3
+
+# mpv keys
+r/R	move subtitles up and down
+
+# mpv useful arguments
+--sub-file=file.srt	subtitle file
+--sub-scale=<0-100>	make subtitles bigger (default 1)
+--sub-back-color 0	turn on black background in subtitles
+
+
+
+ffmpeg
+======
+
+# add subtitles to a video
+ffmpeg -i infile.mp4 -i infile.srt -c copy -c:s mov_text outfile.mp4
+
+# convert git to avi
+convert in.gif tmp.png && ffmpeg -i tmp.png out.avi
+
+
+
+camera
+======
+
+# list camera devices
+v4l2-ctl --list-devices
+
+# list camera modes
+v4l2-ctl --list-formats-ext
+
+# list camera options
+v4l2-ctl -L
+
+# change camera option
+v4l2-ctl -c <option>=<value>
+
+# record video
+ffmpeg -f v4l2 -framerate 30 -video_size 640x480 -i /dev/video0 out.mkv
+
+# record audio and video
+ffmpeg -ar 44100 -ac 2 -f alsa -i hw:0 -f v4l2 -framerate 30 -video_size 640x480 -i /dev/video0 out.mkv
+
+# record with big buffer
+ffmpeg -thread_queue_size 1024 -ar 44100 -ac 2 -f alsa -i hw:0 -thread_queue_size 1024 -i /dev/video0 out.mkv
+
+# view video from the camera
+mpv --vo drm /dev/video0
+
+# view video from the camera with higher resolution
+mpv --vo drm --demuxer-lavf-o=video_size=1280x720 av://v4l2:/dev/video0
+
+# view video from the camera with higher resolution and enabled compression to
+#  fit into USB 2.0 bandwidth (v4l2-ctl --list-formats-ext to get more modes)
+mpv --vo drm --demuxer-lavf-o=video_size=1280x720:input_format=mjpeg av://v4l2:/dev/video0
+
+# read QR codes
+zbarcam --nodisplay --prescale=1280x1024 /dev/video0
+
+
+
+misc
+====
+
+# play video under tty with mplayer
+mplayer -vo fbdev2 -fs -zoom -xy 1280 -quiet -msglevel all=-1 file.mkv

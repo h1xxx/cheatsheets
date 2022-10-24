@@ -1,0 +1,76 @@
+math operations
+===============
+
+# increment an integer variable
+i=$((i+1))
+
+# add two hex values
+printf "%X\n" $((0xA + 2))
+
+# add two hex numbers, example bc interactive session
+bc -l
+>>> obase=16    # set order
+>>> ibase=16    # once you set input base all numbers are in that
+>>> 9+3
+>>> C
+>>> ibase=A     # set input base to decimal
+>>> obase=10    # set output base to decimal
+>>> 9+3
+>>> 12
+
+# decimal to octal number
+echo "obase=8; 23" | bc
+
+# decimal to hex number
+echo "obase=16; 23" | bc
+
+# decimal to any base number
+convert decimal number to base 4 number system
+echo "obase=4; 23" | bc
+
+# how about convert to base 7?
+echo "obase=7; 23" | bc
+
+# binary to decimal
+echo "ibase=2; 11010101" | bc
+
+# oct to decimal
+echo "ibase=8; 723" | bc
+
+# hex to decimal
+echo "ibase=16; 23" | bc
+
+# add two hex values
+printf "%x\n" $((0x$val1 + 0x01))
+
+# hex to decimal
+echo $((0x123))
+
+# printf command can convert hex and oct to decimal decimal to octal
+printf "%on" 123
+
+# decimal to hex
+printf "%xn" 123
+
+# convert decimal to ascii
+printf "\x$(printf "%x" 122)\n"
+
+# convert ascii to decimal
+echo -n a | od -i -a n | sed 's/ //g'
+
+# convert hex value to binary
+echo 'ibase=16;obase=2;5F' | bc
+echo -e '\x4F' | awk '{printf "%c\n", $1}'
+
+# convert hex string to ascii
+tmp="0x61 0x67 0x72 0x65 0x73 0x6f 0x72 0x40 0x6e 0x66 0x73 0x65 0x63 0x2e 0x70
+0x6c"
+for x in $tmp; do echo $x | xxd -r; done
+
+# get a random number between 1 and 5
+echo $(((RANDOM%5)+1))
+
+# calculate an expression with three decimal places of accuracy
+printf "%.3f" $(echo $exp | bc -l)
+
+

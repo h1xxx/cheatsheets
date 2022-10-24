@@ -1,0 +1,235 @@
+filesystems / partitions
+======================
+
+# create a fs with larger inode size for small disks to avoid year 2038 issue
+mkfs.ext4 -I 256 /dev/sda1
+
+# list loop devices
+losetup -l
+
+# mount an image file with partitions
+losetup -Pf disk0.img
+mount /dev/loop0p1 /mnt/disk0p1
+mount /dev/loop0p2 /mnt/disk0p2
+umount /mnt/disk0*
+losetup -d /dev/loop0
+
+# force unmount
+umount -l /path/of/busy-device
+umount -f /path/of/very-busy-nfs
+
+# mount 9p filesystem
+mount -t 9p -n 10.1.0.1 /mnt/ -oaname=/mnt,version=9p2000.L,uname=<user>,access=any,msize=524288,port=<port>
+
+# mount iso file
+mount -o loop image.iso /mnt/disk
+
+# mount directory to drectory (rbind is recursive)
+mount --rbind dirsource dirtarget
+---
+mount --bind dirsource dirtarget
+
+# mount tmpfs
+mount --types tmpfs tmpfs /tmp
+---
+mount -o size=60G -t tmpfs tmpfs /tmp
+
+# mount ntfs filesystem from a partition img
+mount -o loop -t ntfs sda1.img /mnt/ntfs
+
+# find device behind a mountpoint
+findmnt /
+
+# check if a directory is a mount point
+mountpoint -q /mnt && echo is_mountpoint || echo is_not_mountpoint
+
+# remount read-only root filesystem to read-write
+mount -o remount,rw /
+
+# mount options (-o)
+ro	read-only
+rw	read-write
+user	when in fstab, regular users can mount this filesystem
+
+# create a partition table (mbr or gpt)
+echo 'label: gpt' | sfdisk /dev/sda
+
+# remove all partition tables
+sgdisk --zap-all /dev/vda
+sgdisk --clear /dev/vda
+
+# create a gpt partition table
+sgdisk -g /dev/vda
+
+# show partition types
+sfdisk -T
+
+# create partitions
+parted -s /dev/sda mklabel msdos
+parted -s /dev/sda mkpart primary ext4 1MiB 256GiB
+parted -s /dev/sda mkpart primary ext4 256GiB 100%
+---
+sgdisk --new 1::+2M --typecode=1:ef02 --change-name=1:'BIOS boot partition'
+sgdisk --new 2::+100M --typecode=2:ef00 --change-name=2:'EFI System'
+sgdisk --new 3::-0 --typecode=3:8300 --change-name=3:'Linux root filesystem'
+---
+sgdisk --new 1:+2M:+1G --typecode=1:ef02 /dev/sda	# boot bios part 1
+sgdisk --attributes 1:set:2 /dev/sda	 # set attr 'legacy BIOS bootable'
+sgdisk --new 2::-0 --typecode=2:8300 /dev/sda	# root part 2 till the end
+
+
+
+info
+====
+
+# get uuid of disks
+blkid -s UUID -o value /dev/sda2
+blkid -s PARTUUID -o value /dev/sda2
+
+# detailed information on a disk
+hdparm -I /dev/sdb
+
+# idle (power saving) mode information of a disk
+hdparm -C /dev/sdb
+smartctl -i -n standby /dev/sdb
+
+# add filesystem info to default lsblk output
+lsblk -o +FSTYPE /dev/sde
+
+# short disks info
+lsblk -o NAME,SIZE,FSUSED,TYPE,FSTYPE,MOUNTPOINT
+
+# find filesystem inode size
+tune2fs -l /dev/sda1 | grep "Inode size:"
+
+# show disk read/writes performance
+iostat -d 30 -m
+
+# find bad sectors on a disk and write their id to a file
+badblocks -v -o badblocks.log /dev/sda1
+
+# find bad sectors by writing to a disk, destroys the data
+badblocks -vw /dev/sda1
+
+# read temperature if sensor is available
+hdparm -H /dev/sdb
+
+# show all SMART values
+smartctl -a /dev/sda
+
+# get total bytes written value (TBW) assuming 512 bytes sector size (in TB)
+echo "$(smartctl -a /dev/sda | grep Total_LBAs_Written | tr -s ' ' | cut -d' ' -f10) * 512 / 1024^4" | bc
+
+# smart values to look after, list
+load cycle count
+power cycle count
+Total_LBAs_Written
+
+
+
+raid
+====
+
+# mount one disk from raid array
+mdadm --assemble /dev/md0 /dev/sdb
+mdadm --run /dev/md0
+mount /dev/md0 /mnt
+
+# view inforamtion on mounted raid arrays
+cat /proc/mdstat
+
+# stop raid array
+mdadm --stop /dev/md0
+
+
+
+config
+======
+
+# put disk in idle (power saving) mode
+hdparm -y /dev/sdb
+
+# set timeout to put disk in idle (power saving) mode, list
+1-240		 multiples of 5 seconds
+241		 30 minutes
+242		 60 minutes
+...
+251		 330 minutes
+hdparm -S 60 /dev/sdb
+
+# set Advanced Power Management level, list
+1-127: permit spindown, max power savings
+128-254: do not permit spindown, max performance
+255: disable
+hdparm -B 127 /dev/sdb
+
+
+
+dm-crypt
+========
+
+# encrypt a disk
+cryptsetup -v -q --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha256 --iter-time 5000 --use-random luksFormat /dev/sdb
+
+# decrypt a disk via ssh
+cat some.key | cryptsetup open /dev/sdb sdb_root --key-file=-
+
+# show keys on a device
+cryptsetup luksDump /dev/<device>
+
+# add a key from a file
+cryptsetup luksAddKey /dev/<device> <key_file>
+
+# recreate dm-crypt mapper crypt devices (disappearing root issue)
+dmsetup mknodes
+
+
+
+lvm
+===
+
+# resize a partition
+unmount
+resize2fs /dev/mapper/myvg-mylv 10G
+lvreduce -L 10G /dev/mapper/myvg-mylv
+
+# example commands
+pvcreate /dev/sda2
+pvdisplay
+vgcreate <volume_group> <physical_volume>
+vgcreate VolGroup00 /dev/sda2
+vgextend <volume_group> <physical_volume>
+vgextend <volume_group> <another_physical_volume>
+vgextend VolGroup00 /dev/sdb1
+vgextend VolGroup00 /dev/sdc
+vgdisplay
+vgcreate VolGroup00 /dev/sda2 /dev/sdb1 /dev/sdc
+lvcreate -L <size> <volume_group> -n <logical_volume>
+lvcreate -L 10G VolGroup00 -n lvolhome
+lvcreate -L 10G VolGroup00 -n lvolhome /dev/sdc1
+lvcreate -l 100%FREE  <volume_group> -n <logical_volume>
+lvdisplay
+
+# find lvm groups
+vgscan
+
+# activate found group
+vgchange -ay VolGroup00
+
+# find the logical volumes
+lvs
+
+# mount logical volume
+mount /dev/VolGroup00/LogVol00 /mnt/
+
+# deactivate group after unmounting
+vgchange -an VolGroup00
+
+
+
+misc
+====
+
+# copy MBR to a file
+dd if=/dev/sda of=mbr.bin bs=512 count=1
+

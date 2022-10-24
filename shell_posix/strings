@@ -1,0 +1,19 @@
+manipulation
+============
+
+# get a base name of the filename (file.tar.gz -> file)
+basename file.tar.gz
+
+
+
+conversion
+==========
+
+# convert integer 65 to ascii 'A' (first from decimal to octal)
+printf \\$(printf '%03o' 65)
+
+# loop through hexadecimal numbers
+for i in `seq 0 15`; do printf "%x\n" $i; done
+||
+for i in `seq 0 15`; do printf "%#x\n" $i; done
+

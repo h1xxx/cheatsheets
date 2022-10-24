@@ -1,0 +1,257 @@
+arch linux
+==========
+
+# install android emulator
+https://aur.archlinux.org/android-sdk-cmdline-tools-latest.git
+cd android-sdk-cmdline-tools-latest
+makepkg
+cd pkg/ ...
+./sdkmanager
+./sdkmanager --list
+./sdkmanager platform-tools emulator
+./sdkmanager 'platforms;android-30' 'system-images;android-30;google_apis_playstore;x86_64' 'build-tools;30.0.2'
+#  list of downloadable system images
+./sdkmanager --list | grep "system-images;android"
+./avdmanager create avd -n 'my_avd_30' -k 'system-images;android-30;google_apis_playstore;x86_64'
+./avdmanager list avd
+cd ../../
+./emulator -avd my_avd_30
+cd platform-tools
+cp file1.apk .
+./adb install file1.apk
+||
+./sdkmanager 'platforms;android-22' 'system-images;android-22;default;x86_64' 'build-tools;22.0.1'
+./avdmanager create avd -n 'my_avd_22' -k 'system-images;android-22;default;x86_64'
+
+
+
+aosp install LG Nexus 5X
+========================
+
+# developer options (including usb debugging)
+tap 5 times on Settings > System > About phone > Build number
+
+# unlock oem in developer settings and allow usb debugging
+
+# after unlocking usb debugging reboot to bootloader (below command or press vol- + power during boot)
+sudo adb reboot bootloader
+
+# check if device is recognized by fastboot
+sudo fastboot devices
+
+# unlock flashing
+fastboot flashing unlock
+
+# flash older version of android
+sudo ./flash-all.sh    
+
+# might not be necessary - after unlocking usb debugging format phone to get rid of encryption
+sudo fastboot format userdata
+
+# after unlocking usb debugging copy CM zip to sdcard
+sudo adb push cm-14.1-20161123-NIGHTLY-bullhead.zip /sdcard/
+
+# reboot to bootloader and flash custom recovery
+sudo fastboot flash recovery twrp-3.0.2-0-bullhead.zip
+sudo fastboot reboot-bootloader
+
+# determine android built from the CM zip
+cat META-INF/com/android/metadata
+
+# flash vendor, radio and bootloader from that version from
+# https://developers.google.com/android/images#bullhead
+sudo fastboot flash vendor vendor.img
+sudo fastboot flash radio radio-bullhead-m8994f-2.6.33.2.14.img
+sudo fastboot flash bootloader bootloader-bullhead-bhz11g.img
+sudo fastboot reboot-bootloader
+
+# in recovery mode wipe system and install
+
+
+
+aosp install OnePlus 8T
+=======================
+
+# developer options (including usb debugging)
+tap 5 times on Settings > System > About phone > Build number
+
+# unlock oem in developer settings and allow usb debugging
+
+# reboot to bootloader (below command or press vol- + power during boot)
+sudo adb reboot bootloader
+
+#check if device is recognized by fastboot
+sudo fastboot devices
+
+#unlock flashing
+fastboot oem unlock
+
+# install custom recovery (download twrp for kebab with gui browser)
+adb reboot bootloader
+fastboot devices
+fastboot flash recovery twrp-3.6.0_11-3-kebab.img
+fastboot reboot-bootloader
+<select recovery mode>
+
+# (once per devcice) ensure that partition 'a' and 'b'  are the same
+(on device in recovery) 'ADB Sideload'
+adb sideload copy-partitions-20210323_1922.zip
+
+# install lineage
+adb reboot bootloader
+(on device in recovery) - (reset / wipe data)
+(on device in recovery) 'ADB Sideload'
+adb sideload lineage-18.1-20220303-nightly-kebab-signed.zip
+
+
+
+graphene os install pixel 3a
+============================
+
+adb reboot bootloader
+fastboot flashing unlock
+./flash_all.sh
+- test if ok -
+adb reboot bootloader
+fastboot flashing lock
+- disable oem unlocking in dev setting -
+
+
+
+lineage xperia xz2 compact
+==========================
+
+<get oem unlock key from sony webpage>
+adb reboot bootloader
+fastboot devices
+fastboot oem unlock 4BB24D7ED18DFD23 <- key from sony
+adb reboot bootloader
+fastboot flash boot lineage-18.1-20220311-recovery-xz2c.img
+<power off, then volume down + power>
+<select Apply Update, then Apply from ADB>
+adb sideload copy-partitions-20210323_1922.zip
+<select apply anyway>
+<select Factory Reset, then Format data / factory reset>
+<select Apply Update, then Apply from ADB>
+adb sideload lineage-18.1-20220311-nightly-xz2c-signed.zip
+
+
+
+aosp samsung install
+====================
+
+# devices
+Galaxy Tab S2 8.0 Wi-Fi 2016 (SM-T713) (gts28vewifi)
+Galaxy Tab S 10.5 Wi-Fi (SM-T800) (chagallwifi)
+
+# disable oem lock, if exists
+tap 5 times on Settings -> System -> About phone -> Build number
+Settings -> Developer Options -> OEM unlocking
+
+# enter into download mode
+power + home + volume_down when rebooting
+
+# find name of the recovery partition (--RECOVERY or --19)
+heimdall print-pit
+
+# flash twrp
+heimdall flash --RECOVERY twrp-3.5.0_9-0-gts28vewifi.img --no-reboot
+
+# restart into twrp
+power + home + volume_down until screen goes black
+power + home + volume_up immidiately after that
+
+# modify lineage image
+remove assert verify_trustzone from file
+	META-INF/com/google/android/updater-script
+7z a -tzip ../lineage-16.0-20201228-nightly-gts28vewifi-signed.zip .
+
+# while in twrp
+wipe by format, restart into recovery
+select sideload mode
+adb sideload lineage-16.0-20201228-nightly-gts28vewifi-signed.zip
+
+
+
+
+aosp build
+==========
+
+# arch - activate multilib
+pacman -S wget unzip bc bison base-devel multilib-devel lib32-gcc-libs ccache \
+curl flex gcc-multilib git gnupg gperf imagemagick lib32-ncurses lib32-readline \
+lib32-sdl lib32-lz4 lib32-openssl lib32-libxml2 lzop pngcrush rsync schedtool \
+squashfs-tools lib32-libxslt libxslt zip lib32-zlib wxgtk jdk8-openjdk
+
+# debian
+add to /etc/apt/sources.list for openjdk-8-jdk
+deb http://security.debian.org/debian-security stretch/updates main
+
+apt-get install bc bison build-essential ccache curl flex g++-multilib \
+gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev \
+lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev \
+libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip \
+zlib1g-dev usbutils openjdk-8-jdk
+
+# get system image with blobs
+mkdir ~/official && cd ~/official
+wget http://dlr.ovh:8080/bullhead/lineage-15.1-20200218-nightly-bullhead-signed.zip
+unzip lineage*
+brotli --decompress system.new.dat.br
+git clone https://github.com/xpirt/sdat2img
+python ./sdat2img/sdat2img.py system.transfer.list system.new.dat system.img
+mkdir mnt
+mount system.img ~/official/mnt
+
+cd /mnt/build
+mkdir -p bin
+mkdir -p android
+
+wget https://dl.google.com/android/repository/platform-tools-latest-linux.zip
+unzip platform-tools-latest-linux.zip
+
+curl https://storage.googleapis.com/git-repo-downloads/repo > bin/repo
+chmod a+x bin/repo
+
+export PATH="/mnt/build/bin:/mnt/build/platform-tools:${PATH}"
+
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
+cd android
+repo init -u https://github.com/LineageOS/android.git -b lineage-15.1
+
+repo sync -j 8
+
+# get config and kernel
+source build/envsetup.sh
+breakfast bullhead
+
+# extract blobs from the device
+cd device/lge/bullhead
+./extract-files.sh ~/official/mnt
+cd -
+
+export USE_CCACHE=1
+export CCACHE_EXEC=/usr/bin/ccache
+export CCACHE_DIR=/mnt/build/ccache/
+ccache -M 100G
+export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+export WITH_SU=true
+export TARGET_HW_DISK_ENCRYPTION=false
+export TARGET_SWV8_DISK_ENCRYPTION=false
+export TARGET_LEGACY_HW_DISK_ENCRYPTION=false
+
+croot
+brunch bullhead
+
+
+
+aosp build config files
+=======================
+
+cd ./build/make/target/product
+
+device/lge/bullhead/aosp_bullhead.mk
+build/make/target/product/aosp_base_telephony.mk
+

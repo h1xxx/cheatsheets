@@ -1,0 +1,80 @@
+comparisons
+===========
+
+# show comparison operators
+help test
+
+# check if string matches a regex
+[[ "${str_var}" =~ regex_string ]] && echo 'match'
+
+
+
+misc
+====
+
+# loop n number of times
+for i in {0..10}; do echo ${i}; done
+for ((n=0;n<10;n++)); do echo ${i}; done
+seq 10 | xargs -Iz echo "Hi there z"
+parallel echo ::: {1..10}
+
+# pipe output of multiple commands to another command
+(echo zzz; echo aaa; echo kkk) | sort
+
+# 'set -o' options
+noclobber	do not overwrite files
+
+# read lines from a variable
+while read -r line; do
+	echo "... ${line} ..."
+done <<< "${list}"
+
+# run python script in bash
+python <<< """import json; print('hello')"""
+
+# create a multiline file
+cat > /etc/myconfig.conf <<EOF
+line 1
+line 2
+line 3
+line 4
+EOF
+
+# check is shell is interactive
+[[ $- == *i* ]] && echo 'is interactive'
+
+# catch sigint to exit script
+trap "exit" INT
+
+# disable unsetting for first postional argument
+[ -v ${1:-unset} ] && var1=${1}
+
+# show all script arguments starting from 2
+echo "${@:2}"
+
+# read line by line from file ${1}, or stdin if ${1} is missing
+while read line; do
+	echo "${line}"
+done < "${1:-/dev/stdin}"
+
+# read from stdin
+stdin_var="$(cat)"
+---
+stdin_var="$(cat -)"
+---
+stdin_var="$(cat <&0)"
+
+# read files in a '\0' terminated list
+find . -print0 | while read -d $'\0' file; do echo "${file}"; done
+
+# read a file character by character
+sed 's|\(.\)|\1\n|g' file1.txt | while read char; do echo $char; done
+---
+var1=$(cat file1.txt)
+for i in $(seq 0 ${#var1}); do echo "${var1:${i}:1}"; done
+
+# 'which' command replacements
+whence <program>
+---
+type -p <program>
+

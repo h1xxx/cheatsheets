@@ -1,0 +1,411 @@
+help
+====
+
+# show help on each command
+git command --help
+
+
+
+diff
+====
+
+# show whole functions for context
+git diff -W
+
+
+
+history
+=======
+
+# see all commits
+git log
+
+# show commits of a certain contributor (author)
+git log --author=jake
+
+# show each commit on one line
+git log --pretty=oneline
+
+# ascii art tree of all branches
+git log --graph --oneline --decorate --all
+
+# another formatted one line log
+git log --graph --pretty='format:%C(red)%d%C(reset) %C(yellow)%h%C(reset) %ar %C(green)%aN%C(reset) %s'
+
+# check which files have changed in each commit
+git log --name-status
+---
+git log --stats
+
+# show number of changed lines for each commit
+git log --stat
+---
+git shortlog --shortstat
+
+# list summary of contributors (authors)
+git shortlog -s -n --no-merges
+
+# view a history of all the changes in a file
+git log -p <filename>
+
+# view a history of a single file from all the branches
+git log --follow -p <filename>
+
+# verify commit gpg signatures
+git log --show-signature
+
+# show last modify date of a file
+git log -1 --format="%ad" -- file1.txt
+
+# show changes made in the commit
+git show
+git show <commit>
+git show HEAD~1
+
+# show the list of commits
+git rev-list
+
+# count the number of commits on current branch between two dates
+git rev-list HEAD --count --since="Jun 30 2018" --before="Jul 15 2018"
+
+# resolve the names to the commit IDs
+git rev-parse origin master origin/master HEAD branch1
+
+# show diffs in file for each commit
+git log -p --full-diff [branch name] -- <file name>
+
+# show commits that modified a file
+git log --follow --all <file name>
+
+# test if commit exists
+git rev-parse --quiet --verify 3a84ab2
+
+# list tags with dates
+git tag -l --format='%(refname)   %(taggerdate)'
+
+# show code lines and commit authors
+git blame
+
+
+
+branching
+=========
+
+# show status info: branch, (un)tracked, (not) modified files
+git status
+
+# preview changes between differnt branches
+git diff source_branch target_branch
+git diff master feature/xxx1
+git diff origin/master feature/xxx1
+
+# copy a local branch
+git checkout <old_branch>
+git branch <new_branch>
+
+# copy a local branch
+git checkout -b <new_branch> <old_branch>
+
+# push a new branch to remote repo
+git push --set-upstream origin <new_branch>
+
+# rename a brach
+git branch -m <old_name> <new_name>
+
+# delete a branch in remote repo by pushing an empty reference to remote branch
+git push origin :<old_name>
+
+# delete a branch in remote repo
+git push --delete origin <branch_name>
+
+# checkout to a branch
+git checkout branch_name
+
+# create a branch and checkout to it
+git checkout -b new_branch_name
+
+# merge another branch into your active branch
+git merge another_branch_name
+
+# delete a branch
+git branch -d branch_name
+
+
+
+local / staging
+===============
+
+# add files to staging environment i.e. index
+git add -A         # stage all
+git add .          # stage new and modified, but not deleted
+git add -u         # stage modified and deleted, but not new
+
+# remove files from staging environment i.e. index
+git reset <file_name>
+
+# replace local changes in a file with its repo version
+git checkout file_name
+git checkout master file_name
+git checkout another_branch file_name
+
+# reset entire repository to the last commited state
+git reset --hard
+
+# reset entire respository and sync it with remote, discard all local commits
+git reset --hard @{u}
+git reset --hard origin/master
+
+# clear staging environment (no changes to working dir)
+git reset
+
+# clear staging environment for one file (no changes to working dir)
+git reset HEAD file_name
+
+# remove local untracked files dry-run
+git clean -n
+
+# remove local untracked files
+git clean -f
+---
+git add --all
+git reset --hard
+
+# remove local untracked files and directories and ignored files
+git clean -f -d -x
+
+# remove all changes
+git reset --hard
+
+# delete all local changes and commits
+git reset --hard origin/master
+
+# delete unpublished commits after commit 3fg93dmcb
+git reset --hard 3fg93dmcb
+
+
+
+commits
+=======
+
+# wrap all changes in staging to a single commit
+git commit -m "Description"
+
+# commit and sign the commit
+git commit -S -m "Description"
+
+# change the description of last commit, use checkout <commit> if there's a need
+to change more than one commit
+git commit --amend -m "New description"
+
+# change the commit messages for many commits
+git rebase -i HEAD~8 || git rebase -i 'e3c3431d^'
+# change 'pick' to 'edit' for the commits to be modified
+git commit --amend -m 'new msg'
+git rebase --continue
+...
+git commit --amend -m 'another new msg'
+git rebase --continue
+
+# change the author of last commit, use checkout <commit> if there's a need
+# to change more than one commit
+git commit --amend --author="New author" --no-edit
+
+# change the author of all commits
+git filter-branch --commit-filter 'export GIT_AUTHOR_NAME="h1x"; export GIT_AUTHOR_EMAIL=h1x@linuxconsole.net; git commit-tree "$@"'
+
+# change the author of n commits
+git filter-branch --commit-filter 'export GIT_AUTHOR_NAME="h1x"; export GIT_AUTHOR_EMAIL=h1x@linuxconsole.net; git commit-tree "$@"' 3ae3905..HEAD
+
+# tag a specific commit (represented by first 10 digits) in local repo
+git tag 1.0.0 5a3425e3d2
+
+# tag current commit in local repo
+git tag 1.0.0
+
+# delete a tag in local repo
+git tag -d 1.0.0
+
+# revert three last commits by creating another three reverse commits
+git revert 3fa93cdcb1 9abe33eb31 mf3t23me6
+git revert HEAD~2..HEAD
+git revert 3fg93dmcb..mf3t23me6
+
+# squash all commits from a branch in master
+git chechout master && git pull
+git merge feature_branch
+git reset origin/masger     # reset local master branch to origin's state
+git add . --all
+git commit -m 'squashed commit'
+
+# squash last 3 commits in branch, make sure no one's working on pushed commits
+git reset --soft HEAD~3
+git commit -m 'squashed commit
+git push origin +feature_branch  # + sign accepts rewritten history
+
+# move HEAD to the first parent commit without changing any files
+git reset HEAD^
+
+# reverting a merge commit
+git revert- m1 <merge_commit_sha>
+
+# go back in history by one commit
+git reset --soft HEAD~1
+
+
+
+repos
+=====
+
+# initialize a git repo - create .git dir
+git init
+
+# push changes to the remote repo for the current branch
+git push
+---
+git push origin current_branch_name
+
+# sync the local repo with the remote one and remove deleted local branches
+git fetch --prune
+
+# push a tag to remote repo
+git push origin 1.0.0
+
+# delete a tag in remote repo
+git push --delete origin 1.0.0
+
+# delete a tag in remote repo by pushing an empty reference to the remote tag
+git push origin :1.0.0
+
+
+
+patch
+=====
+
+# create an patch
+git format-patch
+
+# create an patch and send via email
+git send-email
+
+# apply a patch
+git apply <patch>
+
+
+
+stash
+=====
+
+# save changes into stash
+git stash save 'optional comment'
+
+# list saved stashes
+git stash list
+
+# view changes in a specific stash
+git stash show -p stash@{0}
+
+# apply changes in the stash
+git stash apply stash@{0}
+
+# apply changes in the stash and delete a stash
+git stash pop stash@{0}
+
+# delete a specific stash
+git stash drop stash@{0}
+
+# delete entire stash
+git stash clear
+
+
+
+config
+======
+
+# list all settings
+git config -l
+
+# remove a local setting
+git config --unset user.email
+
+# use colors in git output
+git config color.ui true
+
+# show log always with oneline option
+git config format.pretty oneline
+
+# disable paging when the output is less than one page
+git config --global --replace-all core.pager "less -F -X"
+
+# disable paging completely
+git config --global --replace-all core.pager "cat"
+
+# avoid 'error: pack-objects died of signal 9' when pushing large repos
+git config --global pack.windowMemory "32m"
+
+# change compression level
+git config core.compression 9
+
+# setup gpg for signing commits
+git config user.signingKey <key id>
+git config gpg.program gpg
+git config commit.gpgsign true
+
+# add a server location for the repo
+git remote add origin https://github.com/user/repo.git
+
+# change remote origin server location
+git remote set-url origin new.git.url/here
+
+# add a server location for the repo with ssh access
+git remote add origin git@github.com:user/repo.git
+---
+git remote add origin git@linuxconsole.net:/git/repo.git
+
+# use two remote locations
+git remote add origin git@linuxconsole.net:/git/repo.git
+git push --set-upstream origin master
+git push --mirror git@github.com:h1xxx/xx.git
+
+
+
+alias
+=====
+
+# main aliases
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.st status
+
+# show last 3 commits
+git config --global alias.last 'log -3 HEAD'
+
+# formatted log
+git config --global alias.logf "log --graph --pretty='format:%C(red)%d%C(reset)
+%C(yellow)%h%C(reset) %ar %C(green)%aN%C(reset) %s'"
+
+# rank authors by number of commits
+git config --global alias.rank 'shortlog -sn --no-merges'
+
+# list all currently defined Git aliases
+git config --global alias.alias "! git config --get-regexp ^alias\. | sed -e s/^alias\.// -e s/\ /\ =\ /"
+
+# display a simple graphic log with branch names
+git config --global alias.logg 'log --oneline --graph --decorate --all'
+
+
+
+misc
+====
+
+# delete files from history
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch hash-*.tsv" --tag-name-filter cat -- --all
+
+# delete files from history and delete empty commits
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch hash-*.tsv" --prune-empty --tag-name-filter c at -- --all
+
+# initialize repo on a server
+git init --bare
+
+# set modtime of a file from git repo
+touch -d "$(git log -1 --format="%aD" -- faq.txt)" faq.txt

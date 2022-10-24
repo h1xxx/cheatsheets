@@ -1,0 +1,96 @@
+files
+=====
+
+# create a symbolic link
+mklink /j link_naMe target_name
+
+# delete a file only when it exists
+if exist file_name del file_name
+
+
+
+system
+======
+
+# restart a computer
+>wpeutil reboot
+
+# change password for a user
+net user <username> <new password>
+
+# add an admin user
+net user <username> /add
+net localgroup administrators <username> /add
+
+# load a driver for virtio storage from rpm located here:
+# https://fedorapeople.org/groups/virt/virtio-win/repo/latest/
+drvload viostor
+
+# use the DISM command to inject the storage controller driver (not tested)
+dism /image:f:\ /add-driver /driver:e:\viostor\w10\amd64\viostor.inf
+
+
+
+config
+======
+
+# disable hibernation
+powercfg /hibernate off
+
+# REG_SZ entry for default borwser, val FirefoxURL, ChromeHTML or IE.HTTP
+HKEY_CURRENT_USER\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice\Progid
+
+# background image location
+c:\windows\system32\oobe\info\backgrounds
+
+
+
+commands
+========
+
+# find a path of the command
+where command_name
+
+# start a program in a new window
+start command.exe
+
+# change the path variable
+set PATH=%PATH%;c:\folder1\folder2
+
+# chain commands in one line
+(command1) & (command2)
+
+# if-else syntax
+if not exist filename.txt (
+    echo no && echo hell no
+) else (
+    echo yes
+)
+
+
+
+networking
+==========
+
+# net view
+netstat -s
+ipconfig /all
+ipconfig /displaydns
+ipconfig /flushdns
+
+
+
+misc
+====
+
+# user activity can be traced in:
+link files - recents
+BagMRU - registry
+Jump Lists - show opened files
+ie history shows acessed files - htm files with javascript (.js) can have extensive logging
+event viewer
+rdp maps automaically local printer to a remote machine which might give your location
+
+# password cracking windows program
+LCP
+

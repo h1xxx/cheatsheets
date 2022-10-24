@@ -1,0 +1,83 @@
+dig
+===
+
+# query dns A records
+dig ddg.co
+
+# query dns A records and get only ip numbers
+dig +short ddg.co
+
+# query dns mail MX records
+dig ddg.co MX
+
+# query dns all records
+dig ddg.co ANY
+
+# reverse dns lookup
+dig -x 8.8.8.8
+
+# query dns A records and trace the path of the query
+dig +trace ddg.co
+
+# show dns servers for a domain
+dig soa ddg.co
+
+# query version of dns server
+dig @8.8.8.8 version.bind chaos txt
+dig @8.8.8.8 -t txt -c chaos version.bind
+dig @8.8.8.8 -t txt -c chaos version.server
+
+# query identity of dns server
+dig @8.8.8.8 id.server chaos txt
+dig @8.8.8.8 -t txt -c chaos id.server
+dig @8.8.8.8 -t txt -c chaos hostname.bind
+
+# query trustanchor of unbound dns server
+dig 127.0.0.1 -t txt -c chaos trustanchor.unbound
+
+# zone transfer
+dig axfr internal.inlanefreight.htb @10.1.1.1
+
+# dig +short myip.opendns.com @resolver1.opendns.com
+dig TXT +short o-o.myaddr.l.google.com @ns1.google.com
+
+
+
+host
+====
+
+# query dns A records
+host ddg.co
+
+# query dns mail MX records
+host -t mx ddg.co
+
+# query dns name servers records
+host -t ns ddg.co
+
+# query dns all detailed records
+host -a -v ddg.co
+
+# reverse dns lookup
+host 219.139.12.35
+
+
+
+misc
+====
+
+# query dns A records
+nslookup ddg.co
+
+# query dns
+nslookup ddg.co
+
+# query all records
+nslookup -type=any ddg.co
+
+# return information about domain
+whois ddg.co
+
+# query dns A records on a specific DNS server
+drill @208.67.222.222 ddg.co
+

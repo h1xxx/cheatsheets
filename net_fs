@@ -1,0 +1,49 @@
+samba
+=====
+
+# view samba shares with anonumous access
+smbclient -N -L //10.1.1.10
+---
+smbclient -N -L \\\\10.1.1.10
+
+# connect to a samba share with guest access
+smbclient //10.10.10.10/share1
+
+# connect to a samba share as a user
+smbclient -U user1 //10.10.10.10/share1
+
+# view samba server connections
+smbstatus
+
+# connect to samba server with rpcclient
+rpcclient -U '' 10.1.1.10
+
+# smb commands
+help		print all commands
+get		download a file
+!cat		execute local system command
+
+# rpcclient commans
+servinfo		show server info
+enumdomains		list all domains that are deployed in the network
+querydominfo		show domain, server, and user info of deployed domains
+netshareenumall		list all available shares
+netsharegetinfo <share>	show info about a specific share
+enumdomusers		list all domain users
+queryuser 0x3e8		show info about a specific user
+querygroup 0x201	show info about a specific group
+
+
+
+nfs
+===
+
+# mount nfs share
+mount -t nfs 10.129.14.128:/ ./target-dir/ -o nolock
+
+# view files in a share (as root, no modules needed)
+nfs-ls nfs://10.129.171.11/mnt/nfsshare/
+
+# print contents of a file (as root, no modules needed)
+nfs-cat nfs://10.129.171.11/var/nfs/flag.txt
+

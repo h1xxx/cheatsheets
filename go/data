@@ -1,0 +1,144 @@
+arrays
+======
+
+# create and initialize a slice
+slice1 = []string{"1.el", "2.el"}
+---
+x := []int{2, 7, 11, 15}
+
+# concatenate (merge) two slices
+slice3 = append(slice1,slice2...)
+
+# empty/clear a slice
+slice = nil
+
+
+
+maps
+====
+
+# create and initialize a map
+counts := map[string]int {
+	"c1": 3711,
+	"c2": 2138,
+}
+
+# check if key exists in map
+val, keyExists := map1["key1"]
+
+# remove a key from map
+delete(map1, "key1")
+
+
+
+structs
+=======
+
+# create and initialize a struct
+person1 := Person{name: "Name", age: 69}
+
+# clear a struct
+person1 = Person{}
+
+# modify a struct in slices of structs
+(&slice[0]).key1 = "value1"
+
+# sort and search in a slice of structs
+crowd := []Person{{"Zoey"}, {"Anna"}, {"Benni"}, {"Chris"}}
+sort.Slice(crowd, func(i, j int) bool {
+	return crowd[i].Name <= crowd[j].Name
+})
+needle := "Benni"
+idx := sort.Search(len(crowd), func(i int) bool {
+	return string(crowd[i].Name) >= needle
+})
+if crowd[idx].Name == needle {
+	fmt.Println("Found:", idx, crowd[idx])
+} else {
+	fmt.Println("Found noting: ", idx)
+}
+
+
+
+interfaces
+==========
+
+# determine interface type
+var t interface{}
+t = functionOfSomeType()
+switch t := t.(type) {
+default:
+    fmt.Printf("unexpected type %T", t)       // %T prints whatever type t has
+case bool:
+    fmt.Printf("boolean %t\n", t)             // t has type bool
+case int:
+    fmt.Printf("integer %d\n", t)             // t has type int
+case *bool:
+    fmt.Printf("pointer to boolean %t\n", *t) // t has type *bool
+case *int:
+    fmt.Printf("pointer to integer %d\n", *t) // t has type *int
+}
+
+# cast interface to a variable
+var1.(string)
+
+# cast interface to a struct
+struct1, ok := varIface1.(structT)
+
+
+
+json
+====
+
+# decode json from a string into a map
+import encoding/json
+var result map[string]interface{}
+var result []interface{}
+var result []CustomStruct
+json.NewDecoder(jsonString).Decode(&result)
+
+# decode json example
+import encoding/json
+type findMntStruct struct {
+	Filesystems  []fsStruct      `json:"filesystems"`
+}
+type fsStruct struct {
+	Target   string      `json:"target"`
+	Source   string      `json:"source"`
+	Fstype   string      `json:"fstype"`
+	Options  string      `json:"options"`
+}
+cmd := exec.Command("/bin/findmnt", "-J", "/mnt/sda")
+out, err := cmd.Output()
+if err == nil {
+	var result findMntStruct
+	err := json.Unmarshal(out, &result)
+	fmt.Println(result.Filesystems[0].Source)
+}
+
+
+
+toml
+====
+
+# parse toml list into slice
+conf, err := toml.Load("example.toml")
+confStep := conf.Get("section").(*toml.Tree)
+iSlice := confStep.Get("item").([]interface{})
+sSlice := make([]string, len(iSlice))
+for i := range iSlice {
+	sSlice[i] = iSlice[i].(string)
+}
+
+# check if toml file has fields
+conf, err := toml.Load("example.toml")
+conf.Has("example_section")
+conf.HasPath([]string{"example_section", "value"})
+
+
+
+misc
+====
+# find variable type
+reflect.TypeOf(var1)
+

@@ -1,0 +1,112 @@
+adb
+===
+
+# adb commands
+root			enable root on adb shell
+devices			list connected devices
+shell			launch an interactive shell
+shell <cmd>		run a command on a device
+-s a944ea230 shell	run a shell on a specific device
+install -r <apk file>	install and replace an app
+
+
+
+android shell
+=============
+
+# config commands
+getprop					list configuration settings
+getprop ro.crypto.state			verify if device is encrypted
+settings				show help on settings command
+settings list {system,secure,global}	list settings
+settings list --lineage system		list lineage system settings
+settings put <setting> <val>		change a setting
+
+# package management
+pm					show help on pm command
+pm install -r <apk file>		install and replace an app
+pm list packages -f			show all installed apps
+pm list permissions -g			show all permissions
+pm list permission-groups		show all permission groups
+pm grant <pkg> <permission>		add permission to an app
+
+# system info
+dumpsys -h				show help on dumpsys command
+dumpsys -l				list all services
+dumpsys <service>			show all info on a service
+dumpsys window a			show opened app windows
+
+# program management
+am force-stop <pkg>			close an app
+
+# disk management
+sm					show help on sm command
+sm list-disks				list disks
+sm list-volumes				list volumes
+sm format public:179_33			format volume
+sm mount public:179_33			mount volume
+
+# screen capture
+screencap -p > <jpg file>		screenshot
+screenrecord <mp4 file>			screen capture
+
+# shutdowns and restarts
+reboot					# restart
+reboot -p				# poweroff / shutdown
+am start -n android/com.android.internal.app.ShutdownActivity
+am start -a com.android.internal.intent.action.REQUEST_SHUTDOWN
+svc power shutdown
+am start -a android.intent.action.ACTION_REQUEST_SHUTDOWN --ez KEY_CONFIRM true --activity-clear-task
+
+# shutdowns and restarts with setprop; commands:
+# restart			reboot
+# restart into recovery		reboot,recovery
+# poweroff			shutdown
+setprop sys.powerctl <command>
+
+
+
+android configuration
+=====================
+
+# properties (getprop)
+ro.crypto.type		encryption type: block (FDE) or file (FBE)
+
+# settings (settings get/put)
+system screen_brightness 50
+---
+find . -name '*brightness' 2>/dev/null
+echo 50 > /sys/devices/platform/s5p-mipi-dsim.1/backlight/panel/brightness
+
+# show keypress codes
+more /system/usr/keylayout/qwerty.kl
+
+# find requested permissions from an apk manifest (aapt is in Android SDK)
+aapt d permissions <apk file>
+grep -a 'android\.permission' <apk file> | sed 's/android.permission/\n&/g'
+
+# wallpaper file location
+file /data/system/users/0/wallpaper
+
+# permission examples
+pm grant com.android.camera2 android.permission.CAMERA
+pm grant com.android.camera2 android.permission.READ_EXTERNAL_STORAGE
+pm grant com.android.camera2 android.permission.WRITE_EXTERNAL_STORAGE
+pm grant com.android.camera2 android.permission.ACCESS_FINE_LOCATION
+
+
+
+android actions
+===============
+
+# take a picture
+am start com.android.camera2
+input keyevent KEYCODE_FOCUS
+input keyevent KEYCODE_CAMERA
+---
+am start -a android.media.action.IMAGE_CAPTURE
+input tap 700 2000
+---
+am start -a android.media.action.VIDEO_CAPTURE
+input tap 700 2000
+

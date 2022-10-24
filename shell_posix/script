@@ -1,0 +1,69 @@
+comparisons
+===========
+
+# check if string contains a keyword
+test ${string_var##*keyword*} || echo yes
+
+# check if stirng starts with a prefix
+[ "$string_var" == "${string_var#prefix_str}" ] && echo yes
+
+# check if stirng ends with a prefix
+[ "$string_varI" == "${string_var%suffix_str}" ] && echo yes
+
+
+
+misc
+====
+
+# block comment
+echo commands before the block comment
+: <<'END'
+bla bla
+comment here
+bla bla
+END
+echo commands after the block comment
+
+# make exit status of the command always 0
+diff a b ||:
+
+# process subsitution equivalent of "diff <(sort list1) <(sort list2)" in bash
+mkfifo /var/tmp/fifo1
+mkfifo /var/tmp/fifo2
+sort list1 >/var/tmp/fifo1 &
+sort list2 >/var/tmp/fifo2 &
+diff /var/tmp/fifo1 /var/tmp/fifo2
+rm /var/tmp/fifo1 /var/tmp/fifo2
+
+# 'which' command replacement in POSIX
+command -v <program>
+
+# change directory to the one where script is located
+cd "$(dirname "$0")"
+
+# test if directory is empty
+if ls -1qA ./dir1`/ | grep -q . ; then
+	echo 'dir1 is not empty'
+else
+	echo 'dir1 is empty'
+fi
+
+# quote a string to escape all special shell characters
+printf "%q\n" "<string to quote> && echo '' || : &"
+
+# print to stderr
+>&2 echo "error"
+---
+echo "error" 1>&2
+
+# list all shell options
+set -o
+
+# list all dot files and dirs
+ls .[!.]*
+---
+ls .[^.]*
+
+# list mostly all dot files and dirs
+ls .??*
+

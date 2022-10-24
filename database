@@ -1,0 +1,264 @@
+sqlite3
+=======
+
+# sqlite commands' list
+.tables				show tables
+.schema				show schemas
+pragma table_info(mytbl);	show fields in the table
+pragma integrity_check;		check if the database is healthy
+vacuum;				defragment a database
+vacuum into db2.sqlite;		backup defragmented databse in another file
+
+# config commands' list
+.show			show current config
+.header on		turn on headers
+.output file.txt	send output to a file
+.output stdout		send output to stdout
+.width 5 15 5 20	change widtch of consecutive columns
+.mode column		table format
+.mode line		each value in a separate line
+.mode list		default
+.mode insert		sql insert queries format
+.mode html		html format
+.mode csv		csv format
+.mode tabs		tsv format
+.mode tcl		non ascii values are escaped, columns are qouted
+
+# read a database from a file
+sqlite3 db1.sqlite
+
+# show tables in a database
+sqlite> .tables
+
+# show column/field names in a table
+sqlite> PRAGMA table_info(table1);
+
+# dump database to csv - oneliner
+sqlite3 -header -csv db1.sqlite "select * from table1;" > table1.csv
+
+# dump database to csv - oneliner with query from a file
+sqlite3 -header -csv db1.sqlite < query.sql > table1.csv
+
+# run sql query for the database
+sqlite3 file.db < file.sql
+
+# run a query from command line
+echo ".mode line\n select * from table1;" | sqlite3 db.sqlite
+
+# repair a broken databse
+echo '.dump' | sqlite3 db.sqlite | sqlite3 db_repaired.sqlite
+
+# open database in read-only mode
+sqlite3 -cmd ".timeout 5000" "file:/path/mydb.sqlite3?mode=ro&immutable=1"
+
+# view the blob (binary) column as ascii
+sqlite> select hex(bob_col) from table1;
+
+
+
+sqlite3 common queries
+======================
+
+# select records matching a case sensitive pattern ("binary")
+SELECT * FROM tbl1 WHERE column1 like binary "%xxx%"
+
+# select records and sleep for 1 second (useful for blind sql injection)
+SELECT * FROM tbl1 and sleep(1)
+
+# aggregate data
+SELECT department_name, ROUND(AVG(salary), 0) as avg_salary,
+	avg_salary / ( select sum(salary) from employees) as crazy_perc
+FROM employees
+GROUP by department_name
+ORDER by avg_salary DESC
+
+# select time column expressend in seconds
+SELECT DATE(ROUND(modified_on), 'unixepoch') AS isodate from torrents limit 10;
+---
+SELECT DATETIME(ROUND(modified_on), 'unixepoch') AS isodate from torrents;
+
+# select top IDs
+select * from table 1 ORDER BY id DESC limit 10;
+
+# select count of most frequent values in a column
+SELECT col1, count(col1) AS count FROM t1 GROUP BY col1 ORDER BY count DESC;
+
+# make sure that null values are unique by creating an index
+CREATE UNIQUE INDEX ix ON table1 (col1, col2);
+
+
+
+sqlite3 sessions examples
+=========================
+
+# dump database to csv from sqlite interpreter
+sqlite> .headers on
+sqlite> .mode csv
+sqlite> .output data.csv
+sqlite> SELECT * from table1;
+sqlite> .quit
+
+# make a join of two csv files
+sqlite> .mode csv
+sqlite> .header on
+sqlite> .import weight.csv weight
+sqlite> .import person.csv person
+sqlite> select * from person, weight where person.ID = weight.ID;
+
+# select same records from two databases
+sqlite> attach 'database.sqlite3.1' as db1;
+sqlite> attach 'database.sqlite3.2' as db2;
+sqlite> SELECT * from db1.table a inner join db2.table b where a.name = b.name;
+
+# merge tables from two databases (IDs might get duplicated)
+sqlite> attach 'c:\test\b.db3' as toMerge;
+sqlite> BEGIN;
+sqlite> insert into AuditRecords select * from toMerge.AuditRecords;
+sqlite> COMMIT;
+sqlite> detach toMerge;
+
+# merge two databases with unique records
+sqlite3 db1.sqlite3 .dump | sqlite db3.sqlite3
+sqlite3 db2.sqlite3 .dump | sqlite db3.sqlite3
+
+# read csv file
+sqlite> create table foo(a, b);
+sqlite> .separator ,
+sqlite> .import test.csv foo
+
+
+
+postgres
+========
+
+# login as root user
+psql -U postgres
+
+# login as regular user
+psql -U user1 -d db1
+
+# change the database
+postgres=# \connect db1
+
+# change the owner of the database
+postgres=# ALTER DATABASE name OWNER TO new_owner;
+
+# create a role
+postgres=# CREATE ROLE role_name WITH LOGIN;
+
+# add login attribute
+postgres=# ALTER ROLE role_name WITH LOGIN CREATEDB;
+
+# create a role with login permissions already included
+postgres=# CREATE USER role_name;
+
+# list roles
+postgres=# SELECT rolname FROM pg_roles;
+
+# list role attributes
+postgres=# \du
+
+# list databases
+postgres=# \l
+
+# list database extensions
+postgres=# \dx
+
+# show current and session user
+db1=# SELECT SESSION_USER, CURRENT_USER;
+
+# create a database and grant privilges
+postgres=# CREATE DATABASE db1;
+postgres=# GRANT ALL PRIVILEGES ON DATABASE db1 TO role_name;
+
+# enable an extension in db1
+db1=# CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+# add and remove user from a group
+postgres=# GRANT user1 to dba;
+postgres=# ALTER GROUP user1 DROP USER dba;
+
+# allow creating functions in untrusted language
+db1=# UPDATE pg_language SET lanpltrusted = true WHERE lanname LIKE 'c';
+
+
+
+mysql
+=====
+
+# commands' list
+systemctl start mariadb			start the server
+mysql -p -u root			log in to server
+create db1;				create a database
+show databases;				show databases
+select database();			show current database
+use db1;				select a database
+drop table tbl1;			delete a table
+drop database db1;			delete a database
+source file_commands.sql;		execute commands from a file
+select * from tbl limit 10;		show first ten rows from a table
+select * from tbl order by fld1 limit 10;	show top ten rows if sorted
+select * from tbl limit 10;		show first ten rows from a table
+SELECT Count(*) FROM tblName		count number of rows in a table
+
+# dump data into csv file
+SELECT *
+INTO OUTFILE '/tmp/products.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+ESCAPED BY '\\'
+LINES TERMINATED BY '\n'
+FROM products;
+
+# run the sql query from shell
+mysql -p -u root db1 < file.sql
+
+# add months to a date
+select dateadd(month, 2, '2007/01/31') as new_date;
+
+
+
+python
+======
+
+# open a connection to the database
+conn = sqlite3.connect('database.db')
+cursor = conn.cursor()
+...
+cursor.close()
+conn.close()
+
+# read data from csv into memory
+df = pandas.read_csv('data.csv')
+conn = sqlite3.connect(":memory:")
+df.to_sql("table_name", conn, index=False)
+cursor = conn.cursor()
+
+# list tables in a database
+cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+print(cursor.fetchall())
+
+# make a query and use for loop to iterate
+res = cursor.execute("SELECT * FROM sqlite_master;")
+for name in res:
+    print(name)
+
+# list fields in a table
+res = cursor.execute("SELECT * FROM table_name;")
+col_names = [ col[0] for col in res.description ]
+
+# export sqlite database to csv
+import sqlite3
+import csv
+inpsql3 = sqlite3.connect('input.sql3')
+sql3_cursor = inpsql3.cursor()
+sql3_cursor.execute('SELECT * FROM clients')
+with open('output.csv','w', newline='') as out_csv_file:
+    csv_out = csv.writer(out_csv_file)
+    # write header
+    csv_out.writerow([d[0] for d in sql3_cursor.description])
+    # write data
+    for result in sql3_cursor:
+        csv_out.writerow(result)
+inpsql3.close()
+

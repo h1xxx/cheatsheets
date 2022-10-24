@@ -1,0 +1,101 @@
+packages
+========
+
+# find a not installed package containing a file
+apt install apt-file
+apt-file update
+apt-file search filename
+apt-file search /path/to/filename
+
+# find a installed package containing a file
+dpkg -S filename
+dpkg -S /path/to/filename
+
+# check package version and it it's installed
+apt policy <package>
+
+# show available package versions
+apt-cache showpkg <package>
+
+# list installed packages
+apt list --installed
+
+# upgrage backports
+apt-get -t buster-backports upgrade
+
+# search for newest kernel from backports
+apt-cache search linux-image
+
+# install a package from backports
+apt-get -t buster-backports install wireguard
+
+# remove not needed packages
+apt-get autoremove
+
+# list of repositories
+/etc/apt/sources.list
+
+# get the list of files belonging to the installed package
+dpkg-query -L <package_name>
+
+# get the list of files belonging to the .deb package
+dpkg-deb -c <package_name.deb>
+
+# get the list of files belonging to the not installed package
+sudo apt-get install apt-file
+sudo apt-file update
+apt-file list <package_name>
+
+
+
+misc
+====
+
+# user boot script location, executed at the end
+/etc/rc.local
+
+# upgrade to a new version
+apt-get update
+apt-get upgrade
+apt-get dist-upgrade
+do-release-upgrade    # if this fails try using -d or -p parameters
+
+# update when new release is out
+apt-get update --allow-releaseinfo-change
+
+# blacklist nouveau (somtimes needed on laptops)
+blacklist nouveau in /etc/modprobe.conf/blacklist.conf
+options nouveau modeset=0 in /etc/modprobe.conf/blacklist.conf
+update-initramfs -u
+
+# broadcom wifi driver issues
+sudo apt-get install --reinstall bcmwl-kernel-source
+---
+sudo apt update && sudo apt upgrade
+sudo update-pciids
+sudo apt-get purge bcmwl-kernel-source
+sudo apt install firmware-b43-installer
+sudo reboot
+sudo iwconfig wlp2s0 txpower 10dBm	# optional
+---
+sudo apt-get purge bcmwl-kernel-source
+sudo apt-get install broadcom-sta-source
+sudo apt-get install broadcom-sta-dkms
+sudo apt-get install broadcom-sta-common
+
+
+
+config
+======
+
+# create symlinks to python
+update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+update-alternatives --install /usr/bin/python python /usr/bin/python2 2
+
+# switch alternatives
+update-alternatives --config python
+
+# update keyboard layout
+vim /etc/default/keyboard
+udevadm trigger --subsystem-match=input --action=change
+

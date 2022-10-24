@@ -1,0 +1,23 @@
+random
+======
+
+# generate a random number between 0 and 15 (not secure)
+import ("math/rand", "time")
+rand.Seed(time.Now().UnixNano())
+rand.Intn(16)
+
+# shuffle a slice
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+func shuffle(src []string) []string {
+	res := make([]string, len(src))
+	rand.Seed(time.Now().UTC().UnixNano())
+	perm := rand.Perm(len(src))
+	for i, v := range perm {
+		res[v] = src[i]
+	}
+	return res
+}

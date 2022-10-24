@@ -1,0 +1,26 @@
+files
+=====
+
+# show information on imported libraries and functions
+import "debug/elf"
+fd, _ := os.Open("/bin/bash")
+_elf, _ := elf.NewFile(fd)
+il, _ := _elf.ImportedLibraries()
+is, _ := _elf.ImportedSymbols()
+ds, _ := _elf.DynString(elf.DT_NEEDED)
+
+
+
+convert
+=======
+
+# convert bytes to int
+import "encoding/binary"
+var mySlice = []byte{244, 244, 244, 244, 244, 244, 244, 244}
+int_var := binary.BigEndian.Uint64(mySlice)
+
+# convert int to bytes
+import "encoding/binary"
+bs := make([]byte, 20)
+binary.BigEndian.PutUint64(bs, int_var)
+

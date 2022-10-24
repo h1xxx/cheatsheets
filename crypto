@@ -1,0 +1,168 @@
+gpg
+===
+
+# create a key
+gpg --full-generate-key
+
+# create a ed25519 key
+gpg --full-gen-key --expert
+> (9) ECC and ECC
+> (1) Curve 25519
+
+# list public keys in the main keyring
+gpg -k
+gpg --list-keys
+
+# list private keys in the main keyring
+gpg -K
+gpg --list-secret-keys
+
+# list public keys in a keyring from a file
+gpg --list-keys --keyring
+
+# read armored gpg file
+gpg --show-keys public.gpg
+
+# import key from a file
+gpg --import name1.key
+
+# import private key from a file
+gpg --import --allow-secret-key-import --pinentry-mode loopback private.pgp
+
+# import public key from specific server
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 0x45C642863355C545
+
+# import trust database
+gpg --import-ownertrust otrust.txt
+
+# list keys used to encrypt a file
+gpg --list-only file1.gpg
+
+# list keys in external keyring
+gpg --list-keys --keyring <keyring path>
+
+# export public key
+gpg --output public.pgp --armor --export username@email
+
+# export private key
+gpg --output private.pgp --armor --export-secret-key username@email
+
+# export trust database
+gpg --export-ownertrust >otrust.txt
+
+# delete key from the main keyring
+gpg --delete--keys 0x45C642863355C545
+gpg --delete-secret-keys 0x45C642863355C545
+gpg --delete-secret-and-public-key 0x45C642863355C545
+
+# set trust level for a key
+gpg --edit-key <key id>
+gpg> trust
+gpg> 5
+gpg> y
+
+# backup keys
+gpg --output backupkeys.pgp --armor --export-secret-keys --export-options export-backup user@email
+
+# search for a name in keyserver
+gpg --keyserver hkp://keyserver.ubuntu.com --search stallman
+gpg --keyserver hkp://pgp.mit.edu --search stallman
+gpg --keyserver hkp://keys.openpgp.org --search stallman
+
+# search public key on specific server
+gpg --keyserver hkp://pgp.mit.edu --search-keys 0x45C642863355C545
+
+# verify signatures from a sig file:
+gpg gcc-4.7.2.tar.gz.sig		# find public key ID
+gpg --recv-key C3C45C06			# import the public key from key server
+gpg --verify gcc-4.7.2.tar.gz.sig	# verify signature
+
+
+
+file encryption
+===============
+
+# encrypt a file
+gpg -c filename
+
+# encrypt a dir
+gpgtar -c -o file.gpg dirname
+
+# decrypt a file
+gpg filename.gpg
+
+# decrypt a file with a passphrase without gpg-agent
+gpg  --pinentry-mode=loopback --passphrase 'pass123' file1.txt.gpg
+
+# decrypt a dir
+gpgtar -d file.gpg
+
+
+
+ssl
+===
+
+# resources
+https://www.feistyduck.com/library/openssl-cookbook/online/ch-testing-with-openssl.html
+
+# connect to a port encrypted with ssl
+openssl s_client -connect www.feistyduck.com:443
+
+# create a self-signed ssl certificate
+openssl req -nodes -newkey rsa:2048 -keyout name.key -x509 -days 3650 -out name.crt
+cat nick.cer nick.key > nick.pem
+
+# view certificate information from a cer file
+openssl x509 -in cerfile.cer -noout -text -fingerprint
+openssl x509 -inform pem -in cerfile.cer -noout -text
+openssl x509 -inform der -in cerfile.cer -noout -text
+
+# view certificate information from a server
+openssl s_client -showcerts -connect linuxconsole.net:443 < /dev/null | openssl
+x509 -text
+
+# generate a public key file
+openssl x509 -in cert.pem -pubkey -noout > key.pub
+
+# create sha256 fingerprint of x509 public key
+grep -v -- ----- key.pub  | base64 -d | sha256sum
+---
+grep -v -- ----- key.pub  | base64 -d | sha256sum | tr 'a-z' 'A-Z' | sed 's/../&:/g' | sed 's/: .*//'
+---
+grep -v -- ----- key.pub  | base64 -d | sha256sum | fold -w2 | paste -sd':' - | sed 's/: .*//'
+
+# convert x509 public key to ssh format
+ssh-keygen -i -m PKCS8 -f key.pub
+
+# get a cert from let's encrypt
+acme.sh  --issue --alpn -d domain.com
+
+
+
+misc
+====
+
+# calculate base64 with no new line
+echo text | base64 -w 0
+
+# generate a random string
+openssl rand -base64 32
+---
+cat /dev/random | base64 | head -c32
+---
+tr -dc _A-Z-a-z-0-9 < /dev/urandom | head -c32
+---
+strings /dev/urandom | grep -o '[[:alnum:]]' | head -n 30 | tr -d '\n'
+
+# generate a random mac address
+od /dev/urandom -N6 -t x1 -An | sed 's| |:|g; s|^:||'
+---
+openssl rand -hex 6|fold -w2|paste -sd: -
+---
+od -N6 -tx1 -An /dev/random|awk '$1=$1'|tr \  :
+---
+cat /dev/random | head -c 256 | md5sum | cut -c1-12 | sed 's|\(..\)|\1:|g; s|:$||'
+
+# 2fa/otp two factor authentication/one time password
+oathtool -b --totp <key>
+

@@ -1,0 +1,34 @@
+screen
+======
+
+# keys
+Ctrl+a c       new window
+Ctrl+a n       next window
+Ctrl+a p       previous window
+Ctrl+a "       select window from list
+Ctrl+a Ctrl+a  previous window viewed
+Ctrl+a S       split terminal horizontally into regions
+Ctrl+a |       split terminal vertically into regions
+Ctrl+a :resize resize region
+Ctrl+a :fit    fit screen size to new terminal size
+Ctrl+a :remove remove region, Ctrl+a X is the same
+Ctrl+a tab     Move to next region
+Ctrl+a d       detach screen from terminal, 'screen -r' option to reattach
+Ctrl+a A       set window title
+Ctrl+a x       lock session
+Ctrl+a [       enter scrollback/copy mode Ctrl+a ] to leave this mode
+Ctrl+a ]       paste buffer
+Ctrl+a >       write paste buffer to file
+Ctrl+a <       read paste buffer from file
+Ctrl+a ?       show key bindings/command names
+Ctrl+a :       goto screen command prompt
+ctrl+a :source ~/.screenrc   # reload screen config
+ctrl+a |                     # slit screen vertically
+ctrl+a S                     # slit screen horizontally
+ctrl+a :resize -h 60         # change the width of the region
+ctrl+a :resize 60            # change the height of the region
+ctrl+a X                     # kill region (doesn't kill any tabs)
+
+# reattach to existing screen as another user
+screen -x root/root
+

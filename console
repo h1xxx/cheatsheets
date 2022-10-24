@@ -1,0 +1,92 @@
+video
+=====
+
+# list all video connections with a stauts
+for p in /sys/class/drm/*/status; do
+	con=${p%/status}; echo -n "${con#*/card?-}: "; cat $p;
+done
+
+# find video modes for connected screens
+grep . /sys/class/drm/card*-*/modes | head -n 3
+
+# test hw video acceleration through va-api
+vainfo
+
+
+
+screen
+======
+
+# turn off screen while ssh
+chvt 1 && setsid sh -c 'TERM=linux setterm -blank force -powerdown 0 <>/dev/tty1'
+
+# turn on screen while ssh
+chvt 1 && setsid sh -c 'TERM=linux setterm -blank poke <>/dev/tty1'
+
+# turn on/off the screen (key press does not wake up the screen when off)
+vbetool dpms [on,off]
+
+# disable blinking cursor
+echo 0 > /sys/class/graphics/fbcon/cursor_blink
+
+# show screen poweroff timeout
+cat /sys/module/kernel/parameters/consoleblank
+
+# disable screen blanking timeout
+setterm -blank 0
+
+# set screen blanking timeout and disable screen powering down
+setterm -blank 60 -powerdown 0
+
+# change framebuffer resolution (todo: verify)
+fbset -g 1024 768 1024 768 32
+---
+fbset -g 1280 1024 1280 1024 32
+---
+fbset -g 1280 800 1280 800 32
+---
+fbset -g 1920 1080 1920 1080 32
+
+
+
+terminal
+========
+
+# show info on terminal from TERM variable (/usr/share/terminfo/)
+infocmp
+
+# switch to another tty (tty2)
+chvt 2
+
+# clear all info on tty2
+deallocvt 2
+
+# create a tty file
+mknod /dev/tty7 c 5 7
+
+# start xorg on tty5
+startx vt5
+
+# display number of colorts supported by the terminal
+tput colors
+
+# list available terminal types
+ll /usr/share/terminfo/s/
+
+# show block non-blinking cursor
+echo -ne "\e[?17;14;224c"
+
+# capture a screenshot on linux console
+fbdump -fb /dev/fb0 -delay 5 > ~/fb.ppm
+convert -quality 100 fb.ppm fb.jpg
+
+# get tty1 virtual console output
+cat /dev/vcs1
+
+
+
+misc
+====
+
+# change screen colors to contain less blue light
+redshift -m drm -l 51.5:0 -t 5700:3800 -v

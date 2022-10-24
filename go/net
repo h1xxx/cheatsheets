@@ -1,0 +1,57 @@
+ip
+==
+
+# get hostname from IP addresss
+host, err := net.LookupAddr("50.62.227.1")
+
+# loop through packets
+fh, _ = pcap.OpenOffline(pcapFile)
+defer fh.Close()
+pcap := gopacket.NewPacketSource(fh, fh.LinkType())
+for packet := range pcap.Packets() {
+	fmt.Println(packet.String())
+}
+
+# print info on layers found in a packet
+fmt.Printf("\n%#v\n\n", packet.Layers())
+
+# convert dottet IP address to decimal
+ip := net.ParseIP(start)
+func ipv4ToInt(IPv4Addr net.IP) *big.Int {
+        IPv4Int := big.NewInt(0)
+        IPv4Int.SetBytes(IPv4Addr)
+        return IPv4Int
+}
+---
+func ipv4ToInt(IPv4Addr net.IP) int64 {
+	bits := strings.Split(IPv4Addr.String(), ".")
+	b0, _ := strconv.Atoi(bits[0])
+	b1, _ := strconv.Atoi(bits[1])
+	b2, _ := strconv.Atoi(bits[2])
+	b3, _ := strconv.Atoi(bits[3])
+	var sum int64
+	sum += int64(b0) << 24
+	sum += int64(b1) << 16
+	sum += int64(b2) << 8
+	sum += int64(b3)
+	return sum
+}
+
+# convert IP in decimal to dotted notation
+func IntToIpv4(intipv4 *big.Int) net.IP {
+	ip := intipv4.Bytes()
+	var a net.IP = ip[2:6]
+	return a
+}
+
+
+
+wifi
+====
+
+# get ssid info from a packet
+dot11Info, _ := dot11InfoLayer.(*layers.Dot11InformationElement)
+if dot11Info.ID == layers.Dot11InformationElementIDSSID {
+	SSIDs[bssid] = string(dot11Info.Info)
+}
+

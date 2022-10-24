@@ -1,0 +1,70 @@
+commands
+========
+
+# exec command in the container without starting the container
+lxc-execute -n lnx -P /tmp/ -- /bin/bash
+---
+lxc-execute -n lnx -P /tmp/ -- /bin/bash -c /bin/ls
+
+# start a container
+lxc-start -n lnx -F -P /tmp/ /bin/ksh
+
+
+
+config
+======
+
+# config files' list
+# entries in /etc/sub[ug]id must match lxc.idmap in default.conf
+/etc/subuid
+/etc/subgid
+~/.config/lxc/default.conf
+
+# general settings
+lxc.uts.name = lnx
+lxc.arch = x86_64
+
+# map user 1004 to uid and gid 0
+lxc.idmap = u 0 1004 1
+lxc.idmap = g 0 1004 1
+lxc.init.uid = 0
+lxc.init.gid = 0
+
+# configure tty
+lxc.tty.max = 4
+lxc.pty.max = 1024
+
+# disable network
+lxc.net.0.type = empty
+
+# configure container root dir
+lxc.rootfs.path = dir:/tmp/container1
+
+# map /proc and /dev
+lxc.mount.auto = cgroup:rw proc:rw sys:rw
+lxc.autodev = 1
+
+# map shared mem
+lxc.mount.entry = shm dev/shm tmpfs defaults,create=dir 0 0
+lxc.mount.entry = mqueue dev/mqueue mqueue defaults,optional,create=dir 0 0
+
+# mount host directory /home to /tmp/home in a container
+lxc.mount.entry = /home/ tmp/home none bind 0 0
+
+# run a command on startup
+lxc.init.cmd=/bin/ksh
+
+# don't write changes to container
+lxc.ephemeral = 1
+
+# drop capabilities
+lxc.cap.drop = mac_admin mac_override sys_time sys_module sys_rawio
+---
+lxc.cgroup.devices.allow =
+lxc.cgroup.devices.deny =
+
+# map user from the host system to the same uid
+lxc.idmap = u 0 100000 1002
+lxc.idmap = u 1002 1002 1
+lxc.idmap = u 1003 101003 64533
+

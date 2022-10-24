@@ -1,0 +1,73 @@
+files
+=====
+
+# convert all filenames to uppercase
+for f in $(find -type f); do echo mv -- "${f}" "$(echo "${f}" | tr '[a-z]' '[A-Z]')"; done
+
+# wait for a file to be available
+msec=0
+while [ ! -e /dev/disk/by-uuid/aaa-bbb ]; do
+        sleep 0.01
+        msec=$((msec+1))
+        [ ${msec} -gt 300 ] && echo 'error: no file'
+done
+
+
+
+strings
+=======
+
+# generate 256 hex values
+for i in $(seq 0 15); do
+	for j in $(seq 0 15); do
+		prefix=$(printf "%x%x\n" ${i} ${j})
+		echo ${prefix}
+	done
+done
+
+
+
+networking
+==========
+
+# convert decimal ip address to dotted notation
+iptodot() {
+	printf $(($(($(($((${1}/256))/256))/256))%256)).
+	printf $(($(($((${1}/256))/256))%256)).
+	printf $(($((${1}/256))%256)).
+	printf $((${1}%256))
+}
+iptodot 2886758500
+
+
+
+scripts
+=======
+
+# cli args parsing
+while [[ ${#} -gt 0 ]]; do
+	key="${1}"
+	case "${key}" in
+	-s|--searchpath)
+		SEARCHPATH="${2}"
+		shift
+		shift
+		;;
+	-l|--lib)
+		LIBPATH="${2}"
+		shift
+		shift
+		;;
+	--default)
+		DEFAULT=YES
+		shift
+		;;
+	*)
+		shift
+		;;
+	esac
+done
+echo "SEARCH PATH     = ${SEARCHPATH}"
+echo "LIBRARY PATH    = ${LIBPATH}"
+echo "DEFAULT         = ${DEFAULT}"
+

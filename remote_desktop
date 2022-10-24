@@ -1,0 +1,11 @@
+vnc
+===
+
+# connect to vnc server
+vncviewer 10.64.64.1:5900
+---
+vnc localhost::5900
+
+# connect to vnc on virtual desktop number 1
+vncviewer 10.64.64.1:1
+

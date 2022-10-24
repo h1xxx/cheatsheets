@@ -1,0 +1,234 @@
+config
+======
+
+# show active features
+portageq envvar FEATURES | xargs -n 1
+
+# change time
+echo "Europe/Brussels" > /etc/timezone
+emerge --config sys-libs/timezone-data
+
+# show active features
+portageq envvar FEATURES | xargs -n 1
+
+# install program to select default shell
+emerge --ask app-eselect/eselect-sh
+
+# list available shells
+eselect sh list
+
+# select default shell
+eselect sh set dash
+
+
+
+udpate
+======
+
+# update portage
+emerge --ask --oneshot sys-apps/portage
+
+# resolve conflicts in updates for etc configuration files
+etc-update
+
+# sync package tree with the mirror
+emerge --sync
+
+# update all packages on the system
+emerge -auDNv world emerge --ask --update --deep --newuse --verbose world
+
+# update all packages on the system with build time dependencies
+emerge -auvDN --with-bdeps=y @world
+
+# remove the orphaned dependencies
+emerge -a --depclean
+
+# rebuild broken packages that were dynamically linked to the removed ones
+revdep-rebuild
+
+# rebuild the whole system
+emerge -ev world --keep-going
+
+# update kernel sources
+emerge -auv gentoo-sources
+
+# select new kernel source
+eselect kernel list; eselect kernel set 2
+
+# emerge parameters' list
+-k, --usepkg		tries to use the local binary package(s)
+-K, --usepkgonly	like -k, but fail if the binary package cannot be found
+-g, --getbinpkg		download the binary package(s) from a remote host
+-G, --getbinpkgonly	like -g, but fail if the binary package cannot be found
+
+
+
+install / remove
+================
+
+# install a package
+emerge -a package/name
+
+# list what packages would be installed without installing them - trial run
+emerge -pv www-client/firefox
+
+# remove a package that’s not needed by other packages
+emerge -cav www-client/firefox
+
+# remove all packages no longer needed
+emerge -av --depclean
+
+# install a package to a separate directory with fixed version
+ROOT=/home/gcc6/ emerge -avt =sys-devel/gcc-6.5.0
+
+# install a package to a specific slot (if the package can be slotted)
+emerge sys-devel/gcc:0
+
+# install a package to another dir without registering it in a world file
+export ROOT='./bin/'
+emerge -avt --oneshot sys-apps/busybox
+
+# install a package and all dependencies to another dir without registering it
+in a world file
+export ROOT='./bin/'
+emerge -avt --oneshot --ignore-world --empty-tree sys-apps/busybox
+
+
+
+info
+====
+
+# search for a package by name
+emerge -s package_name
+
+# search for a package by name and description
+emerge -S package_name
+
+# find use flags for a package
+equery uses app-editors/vim
+
+# find versions of the package available
+equery y gnat-gpl
+
+# show a list of packages installed on the system
+equery list "*"
+
+# show a list of packages directly installed on the system
+cat /var/lib/portage/world
+
+# show a list of packages with use flags and version number
+qlist -Uv
+
+# view all files installed by a package
+equery files package_name
+
+# find an installed package that contains a file (b as in belnogs)
+eqery b `which file_name`
+
+# find an uninstalled package that contains a file
+e-file file_name
+
+# get information on a package
+eix package_name
+
+# get inforamtion on use flag
+euse -i flag_name
+
+# show what packages have the use flag
+equery hasuse mysql
+
+# list all kernels available
+equery list -p gentoo-sources
+
+# list packages that depend on a specific package
+equery d www-client/firefox
+
+# list dependency info of a package
+qdepends www-client/firefox
+
+# q command
+q file		list packages owning file
+q check		verify integrity of package
+q depends	list dependencies of package
+q list		list files owned by package
+q use		list all packages with use flag
+q search	list all packages matching search
+q size		show size of files in package
+
+
+
+packages
+========
+
+# create binary packages of all installed GCC versions
+quickpkg sys-devel/gcc
+
+# create binary packages of all installed packages on the system
+quickpkg "*/*"
+
+# install another version of gcc
+emerge -avt =sys-devel/gcc-6.5.0
+
+# list installed versions of gcc
+gcc-config -l
+
+# choose a different version of gcc
+gcc-config 1
+
+# add debug symbols to a package by adding to /etc/portage/env/debug-cflags
+CFLAGS="-O2 -ggdb -pipe"
+FEATURES="${FEATURES} nostrip"
+# then tag the media-video/mpv package to use this in /etc/portage/package.env:
+media-video/mplayer debug-cflags
+
+# remove all distfiles
+eclean --deep distfiles
+
+
+
+misc
+====
+
+# install and start pulseaudio, flags:
+media-plugins/alsa-plugins      -usb_stream -jack pulseaudio
+media-sound/pulseaudio          alsa-plugin -ssl -tcpd -webrtc-aec -asyncns dbus elogind
+# start with
+/etc/init.d/elogind start
+pulseaudio --exit-idle-time=-1	# or --disallow-exit, as user
+
+# modify source code
+# download the source code of the package (clean deletes old versions)
+ebuild /usr/portage/net-irc/bip/bip-0.8.9.ebuild clean unpack
+# prepare a patch
+cd /var/tmp/portage/net-irc/bip-0.8.9/work/bip-0.8.9
+git init
+git add -A
+git commit -m 'init commit'
+echo make changes to the code >> src/main.c
+git diff > /etc/portage/pathces/net-irc/bip[-0.8.9]/bip.patch
+# recalculate hash of modified ebuild
+ebuild bip-0.8.9.ebuild digest
+# get the source code with applied patches
+ebuild /usr/portage/net-irc/bip/bip-0.8.9.ebuild clean prepare
+# compile and install program with a patch if ebuild uses patches
+emerge bip
+
+# # recover gcc
+wget http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-hardened/stage3-amd64-hardened-*.tar.bz2
+tar xvpf stage3-*.tar.bz2
+chroot ~/gentoo /bin/bash
+quickpkg sys-devel/gcc  || emerge --sync && emerge -ev world --buildpkg
+exit
+
+# change gcc version slot
+gcc-config -l
+gcc-config <gcc-version>
+
+# start service from /etc/init.d
+rc-service net.br0 start
+
+# start service from /etc/init.d on boot
+rc-update add net.br0 default
+
+# list running services
+rc-status

@@ -1,0 +1,53 @@
+stdin
+=====
+
+# read lines from the stdin
+input := bufio.NewScanner(os.Stdin)
+for input.Scan() {
+fmt.Println(input.Text())
+}
+
+# press any key to continue
+fmt.Println("press any key to continue...")
+var b []byte = make([]byte, 1)
+os.Stdin.Read(b)
+
+
+
+text file
+=========
+
+# read lines from a list of files in a stream
+files := os.Args[1:]
+for _, arg := range files {
+	f, err := os.Open(arg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+		continue
+	}
+	input := bufio.NewScanner(f)
+	for input.Scan() {
+		fmt.Println(input.Text())
+	}
+	f.Close()
+}
+
+# read lines from a list of files in bulk
+for _, filename := range os.Args[1:] {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "dup3: %v\n", err)
+		continue
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		fmt.Println(line)
+	}
+}
+
+# increase buffer to read long lines
+scanner := bufio.NewScanner(fd)
+buf := make([]byte, 0, 64*1024)
+scanner.Buffer(buf, 512*1024*1024)
+for scanner.Scan() {
+	line := scanner.Text()
+}

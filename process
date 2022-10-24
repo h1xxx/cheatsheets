@@ -1,0 +1,116 @@
+info
+====
+
+# show parent process id (ppid)
+ps -lA
+
+# find pid of a running program
+pidof tmux
+
+# show process tree
+pstree -cl
+
+# find which process has a file/dir opened
+lsof <file/dir>
+
+# list files opened by a process
+lsof -p <pid>
+
+# list all open files by processes owned by the user
+lsof -u user1
+
+# list files that are open in the dir (non recursive)
+lsof +d /var/log/
+
+# list files that are open in the dir (recursive)
+lsof +D '/Users/al'
+
+
+
+signals
+=======
+
+# send kill signal after 0.1 second
+timeout -s 9 0.1 nc <host> <port>
+
+# kill all jobs
+kill -9 $(jobs -ps)
+
+
+
+priority
+========
+
+# show possibile priorities
+chrt -m
+
+# run a program with the highest priority (real time)
+chrt -r 99 <exec file>
+
+# set a running process to the highest priority (real time)
+chrt --pid 99 <PID>
+
+
+
+limits
+======
+
+# show limits for a process
+cat /proc/32040/limits
+
+# set capabilities on a program
+setcap CAP_CHOWN,CAP_DAC_OVERRIDE+ep <file>
+filecap <file full path> DAC_OVERRIDE
+
+# remove capabilities from a program
+setcap -r <file>
+filecap <file full path> none
+
+# list capabilities of programs
+getcap <path>
+filecap <path>
+
+# show system limits
+prlimit
+ulimit -a
+
+# set limits
+ulimit -Hr unlimited
+ulimit -Sr unlimited
+ulimit -l unlimited		# MEMLOCK
+
+# set limit for a running process
+prlimit --pid 15219 --nofile=1048576
+
+# show proces limits
+cat /proc/<PID>/limits | grep '^Max open files'
+
+# run a process on a group of specific processors
+taskset --cpu-list 1,2 prog1
+
+# show informatin about numa nodes including free mem per node
+numactl -H
+
+# run a process only on numa node 1
+numactl --cpunodebind=1 --membind=1 ls -l
+
+# set in sshd_config to use limits over ssh
+use_PAM yes
+
+
+
+misc
+====
+
+# run a program detached from a terminal with no output or input
+nohup /bin/prog </dev/null &>/dev/null
+---
+nohup /bin/prog >/dev/null 2>&1 &
+---
+setsid /bin/prog >/dev/null 2>&1 &		# forked process
+---
+/bin/prog & disown				# bash only
+
+# show peak memory usage by the process
+grep ^VmPeak /proc/${PID}/status
+

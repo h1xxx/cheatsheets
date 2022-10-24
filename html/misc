@@ -1,0 +1,37 @@
+syntax
+======
+
+# line break - inserts a a new line
+<br>
+
+# whitespace, to get a tab repeat this 8 times (lol)
+&nbsp;
+
+# bold text
+<b>this is bold text</b>
+
+# centered text
+<center>This text will be center-aligned.</center>
+
+# a link
+<a href="https://wikipedia.com">wikipedia link</a>
+
+# a paragraph, can be replaced by two line breaks
+<p>This is some text in a paragraph.</p>
+
+# an unordered list
+<ul>
+	<li>coffee</li>
+	<li>tea</li>
+	<li>milk</li>
+</ul>
+
+# preformatted text, with all whitespaces preserved
+<pre>
+	- this tab is going to be visible.
+&#09; - this one too (tab in hex ascii is 0x09).
+</pre>
+
+# a thematic break to separate content with a line
+<hr>
+

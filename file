@@ -1,0 +1,333 @@
+permissions
+===========
+
+# change owner and group
+chown <user>:<group> <file>
+
+# change owner and group for the user group
+chown <user>: <file>
+
+# change group of the file
+chgrp <group> <file>
+
+# special bits list
+s[ug]id//sticky	must have execute permissions set
+suid		no effect on dirs, user/group executing the file becomes a
+		temporarily the owner of the file
+sgid		for file same as suid, for dirs files created in dir with
+		sgid have a group owner of the dir
+sticky bit	for dirs mostly, if a dir has a sticky bit set other users can
+		only delete files added by themselves
+
+# set suid
+chmod u+s file1.txt
+chmod 4750 file1.txt
+
+# change permissions
+chmod u=rwx,g=rx,o=r file1
+
+
+
+file info
+=========
+
+# list all files recursively sorted by size
+find . -type f -exec du -h {} + | sort -h
+
+# find latest modified files
+find . -type f -printf '%T@ %P\n' | sort -n | awk '{print $2}'
+---
+find $1 -type f -exec stat --format '%Y :%y %n' "{}" \; | sort -nr | cut -d: -f2- | head
+---
+find $1 -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d: -f2- | head
+
+# show detailed info on a file
+stat <file>
+
+# show file mime type
+file -i <file>
+
+# show file signature (magic number)
+od -t x1 -N 8 <file>
+---
+xxd -l 8 -g 1 <file>
+
+# list all file signatures magic numbers
+man magic
+---
+cat /usr/share/misc/magic/* | less
+
+# show file metadata
+exiftool -g file1.png
+
+# show diff between two directories
+diff -qr <dir1> <dir2>
+
+# show full path to a file
+readlink -f file1
+
+# diff dirs
+diff -R dir1 dir2
+
+
+
+binary
+======
+
+# dump binary output to text file
+xxd file1.bin
+
+# dump binary output from text file to a binary file (reverse)
+xxd -r file1.bin
+
+# convert file to binary from hex numbers
+xxd -r -p hex_values.txt > out.bin
+
+# show hexdump of a file
+od -A x -t x1z file1.png
+---
+od <file> -N8 -t x1 -An
+
+# delete last byte from a file
+truncate -s -1 file
+
+# read information on a binary file
+readelf -a file.bin
+---
+readelf -p .comment file.bin
+---
+objdump file.bin
+---
+objdump -s --section .comment file.bin
+
+# strip off debugging symbols from binaries; do not use --strip-unneeded on the
+# libraries as the static ones would be destroyed
+strip --strip-debug /usr/lib/*
+strip --strip-unneeded /usr/{,s}bin/*
+
+# find security properties of a binary e.g. pie, relro, nx
+checksec -f /usr/bin/bash
+
+# delete last byte from a file
+truncate -s -1 file
+
+# check if the file is staticaly linked or what are dynamic libraries included
+ldd program_file
+
+# show shared libraries
+readelf -d /bin/ls
+
+# find symbols (function names) in binary library
+nm -D /lib64/libtinfo.so.6
+
+# execute a binary with a dynamic linker
+/lib64/ld-linux-x86-64.so.2 <path>
+
+# show system's target triplet
+gcc -dumpmachine
+
+# compare files byte by byte
+cmp file1 file2
+
+# envvars
+LD_LIBRARY_PATH		colon separated list of paths that the linker
+			uses to resolve library dependencies of ELF
+			executables at run-time and used over the
+			standard library paths /lib and /usr/lib first
+
+
+
+file attributes
+===============
+
+# make file immutable, prevent any modification
+chattr +i file
+
+# list extended attributes of a file
+lsattr
+
+# assign 'immutable' attribute
+chattr +i file1
+
+# emulate ls output with stat command
+stat -c "%A|%h|%U|%G|%s|%Y|%n" file
+
+# get user and group of a file
+stat -c "%U %G" /path/to/file
+
+# access control lists (ACL)
+getfacl				show access control list
+setfacl -m u:<user>:r-- <file>	assign readonly permissions for user
+setfacl -b <file>		remove all extra permissions to file
+
+
+
+sockets, pipes
+==============
+
+# make a named pipe
+mkfifo pipe_1
+
+# write to and listen on unix socket with netcat
+nc -l -U socket.sock
+# and at the same time on another terminal
+nc -U socket.sock || socat - UNIX-CONNECT:/tmp/socket.sock
+
+
+
+misc
+====
+
+# create links to many files in current dir
+ln -s /home/dir/* .
+
+# try to recrete cue file for a bin file (compare result with redump.org)
+bin2iso <cue file> -c <bin file>
+
+# find duplicate files recursively, keep only the first instance of a file
+fdupes -r -d -N .
+
+# find duplicate files recursively
+fdupes -r .
+
+# delete all exe files in subdirectories
+find . -name *.exe -delete
+---
+find . -name *.exe -exec rm {} \;
+
+# create a temp directory
+mktemp -d
+
+
+
+search
+======
+
+# commands' list
+locate				locate string in location database
+where				find binary location in PATH
+whereis				find binaries, source, man etc.
+updatedb			update location database for locate command
+
+# find commands' list
+-size +400k	find files above 400kB
+-size 400k	find files with size 400kB
+-amin -5	find files accessed less than 5 minutes ago
+-atime +4	find files accessed more than 4 days ago
+-mmin -5	find files modified less than 5 minutes ago
+-mtime +4	find files modified more than 4 days ago
+-empty		finds empty files and directories
+-regexp x	finds files with regular expressions
+-type <t>	<t> is one of [bcdpfls]: block files (b), character
+		files (c), directories (d), names pipes (p), regular
+		files (f), symbolic links (l), sockets (s)
+
+# execute command once for every file, doesn't stop on error
+find -exec <cmd> {} \;
+
+# execute command once for every file, stops on error
+find | xargs -n1 <cmd>
+
+# execute command once with all files as args
+find -exec <cmd> {} \+
+
+# execute command once with 5000 files as args
+find | xargs <cmd>
+
+# find files and run command with null character as separator
+find -print0 | xargs -0 <cmd>
+
+# run commands in parallel in 8 processes
+find | xargs -n1 -P8 <cmd>
+
+# custom ls command with find
+find -printf "%s \t %TD %TH:%TM \t %p \n"
+
+# rename mutliple files with xargs
+find -type f -name 'file*' -print0 | xargs --null -I{} mv {} {}_renamed
+
+# execute commands on files in their directory not in the ${PWD}
+find -type f -execdir ls {} \;
+
+# find all hardlinks in a directory
+find / -type f -links +1 -printf '%i %n %p\n'
+
+# find all symlinks for a file
+find / -type l -exec ls -l {} \; | grep <file name>
+
+# show files created, modified or accessed in the last hour
+find srch_dir -cmin -60 # change time
+find srch_dir -mmin -60 # modification time
+find srch_dir -amin -60 # access time
+
+# list files modified later than a date
+find /path/to/dir -newermt "yyyy-mm-dd"
+
+# list all files modified on a given date
+find /path/to/dir -newermt yyyy-mm-dd ! -newermt yyyy-mm-dd
+
+# find suid binaries
+find /bin /sbin /usr -perm -4000
+
+
+
+encoding
+========
+
+# detect encoding of a file
+enca file.txt
+
+# detect encoding of a string
+echo $'\xed\xe5 \xed\xe0' | uchardet
+---
+echo $'\xed\xe5 \xed\xe0' | enca -L ru
+
+# change encoding of a file
+iconv -f CP1251 -t UTF-8//TRANSLIT in.txt -o out.txt
+---
+enca -x UTF-8 in.txt
+
+# converting a string to the correct encoding
+echo $'\xed\xe5 \xed\xe0\xe9\xe4\xe5\xed' | iconv -f 'Windows-1251'
+
+
+
+vifm
+====
+
+# keys' and commands' list
+t		select (tag) a file
+v , av		visual mode for selecting files
+ggVG<enter>	select (tag) all files in a pane
+:		clear file selection
+C-l		update (refresh) view
+{ , }		move cursor to first/last position in file group
+:sync		change the other pane to current dir
+yy		yank a file
+ya		yank all files
+p		copy yanked file
+P		move yanked file
+:m , :move	move file to the other pane
+:m!		force move file to the other pane
+cw		rename a file
+guu		rename current file to lowercase
+gus		rename selected files to lowercase
+C-a		increment first number in a filename
+C-x		decrement first number in a filename
+co		change file owner
+cg		change file group
+644		change file attributes
+w		show tree of the current folder
+za		toggle visibility of dot files
+:sort		choose sorting method
+ga		show dir size from cache
+gA		recalculate and show dir size
+e		file preview
+C-g		show file details
+u		undo last change
+C-r		redo undone change
+:nmap		show all key mappings
+:lstrash	show trash
+:empty		remove all the files in the trash
+:sh		start a shell in current directory
+

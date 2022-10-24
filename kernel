@@ -1,0 +1,100 @@
+source
+======
+
+# list all of the possible configuration targets
+make help
+
+# update old config file without asking, new options will have default values
+make olddefconfig
+
+
+
+modules
+=======
+
+# path for the modules in the kernel
+/lib/modules/3.13.0-52-generic/kernel
+
+# load the module into the memory
+insmod <modname>
+
+# unload the module from the memory
+rmmod <modmame>
+
+# list loaded modules
+lsmod
+
+# print description of all modules
+cat /proc/modules | cut -d' ' -f1 | while read line; do
+	echo -n $line
+	modinfo $line | grep description
+done
+
+# get nvidia module version
+cat /proc/driver/nvidia/version
+
+# compile a single kernel module in another location
+make O="/tmp" alldefconfig
+make O="/tmp" prepare
+make O="/tmp" outputmakefile
+make O="/tmp" archprepare
+make O="/tmp" modules SUBDIRS=scripts
+make O="/tmp" modules SUBDIRS=drivers/net/ethernet/intel/igb
+
+# disable built-in kernel moduel at boot time in kernel parameters
+module_to_blacklist.blacklist=yes
+
+# disable built-in kernel moduel at boot time in kernel parameters
+initcall_blacklist=<module_to_blacklist>
+
+
+
+settings
+========
+
+# load changes from /etc/sysctl.conf
+sysctl -p
+
+# change a setting until next boot
+sysctl net.ipv4.ip_forward=1
+
+
+
+virtual filesystems
+===================
+
+# proc paths
+/proc/self/mounts		mounted systems
+
+
+
+parameters
+==========
+
+# video parameter format example
+video=HDMI-A-1:1920x1080MR@120mD
+
+# video parameter options' list
+m	add margins
+M	calculate timings, do not take them from a table
+R	reduced blanking for digital displays
+e	force the display to be enabled
+D	force the display to be enabled and use digital output (HDMI, DVI-I)
+
+# geforce 650 ti setting examples
+HDMI-A-1:1920x1080@120D causes no video
+HDMI-A-1:1920x1080M@120mD causes no video
+HDMI-A-1:1920x1080M@120D causes no video
+HDMI-A-1:1920x1080R@120mD causes no video
+HDMI-A-1:1920x1080MR@120mD causes wrong resolution to be calculated
+HDMI-A-1:1920x1080MR@100mD causes wrong resolution to be calculated
+HDMI-A-1:1920x1080M@100mD causes wrong resolution to be calculated
+HDMI-A-1:1920x1080M@100D works but mpv doesn't show high res
+HDMI-A-1:1920x1080M@100e works but mpv doesn't show high res
+HDMI-A-1:1920x1080M@85D works but mpv doesn't show high res
+HDMI-A-1:1920x1080@85D works but mpv doesn't show high res
+HDMI-A-1:1920x1080M@60D works but mpv doesn't show high res
+HDMI-A-1:1920x1080@60 works
+HDMI-A-1:1920x1080@85 works
+HDMI-A-1:1920x1080@120 works
+

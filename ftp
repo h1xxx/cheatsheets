@@ -1,0 +1,34 @@
+lftp
+====
+
+# authenticate to the server
+lftp <user>:<password>@<ftp server>:<port>
+
+# use a proxy session
+set ftp:proxy http://10.19.42.15:2121
+open ftp.server.com
+user user1 pass1
+
+# session example
+lftp :~> open ftp.abc.com
+lftp ftp.abc.com:~> login theuser
+
+
+
+misc
+====
+
+# download all files from an ftp server
+wget -m --no-passive ftp://anonymous:anonymous@10.1.1.10
+
+# connect to ftp via openssl
+openssl s_client -connect 10.129.14.136:21 -starttls ftp
+
+# ftp commands' list
+open example.com
+put
+get
+status
+ls
+debug
+trace

@@ -1,0 +1,38 @@
+misc
+====
+
+# start php in interactive mode
+php -a
+
+# check loaded modules
+php -m
+
+# execute a single command
+php -r 'system("whoami");'
+
+
+
+functions
+=========
+
+# function definition example
+function prnt($str1) { return $str1; }
+
+# misc functions
+strrev("abc")			reverse string
+strstr("ab", "abc")		check if string contains another string
+include("file1.php")		include and evaluate another file
+base64_encode("str1")		encode string in base64
+base64_decode("str1")		decode string in base64
+json_encode($array1)		encode binary structure in json
+json_decode($array1)		decode binary structure from json
+hex2bin("6a")			convert hex value to binary
+hex2bin(010101)			convert binary value to hex
+passthru("ls /$var1")		execute commands
+exif_imagetype('file.jpg')	check if file is image and return its type
+
+# create an array
+$defaultdata = array("var1"=>"val1", "var2"=>"val2");
+
+# show contents of a file
+echo file_get_contents( "filename.php" );

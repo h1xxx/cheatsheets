@@ -1,0 +1,31 @@
+escape characters
+=================
+
+# escape string example
+echo -e '\033[1m some_string \033[0m'
+m	indicates the end of the sequence
+[0m	resets all attributes, colors, formatting, etc.
+[1m	set the font to bold
+
+# font format numbers e.g. '\033[1m'
+0	normal style
+1	bold
+2	dim
+3	italic
+4	underlined
+5	blinking
+7	reverse
+8	invisible
+
+# escape sequences for moving the terminal cursor
+\033[<L>;<C>H	put the cursor at line <L> and column <C>
+\033[<L>;<C>f	put the cursor at line <L> and column <C>
+\033[<N>A	move the cursor up <N> lines
+\033[<N>B	move the cursor down <N> lines
+\033[<N>C	move the cursor forward <N> columns
+\033[<N>D	move the cursor backward <N> columns
+\033[2J		clear the screen, move to (0,0)
+\033[K		erase to end of line
+\033[s		save cursor position (doesn't work on all terminals)
+\033[u		restore cursor position (doesn't work on all terminals)
+

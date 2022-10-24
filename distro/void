@@ -1,0 +1,36 @@
+packages
+========
+
+# update system
+xbps-install -Su
+
+# install a package
+xbps-install -S dwm xorg vim firefox qutebrowser
+
+# search for packages
+xbps-query -Rs xorg
+
+# remove a package with dependencies
+xbps-remove -Ro <package>
+
+# enable a service on a running system
+ln -s /etc/sv/<service> /var/service
+
+# enable a service on a stopped system
+ln -s /etc/sv/<service> /etc/runit/runsvdir/default/
+
+# service management commands
+sv status <service>
+sv up <service>
+sv down <service>
+sv restart <service>
+
+
+
+issues
+======
+
+# in case of certificate issues when updating the system
+SSL_NO_VERIFY_PEER=true xbps-install -u xbps
+SSL_NO_VERIFY_PEER=true xbps-install -Su
+

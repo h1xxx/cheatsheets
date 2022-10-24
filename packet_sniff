@@ -1,0 +1,241 @@
+capture
+=======
+
+# capture packets from interface and write them in a file
+tshark -i <interface> -w <file-name>.pcap
+
+# read pcap file
+tshark -r locap.pcap
+
+# capture packets from interface for a given time
+tshark -i <interface> -a duration:<time in seconds>
+
+# capture specific number of packets from an interface
+tshark -i <interface> -c <count of packets>
+
+# capture only packets from the specific source or destination IP
+tshark -i <interface> -f "host <IP>"
+
+# capture only specific protocol network packets
+tshark -i <interface> -f "<protocol>"
+tshark –i eth0 – R "tcp"
+
+# merge 2 pcap files
+mergecap file1.pcap file2.pcap -F pcap -w out.pcap
+
+# show traffic on port 53 with packet payloads
+tcpdump -vv -x -X -s 1500 -i tun0 'port 53'
+
+# show packet payloads in ascii only
+tcpdump -A -i tun0 'port 53'
+
+# capture wifi probe requests excluding two hosts
+tcpdump -i wlan1 -e -w dump.pcap -s 256 type mgt subtype probe-req and not \(ether host 5e:3a:fd:fa:37:33 or ether host 00:00:00:00:00:00\)
+
+
+
+read
+====
+
+# useful tshark reading parameters
+-T [json,tabs]		output to specified format
+-V			show all details
+-G fields		show all the fields
+
+# useful tshark filters
+eth.addr == 00:08:15:00:08:15		only specific mac address
+eth.type == 0×0806			only arp traffic
+eth.addr == ff:ff:ff:ff:ff:ff		only ethernet broadcast
+not arp					no arp traffic
+ip					only ipv4
+ip6					only ipv6
+tcp					only tcp
+udp					only udp
+http					only http
+!(ip.addr == 192.168.0.1)		no traffic with the ip address
+!(tcp.port == 53)			no dns traffic
+not arp and not (udp.port == 53)	filter by protocol and port
+tcp.port == 80 || udp.port == 80	filter by protocol and port
+
+# read only packets from source or destination port 4444
+tshark -r <pcap file> -Y "tcp.port==4444"
+
+# read only packets from source or destination ip address not 192.168.0.1
+tshark -r <pcap file> -Y "! (ip.addr==192.168.0.1)"
+
+# read only packets excluding those with src or destination in two addresses
+tshark -r <pcap file> -Y "! (ip.addr==10.0.0.3) && ! (ip.addr==10.0.0.152)"
+
+# export wpa handshakes (incl. incomplete) to another file
+tshark -r dump-01.cap -w wpa.pcap -F pcap -Y 'eapol'
+
+# read a pcap file without converting addresses and ports to names
+tcpdump -n -r <pcap file>
+
+# list packets with a filter on source (src) or destination (dst) address
+tcpdump -n src host 192.168.0.1 -r <pcap file>
+
+# list packets with a filter on source (src) or destination (dst) port
+tcpdump -n dst port 80 -r <pcap file>
+
+# list packets with a filter on source and destination port
+tcpdump -n port 80 -r <pcap file>
+
+# list packets together with data in hex format
+tcpdump -nX -r <pcap file>
+
+# list packet with ACK or PSH flag (14th byte of TCP HEADER, 00011000)
+tcpdump -n 'tcp[13] = 24' -r <pcap file>
+
+# list packet in ascii
+tcpdump -A -r <pcap file>
+
+# print bpf bytecode instructions
+tcpdump -p -ni <iface> -d  "ip and udp"
+
+
+
+tcp
+===
+
+# view tcp streams
+tshark -r <pcap file> -q -z conv,tcp
+
+# follow up on a first conversation stream (start at 0) from the pcap file
+tshark -r <pcap file> -z follow,tcp,ascii,0 -q
+
+# show source and target ip address of syn packets
+tshark -nn -r <pcap file> -T fields -E separator=';' -e ip.src \
+	-e tcp.srcport -e ip.dst \
+	-e tcp.dstport '(tcp.flags.syn == 1 and tcp.flags.ack == 0)'
+
+# show arp table
+tshark -r capture-output.pcap -Y frame.number==3 -V
+---
+tshark -i eth0 -w cap1.pcap
+tshark -r cap1.pcap -Y frame.number==3 -x
+
+# extract all the tcp conversation streams from the pcap file to separate files
+tcpflow -r <pcap file>
+
+
+
+http
+====
+
+# show http respnse codes
+tshark -r <pcap file> -o 'tcp.desegment_tcp_streams:TRUE'  \
+	-R 'http.response' -T fields -e http.response.code
+
+# show top 10 urls
+tshark -r capture.pcapng -R http.request -T fields -e http.host \
+	-e http.request.uri | sed -e 's/?.*$//' |
+	sed -e 's#^(.*)t(.*)$#http://12#' |
+	sort | uniq -c | sort -rn | head
+
+
+
+wifi
+====
+
+# print frame info
+tshark -r <pcap file> -T json -e frame.number -e frame.protocols \
+	-e frame.time -e wlan.sa -e wlan.da -e wlan.ta -e wlan.ra \
+	-e wlan.bssid -e wlan.ssid -e wlan.staa \
+	-e radiotap.channel.freq -e wlan.ds.current_channel \
+	-e wlan.fc.type -e wlan.fc.type_subtype
+
+# useful wifi frame fields
+frame.number		id number of captured frame
+frame.protocols		protocol in frame
+frame.time		time of capture
+wlan.frag
+wlan.seq
+wlan.duration
+wlan.sa			source address - original source of the frame
+wlan.da			destination address - final recipient of the frame
+wlan.ta			transmitter address - immediate sender of the frame
+wlan.ra			receiver address - immediate receiver of the frame
+wlan.Xa_resolved	address X with manufacturer resolved
+wlan.addr		mac address
+wlan.bssid		bssid
+wlan.ssid		ssid
+wlan.staa
+radiotap.channel.freq	channel frequency
+radiotap.datarate	data rate in mbps
+wlan.ds.current_channel
+wlan_radio.signal_dbm
+wlan.country_info.code
+wps.type
+wlan_radio.signal_dbm
+wlan.tagged.all
+wlan.tag.vendor.data
+wlan.tag.vendor.oui.type
+wlan.tag.oui
+wps.device_name
+
+# useful wifi frame flags
+wlan.fc.ds
+wlan.fc.tods
+wlan.fc.fromds
+wlan.fc.frag
+wlan.fc.retry
+wlan.fc.pwrmgt
+wlan.fc.moredata
+wlan.fc.protected
+wlan.fc.order
+
+# wifi frame types
+wlan.fc.type==0x00		all management frames
+wlan.fc.type_subtype == 0x00	association request
+wlan.fc.type_subtype == 0x01	association response
+wlan.fc.type_subtype == 0x02	reassociation request
+wlan.fc.type_subtype == 0x03	reassociation response
+wlan.fc.type_subtype == 0x04	probe request
+wlan.fc.type_subtype == 0x05	probe response
+wlan.fc.type_subtype == 0x08	beacon
+wlan.fc.type_subtype == 0x09	atim
+wlan.fc.type_subtype == 0x0A	disassociation
+wlan.fc.type_subtype == 0x0B	authentication
+wlan.fc.type_subtype == 0x0C	deauthentication
+wlan.fc.type_subtype == 0x0D	action
+wlan.fc.type==0x01		all control frames
+wlan.fc.type_subtype == 0x18	block ack request
+wlan.fc.type_subtype == 0x19	block ack
+wlan.fc.type_subtype == 0x1A	ps-poll
+wlan.fc.type_subtype == 0x1B	rts request to send
+wlan.fc.type_subtype == 0x1C	cts clear to send
+wlan.fc.type_subtype == 0x1D	ack to rts/cts
+wlan.fc.type_subtype == 0x1E	cf-end
+wlan.fc.type_subtype == 0x1F	cf-end + cf-ack
+wlan.fc.type==0x02		all data frames
+wlan.fc.type_subtype == 0x20	data
+wlan.fc.type_subtype == 0x21	data + cf-ack
+wlan.fc.type_subtype == 0x22	data + cf-poll
+wlan.fc.type_subtype == 0x23	data + cf-ack + cf-poll
+wlan.fc.type_subtype == 0x24	null
+wlan.fc.type_subtype == 0x25	cf-ack
+wlan.fc.type_subtype == 0x26	cf-poll
+wlan.fc.type_subtype == 0x27	cf-ack + cf-poll
+wlan.fc.type_subtype == 0x28	qos data
+wlan.fc.type_subtype == 0x29	qos data + cf-ack
+wlan.fc.type_subtype == 0x2A	qos data + cf-poll
+wlan.fc.type_subtype == 0x2B	qos data + cf-ack + cf-poll
+wlan.fc.type_subtype == 0x2C	qos null
+wlan.fc.type_subtype == 0x2E	qos + cf-poll (no data)
+wlan.fc.type_subtype == 0x2F	qos + cf-ack (no data)
+
+# wifi frame wlan.[sa,da,ta,ra] combination rules
+wlan.fc.tods=0 && wlan.fc.fromds=0
+	a frame sent between two stations not being aps in a bss or
+	ibss. it is also the case for all management and control frames
+	(directly sent to the ap and not the ds)
+wlan.fc.tods=0 && wlan.fc.fromds=1
+	a frame sent by a station for an ap (destined to the ds)
+wlan.fc.tods=1 && wlan.fc.fromds=0
+	a frame exiting the ds for a station.
+wlan.fc.tods=1 && wlan.fc.fromds=1
+	only frame using all four addresses fields. seen in wireless
+	ds (mesh, repeater, ...) where an ap sends a frame to another
+	ap, it is exiting the ds and destined to the ds at the same time
+	in that situation.

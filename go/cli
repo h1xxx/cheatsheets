@@ -1,0 +1,18 @@
+cli
+===
+
+# flags package usage example
+args.db_file  = flag.Arg(0)
+args.db_file  = flag.Args()[0]
+func init() {
+        arg1            := flag.NewFlagSet("db_file", flag.ExitOnError)
+        args.db_file    = arg1.String("~/.local/share/magneticod/database.sqlite3",
+        args.name       = flag.String("n", "", "ordered keywords to search in a name")
+        args.limit      = flag.String("l", "", "number of results to show")
+        args.min_size   = flag.String("s", "", "min size in MB")
+        args.max_size   = flag.String("S", "", "max size in MB")
+        args.verbose    = flag.Bool("v", false, "print more info")
+}
+func main() {
+        flag.Parse()
+}

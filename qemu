@@ -1,0 +1,126 @@
+images
+======
+
+# create image file
+qemu-img create -f raw file_name 15G
+---
+qemu-img create -f qcow2 file_name 15G
+
+# convert image from vmware to qcow
+qemu-img convert -c -p -O qcow2 vmname.vmdk vmname.qcow2
+
+
+
+misc
+====
+
+# mount a samba shared drive
+apt-get install cifs-utils
+mount -t cifs -o username=user1,password="" //10.0.2.4/qemu /mnt/shared/
+
+# samba share location
+\\10.0.2.4\qemu
+
+# boot kernel from a file on the host (todo: verify)
+qemu-system-x86_64 -kernel /boot/vmlinuz-linux -initrd /boot/initramfs-linux.img -nographic -append "console=ttyS0" -enable-kvm
+---
+qemu-system-x86_64 -kernel /boot/vmlinuz-linux -initrd /boot/initramfs-linux.img -nographic -vga std -curses
+
+# create a tap interface to use for fast qemu networking
+sudo ip tuntap add dev tap0 mode tap
+sudo brctl addbr qemubr0
+sudo brctl addif qemubr0 tap0
+sudo ip link set up dev qemubr0
+sudo ip addr add 192.168.66.10/24 dev qemubr0
+
+# mount 9p share in host qemu option
+-virtfs local,path=/home/an,mount_tag=host0,security_model=mapped-xattr,id=host0
+# in guest:
+mount -t 9p -o trans=virtio,version=9p2000.L,msize=524288 host0 /mnt/shared
+
+# fstab entry for 9p filesystem
+host0 /mnt/shared 9p trans=virtio,version=9p2000.L,msize=524288,_netdev 0 0
+
+# connect to running vm through spice protocol
+spicy -h 127.0.0.1 -p 5930
+
+# cpu pinning
+# use the kernel parameters
+isolcpus=4-7 nohz_full=4-7 rcu_nocbs=4-7
+# then, run qemu-system-x86_64 with taskset and chrt
+chrt -r 1 taskset -c 4-7 qemu-system-x86_64 [...]
+
+
+
+monitor
+=======
+
+# keys
+ctrl+alt+2	goes to monitor
+alt+2		in curses mode or esc+2, go back with esc+1
+ctrl+a,c	goes to monitor and back
+shift+F12	turn off spicy full screen
+
+# monitor commands
+sendkey ctrl-alt-f2	press emulated keyboard keys
+system_powerdown	send system power down event
+system_reset		reset the system
+system_wakeup		wakeup guest from suspend
+
+# shutdown virtual machine with a powerbutton
+-monitor telnet:localhost:7100,server,nowait,nodelay -vnc :0"
+telnet localhost 7100
+"echo 'system_powerdown' | nc localhost 7100"
+---
+-monitor unix:/run/monitor_vm0.sock,server,nowait
+echo 'system_powerdown' | socat - UNIX-CONNECT:/run/monitor_vm0.sock
+
+
+
+guests
+======
+
+# alpine install in txt mode
+# instead of 'lts' type in 'syslinux'
+# add 'nomodeset' in extlinux
+/boot/vmlinuz-lts rw nomodeset modules=loop,squashfs,sd-mod,usb-storage initrd=/boot/initramfs-lts
+
+# debian install in txt mode
+# to boot into text mode without framebuffer:
+- press <Esc> a few times during seabios boot
+- type 'install vga=normal fb=none' or 'install gfxpayload=text fb=none'
+# disable drm in grub by adding GRUB_TERMINAL=console
+# disable kms by adding nomodeset to kernel parameters and by adding:
+'blacklist bochs_drm' to /etc/modprobe.d/blacklist.conf
+
+# arch linux install in txt mode
+# to boot in text mode press <Esc> and then type 'arch64 nomodeset'
+
+# run with a iso cdrom
+qemu-system-x86_64 -cdrom ~/debian-8.6.0-amd64-netinst.iso -boot menu=on -drive file=debian,format=raw -m 8G -enable-kvm
+---
+qemu-system-x86_64 -cdrom ~/ubuntu-16.04.1-desktop-amd64.iso -boot order=d -m 8G -enable-kvm  -drive file=debian,if=virtio,format=raw -vga qxl -net nic,model=virtio -soundhw hda
+
+# install DOS
+qemu-system-x86_64 -hda dos -m 32 -L . -fda Disk1.img -boot a
+# change disks by ctrl+alt+2 and then change floppy0 Disk2.img and then ctrl+alt+1
+
+# dos with sound
+qemu-system-x86_64 -hda dos -m 32 -L . -soundhw pcspk,sb16,adlib
+mkisofs -o sb.iso sbbasic.exe
+
+
+
+issues
+======
+
+# missing cursor in spice - add this somewhere in /etc/X11/xorg.conf.d/
+Section "Device"
+Option      "SWcursor" "True"
+Identifier  "Card0"
+
+# improve spice performance
+'-vga none -device qxl-vga,vgamem_mb=64' instead of '-vga qxl'
+CONFIG_DRM_QXL qxl driver from kernel should be used
+qxl and bochs kernel modules must be loaded
+

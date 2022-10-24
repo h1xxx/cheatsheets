@@ -1,0 +1,40 @@
+windows
+=======
+
+# install Windows 7
+first use disk with virtio device
+1st cdrom will be the install cd
+2nd cdrom will be the cd with virtio drivers
+load drivers for the disk during installation
+after install is completed turn the disk to ide device
+in device manager click actions>add legacy hardware and add virtio driver for the disk (virstor)
+change the if=ide to if=virtio
+install ac97 driver and virtio ethernet driver
+
+# make sound work in windows 10
+use ac97 i.e. -soundhw ac97
+set QEMU_AUDIO_DRV to alsa
+start Windows and get the ac97 driver for vista / win7
+disable driver signature enforcement: open Settings, go to Update & Security,
+	choose Recovery in the left pane, choose Advanced Start-up,
+	choose Troubleshoot, Advanced Options, choose Start Up Settings and
+	then press the restart button
+once restarted choose option 7 to disables driver signature enforcement
+once Windows comes back go into Device Manager, right click the multimedia		device and choose 'Update Driver Software'
+click browse on the next page and navigate to the realtek driver you downloaded earlier
+
+# to install windows you need to load virtio driver (viostor folder on cd)
+-drive file=$SYSTEMFILE,if=ide,index=0,media=disk,format=qcow2
+
+
+
+issues
+======
+
+# windows doesn't boot or shows 'your pc needs to restart, please hold down the
+power button
+check if nx is enabled in bios cpu settings
+
+# games stutter on windows
+limit number of cpus in run -> msconfig -> boot
+

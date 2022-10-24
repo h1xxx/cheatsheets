@@ -1,0 +1,30 @@
+basic commands
+==============
+
+# ping all hosts configured in /etc/ansible/hosts
+ansible all -m ping
+
+# ping all hosts as another user and with sudo privileges (-b/--become)
+ansible all -m ping -u user2 --become
+
+# ping a host as root and authenticate with a password (sshpass needed)
+ansible host_name -m ping -u root -k
+
+# ping all hosts as root when no root ssh login (-K - ask for password)
+ansible rtr2 -m ping --become-user=root --become-method=su -b -K
+
+# run a command on all hosts
+ansible all -a "/bin/echo Hello world"
+
+# run the command on all group1, in 10 parallel forks
+ansible group1 -a "/sbin/reboot" -f 10
+
+# run a command with shell module (default is command module)
+ansible all -m shell -a 'echo $TERM'
+
+# copy a file directly to all servers
+ansible all -m copy -a "src=/etc/hosts dest=/tmp/hosts"
+
+# run a playbook and provide a password for the user to become
+ansible-playbook -K play_book.yml
+

@@ -1,0 +1,172 @@
+print
+=====
+
+# printf, sprintf, fprintf conversion characters and escape sequences in format string
+%d		decimal integer
+%x, %o, %b	integer in hexadecimal, octal, binary
+%f, %g, %e	floating-point number: 3.141593 3.141592653589793 3.141593e+00
+%t		boolean: true or false
+%c		rune (Unicode code point)
+%s		string
+%q		quoted string "abc" or rune 'c'
+%v		any value in a natural format
+%T		type of any value
+%%		literal percent sign (no operand)
+\n		new line
+\t		tab
+%v		struct values
+%#v		struct with field names and struct type
+%+v		struct with field names
+%h		all error info
+
+# print to standard error (stderr)
+l := log.New(os.Stderr, "", 0)
+l.Println("log msg")
+---
+os.Stderr.WriteString("Message")
+---
+fmt.Fprintf(os.Stderr, "%s", "error msg")
+---
+fmt.Fprintln(os.Stderr, "error msg")
+
+
+
+modify
+======
+
+# concatenate strings, at the end there is a costly garbage collection
+str1 += os.Args[1]
+
+# concatenate strings, efficient way without garbage collection after each step
+strings.Join(str1, os.Args[1:], " ")
+
+# split strings in variable based on a separator
+strings.Split(str_data1, "\n")
+
+# convert string to int64 to string with base 10
+i, _ := strconv.ParseInt(s, 10, 64)
+
+# strip all whitespace chars
+line = strings.Join(strings.Fields(line),"")
+
+# remove characters at the beginning and end of a string
+s = strings.Trim(s, ".")
+
+# remove characters at the beginning of a string
+s = strings.TrimPrefix("abcdef", "abc")
+
+# remove redundant repeated characters (squeeze)
+strings.Join(strings.Fields(line), "\t")
+
+# remove repeated characters
+func squeeze(s string) string {
+	res := make([]rune, 0)
+	var prev rune
+	for _, r := range s {
+		if r != prev {
+			res = append(res, r)
+		}
+		prev = r
+	}
+	return string(res)
+}
+
+
+
+convert
+=======
+
+# convert hex string to int
+strconv.ParseInt("1a", 16, 64)
+
+# convert int to hex string
+s = fmt.Sprintf("%0.2x", id)
+
+# convert hex to string
+hexDec, err := hex.DecodeString("DA")
+s := string(hexDec)
+
+# convert bool to string
+s, err = strconv.FormatBool(b)
+
+# convert string to uint32
+u64, err := strconv.ParseUint(s, 10, 32)
+u32 = uint32(u64)
+
+# convert string to uint64
+u64, err := strconv.ParseUint(s, 10, 32)
+
+# convert string to os.FileMode
+u, err := strconv.ParseUint(s, 8, 32)
+mode := os.FileMode(u)
+
+# convert string to io.Reader
+myReader := strings.NewReader(someString)
+
+# convert int to string
+s := strconv.Itoa(123))
+
+# convert int64 to string with base 10
+i :=strconv.FormatInt(int64(123), 10)
+
+# convert bytes from a file to a string
+string(data_from_file1)
+
+# convert string to integer
+i, err := strconv.Atoi("1")
+
+# convert string to float64
+f, err := strconv.ParseFloat(s, 64)
+
+
+
+bool
+====
+
+# print hex value of rune
+fmt.Printf("Rune: %0.2x\n", '\a')
+
+# print unicode value of rune
+fmt.Printf("Rune: %U\n", '\a')
+
+# check if string contains a substring
+res := strings.Contains(str, substr)
+---
+matched, _ := regexp.MatchString("substr1", "str1")
+---
+re = regexp.MustCompile(substr)
+res = re.MatchString(str)
+fmt.Println(res) // true
+
+# get the index of the first instance of substr in str, or -1 if not found
+i := strings.Index("str1", "tr1")
+
+# check number of non-overlapping instances of substr in str
+c := strings.Count(str, substr)
+
+# check if rune is a letter
+unicode.IsLetter("a")
+
+# check if rune has only digits
+func hasOnlyDigits(s string) bool {
+        for _, r := range s {
+                if !unicode.IsNumber(r) {
+                        return false
+                }
+        }
+        return true
+}
+
+# check if string starts with a letter
+unicode.IsLetter(rune(stringVar[0]))
+
+# check if byte array is a valid string
+import "unicode/utf8"
+str := []byte("Hello, world!")
+utf8.Valid(str)
+
+# check if byte array contains only printable chars
+for _, b := range buff {
+	fmt.Printf("%v", unicode.IsPrint(rune(b)))
+}
+

@@ -1,0 +1,21 @@
+misc
+====
+
+# "windows setup cannot configure windows for this hardware"
+Shift F10
+Type -
+Cd..
+Cd..
+Cd c:\windows\system32\oobe
+Msoobe
+This should force it to finalize and create computer name, password, time, etc.
+
+# manage user names
+Start -> User Acocunts
+
+# disable windows defender in windows 10
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender
+Right-click the Windows Defender (folder) key, select New, and click on DWORD (32-bit) Value.
+Name the key DisableAntiSpyware and press Enter.
+Double-click the newly created DWORD and change the value from 0 to 1.
+

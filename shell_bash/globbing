@@ -1,0 +1,85 @@
+brace expansion
+===============
+
+# create multiple directories
+mkdir /mnt/sd{b,c,d,e}
+---
+mkdir /mnt/sd{b..e}
+
+
+
+special parameters
+==================
+
+# list of special parameters
+${*}	positional parameters: $1 $2 $3 ...
+${@}	positional parameters: $1 $2 $3 ...
+"${*}"	positional parameters: "$1 $2 $3 ..."
+"${@}"	positional parameters: "$1" "$2" "$3" ...
+${#}	number of positional parameters
+${?}	exit status of the most recent command
+${-}	the current shell option flags as single-letters
+${$}	process ID of the invoked shell
+${!}	process ID of the most recent background command
+${0}	name of the shell or shell script
+
+# extended globbing (shopt -s extglob)
+?(pattern1)	zero or one occurrences of pattern
+*(pattern1)	zero or more occurrences of pattern
++(pattern1)	one or more occurrences of pattern
+@(pattern1)	one occurrence of pattern
+!(pattern1)	anything except the pattern
+
+
+
+globbing
+========
+
+# metacharacters
+*	0 or more chars
+?	1 char
+[aegh]	1 listed char
+[a-e]	1 listed and between char
+[!a-e]	1 not listed and between char
+
+# extended globbing example
+shopt -s extglob
+for arg in apple be cd meet o mississippi; do
+    case "$arg" in
+        a*             ) foo;;    # matches anything starting with a
+        b?             ) bar;;    # matches any two-char string starting with b
+        c[de]          ) baz;;    # matches "cd" or "ce"
+        me?(e)t        ) qux;;    # matches "met" or "meet"
+        @(a|e|i|o|u)   ) fuzz;;   # matches one vowel
+        m+(iss)?(ippi) ) fizz;;   # matches "miss" or "mississippi" or others
+        *              ) bazinga;;
+    esac
+done
+
+
+
+regex
+=====
+
+# extended regular expressions
+egrep -i	case insensitive
+?		matches 0 or 1 occurence of previous char
++		matches 1 or more occurences of previous char
+{2,4}		matches 2 to 4 occurences of a char before the braces
+{,4}		matches 0 to 4 occurences of a char before the braces
+{2,}		matches at least 2 occurences of a char before the braces
+(abc|xyz)	matches either abc or xyz
+\d		matches any numeric digit
+\D		matches any not numeric digit
+\w		matches any numeric digit, letter or underscore
+\W		matches any not numeric digit, letter or underscore
+\s		matches any space, tab or new line char
+\S		matches any not space, tab or new line char
+[A-Z]{2}\\d{3}	matches 2 letters followed by 3 digits
+
+# regex example to match an ipv4 address
+^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$
+
+# regex example to match a hostname
+^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z 0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$
+

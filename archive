@@ -1,0 +1,42 @@
+tar
+===
+
+# untar to another directory
+tar xf file.tar -C /tmp/dir
+
+# untar single file
+tar xf file.tar file_in_archive.txt
+
+# untar single file to another dir
+tar xf file.tar file_in_archive.txt --one-top-level=/another_dir/
+
+# untar single file to stdout
+tar xf file.tar file_in_archive.txt -O
+
+# list files in an archive
+tar tf file.tar
+
+# use zstd to decompress long archive
+tar -I'zstd -17 --long=31 -T16' -xf archive.tar.zst
+
+# compress tar archive with zstd
+tar --sort=name -c dir1/ | zstd -17 -T16 --long=31 --ultra > dir1.tar.zst
+---
+tar --sort=name -I'zstd -17 -T16 --long=31 --ultra' -cf dir1.tar.zst dir1/
+
+
+
+7z
+==
+
+# create a zip file
+7z a -tzip <file.zip> <dir>
+
+
+
+zip
+===
+
+# create a zip file with a dir
+zip arch1.zip -r dir_to_archive/
+

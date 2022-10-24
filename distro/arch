@@ -1,0 +1,68 @@
+packages
+========
+
+# install a package
+pacman -S findutils
+
+# search for packages
+pacman -Ss zip
+
+# list all installed packages
+pacman -Q
+
+# find information about a package
+pacman -Qi package
+
+# find installed package by name
+pacman -Qs zip
+
+# find an installed package containing the file
+pacman -Qo bin/xargs
+
+# delete all cached packages
+pacman -Sc
+
+# update package database
+pacman -Fy
+
+# list all files in a package
+pacman -Fl package
+
+# list packages that own a file
+pacman -Qo /usr/lib/file
+
+# remove a package
+pacman -R package
+
+# remove a package and dependencies not needed by others
+pacman -Rs package
+
+# list all orphanated packages
+pacman -Qdt
+
+# remove all orphanated packages
+pacman -Rsn $(pacman -Qdtq)
+
+# update system
+pacman -Sy --noconfirm archlinux-keyring && pacman -Su
+
+# update all keys in keyring
+rm -r /etc/pacman.d/gnupg
+pacman-key --init
+pacman-key --populate archlinux
+pacman -Sy --noconfirm archlinux-keyring
+
+# update key manually
+gpg --keyserver pool.sks-keyservers.net --recv-keys 3B94A80E50A477C7
+
+# add this line in /etc/pacman.d/gnupg/gpg.conf in case of gpg errors
+keyserver pool.sks-keyservers.net
+
+# install from aur as regular user
+git clone https://aur.archlinux.org/pcsxr.git'
+cd pcsxr && makepkg
+sudo pacman -U ./pcsxr*.tar.xz
+
+# downgrade a package
+pacman -U <old pkg from /var/cache/pacman/pkg/>
+

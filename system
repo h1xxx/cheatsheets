@@ -1,0 +1,307 @@
+devices
+=======
+
+# get information on udev rules for a device
+udevadm info -a /dev/fb0
+
+# export udev rules to a file
+udevadm info --export-db > udev.txt
+
+# reload rules and apply them
+udevadm control --reload-rules && udevadm trigger
+
+# show mapping of devices in /dev/input/event
+cat /proc/bus/input/devices
+
+# change fan speed of nvidia card with nouveau driver
+echo 1 > /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0/hwmon/hwmon0/pwm1_enable
+echo 30 > /sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0/hwmon/hwmon0/pwm1
+
+# change fan speed on asus kcma-d8
+echo 1 > /sys/devices/pci0000\:00/0000\:00\:14.0/i2c-13/13-002f/pwm1_enable
+echo 1 > /sys/devices/pci0000\:00/0000\:00\:14.0/i2c-13/13-002f/pwm2_enable
+echo 170 >  /sys/devices/pci0000\:00/0000\:00\:14.0/i2c-13/13-002f/pwm1
+echo 200 >  /sys/devices/pci0000\:00/0000\:00\:14.0/i2c-13/13-002f/pwm2
+
+
+
+memory
+======
+
+# clear all buffers and cache in the system memory
+echo 3 > /proc/sys/vm/drop_caches
+
+# find page size
+getconf PAGESIZE
+
+# obtaining info from /proc/meminfo (todo: verify)
+total used memory = memtotal - memfree
+non cache/buffer memory = total used memory - (buffers+cached memory)
+buffers = buffers
+cached memory = cached + sreclaimable - shmem
+swap = swaptotal - swapfree
+
+# check statistics on how cpu and memory are overcommited on the system
+cat /proc/pressure
+
+
+
+time
+====
+
+# chrony commands
+offline		bring all sources offline
+online		bring all sources online
+activity	show status of sources
+tracking	show detailed info on time
+
+# show current hardware clock
+hwclock --show
+
+# write current system time to the hardware clock
+hwclock -w
+
+# write specific time to the hardware clock
+hwclock --set --date="2012-04-19 16:45:05" --localtime
+---
+hwclock --set --date="2011-04-19 20:45:05"  --utc
+
+
+
+system info
+===========
+
+# getting all the info available
+lshw
+dmidecode
+hwinfo
+
+# motherboard model
+dmidecode -t baseboard
+
+# find battery load information
+acpi
+
+# list input devices
+lsinput
+
+# show kernel info
+uname -a
+---
+cat /proc/version
+
+# show pci vendor and device codes as both numbers and names, and module info
+lspci -nnk
+
+
+
+cpu
+===
+
+# show cpu scaling governor
+cat /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
+
+# change cpu scaling governor
+for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do
+	cat governor_name > "${f}";
+done
+
+
+
+gpu
+===
+
+# limit power draw on all nvidia gpus
+nvidia-smi -pm 1
+nvidia-smi -pl 125 [-i 0]
+nvidia-smi -q -d power
+
+# set brightness example
+cat /sys/class/backlight/intel_backlight/max_brightness
+tee /sys/class/backlight/intel_backlight/brightness <<< 250
+
+
+
+systemd
+=======
+
+# clean journal in journald
+journalctl --rotate
+journalctl --vacuum-time=1s
+
+
+
+xorg
+====
+
+# turn off the screen (on remote machine export DISPLAY=:0)
+xset dpms force off
+
+# create xorg.conf configuration file
+X -configure
+
+# autoselect best resolution
+xrandr --auto
+
+# show supported resolutions
+xrandr --query
+
+# set a resolution
+xrandr --output LVDS1 --scale-from 1920x1080
+---
+xrandr -s 1280x800
+
+# list monitors
+xrandr --listmonitors
+
+# list drivers loaded in xorg
+cat /var/log/Xorg.0.log | grep Load
+
+# generate a modeline 1280x1024_60.00 for xorg.conf.d, monitor section
+cvt 1280 1024 60
+
+# change keymap
+setxkbmap pl
+
+# modify keypress rate in xorg
+xset r rate 180 60
+
+# remap 'Caps Lock' key to 'Escape'
+xmodmap -e "clear lock"
+xmodmap -e "keycode 0x42 = Escape"
+
+# remap 'Caps Lock' key to back to 'Caps Lock'
+xmodmap -e "keycode 0x42 = Caps_Lock"
+xmodmap -e "add lock = Caps_Lock"
+
+
+
+fonts
+=====
+
+# list installed fonts
+fc-list
+
+# print alias of the font
+fc-match liberation
+
+# gui program to edit ttf and other fonts
+fontforge
+
+
+
+keyboard
+========
+
+# list keymaps
+find /usr/share/keymaps/ -type f
+
+# load a keymap
+loadkeys pl
+
+# list the keycodes mapped to keys
+dumpkeys -l
+
+# find the keycodes
+showkey
+
+# convert text keymap to binary file recognizable by busybox loadkmap
+loadkeys -b key.map > key.bmap
+
+
+
+misc
+====
+
+# search for a keyword in manpages
+man -k usb || apropos usb
+
+# reindex man database
+mandb
+
+# suspend computer (S3)
+echo mem > /sys/power/state
+
+# shuting down the system
+shutdown -P now			power off now
+shutdown -r now			reboot now
+shutdown -H 16:56		halt on exact time
+shutdown -r 10 'sys update'	reboot in 10 minutes with a reason
+shutdown -c			cancel a scheduled shutdown
+
+# freeze computer (low-power idle) (S1)
+echo freeze > /sys/power/state
+
+# list locale in glibc archive /usr/lib/locale/locale-archive
+localedef --list-archive
+
+# change dir to the home dir of user1
+cd ~user1
+
+# find root device during boot
+busybox rdev
+
+# disable console beep
+setterm -blength 0
+
+# show details on swap memory, including swap file location
+swapon --show
+---
+cat /proc/swaps
+
+# top keyboard shortcuts
+<M>				sort by memory usage
+<F>, select col, <s>, <q>	sort by chosen column
+<x>				highlight sort column
+
+# reload sysctl.conf
+sysctl -p
+
+
+
+modules
+=======
+
+# show modules used by usb devices
+lsusb -t
+usb-devices
+
+# get a list off all built-in kernel modules
+cat /lib/modules/$(uname -r)/modules.builtin
+
+# find parameteres for built-in kernel module
+ls /sys/module/ath9k/parameters
+
+# find parameters for a loaded loadable module
+modinfo module_name
+
+# find which modules are used
+hwinfo | grep Modules
+
+
+
+uefi
+====
+
+# show boot entires
+efibootmgr -v
+
+# add boot entry
+efibootmgr -v -c -d /dev/sda -p 1 -l \\EFI\\SYSLINUX\\syslinux.efi -L SYSLINUX
+
+# show boot order
+efibootmgr -o
+
+# change boot order
+efibootmgr -o 0000,0001,0002
+
+# delete boot entry
+efibootmgr -b 0014 -B
+
+# setting boot entry active and then inactive
+efibootmgr -b 0014 -a
+efibootmgr -b 0014 -A
+
+# check if system is running in UEFI mode
+[ -e /sys/firmware/efi/efivars ] && echo yes
+

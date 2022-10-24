@@ -1,0 +1,56 @@
+transmission
+============
+
+# start daemon with a directory to watch for torrent files
+transmission-daemon -c /path/to/watch/dir
+
+# exit daemon
+transmission-remote --exit
+
+# remove completed torrents
+transmission-remote -l | grep 100% | awk '{print $1}'| paste -d, -s | xargs -i transmission-remote -t {} -r
+
+# show detailed inormation on torrent 1
+transmission-remote -t1 -i
+
+# show file information in torrent 1
+transmission-remote -t 1 -if
+
+# change a download priority in torrent 1, file 1
+transmission-remote -t 1 -p<h/n/l> 1
+
+# stop downloading file 1 in torrent 1
+transmission-remote -t 1 -G 1
+
+# add a tracker to torrent 1
+transmission-remote -t 1 -td 'udp://tracker.opentrackr.org:1337/announce'
+
+# building cli transmission from git
+./autogen.sh --without-gtk --enable-cli
+make
+make install
+
+
+
+aria
+====
+
+# download magnet links from a file
+/home/x/aria2c -D \
+	-j 5000 \
+	--listen-port=${PORT} \
+	--dht-listen-port=${PORT} \
+	--disable-ipv6=true \
+	--bt-metadata-only=true \
+	--bt-save-metadata=true \
+	--peer-agent='qBittorrent 4.1.5' \
+	-d /home/x/aria2_torrents \
+	-i /home/x/aria2_magnets_to_get.txt
+
+# aria parameters' list
+-s 32 -x 32
+--bt-max-open-files=500
+--bt-tracker-timeout=30
+--bt-max-peers=1
+--bt-load-saved-metadata=true
+--allow-overwrite=true

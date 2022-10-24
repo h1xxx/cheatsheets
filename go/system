@@ -1,0 +1,69 @@
+exec
+====
+
+# run a command and save its standard output
+cmd := exec.Command("ls", "-l", "-R")
+        stdout, err := cmd.Output()
+
+# run a command and print its standard output and error
+cmd := exec.Command("ls", "-l")
+cmd.Stdout = os.Stdout
+cmd.Stderr = os.Stderr
+cmd.Run()
+
+# catch a signal
+import "os/signal" "syscall"
+sigCh := make(chan os.Signal, 2)
+        signal.Notify(sigCh,
+                syscall.SIGHUP,
+                syscall.SIGINT,
+                syscall.SIGTERM,
+                syscall.SIGQUIT)
+        go func() {
+                sig := <-sigCh
+                fmt.Println("signal caught:", sig)
+                fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+                os.Exit(1)
+        }()
+
+# get exit status of executed command
+err := cmd.Run()
+exitErr, exitNot0 := err.(*exec.ExitError)
+if exitNot0 {
+	fmt.Println("exit code: ", exitErr.ExitCode())
+}
+
+
+
+system
+======
+
+# get user ID (uid), group ID (gid), user name and home dir
+import "os/user"
+user, err := user.Current()
+fmt.Println(user.Uid, user.Gid, user.Username, user.HomeDir)
+
+# find number of cpus (nproc)
+import runtime
+fmt.Println(runtime.NumCPU())
+
+# exec a command from a string
+func run(command string) error {
+	bin, args := splitCmd(command)
+	cmd := exec.Command(bin, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	return err
+}
+func splitCmd(command string) (bin string, args []string) {
+	l := strings.Split(command, " ")
+	for i, arg := range l {
+		if i == 0 {
+			bin = arg
+			continue
+		}
+		args = append(args, arg)
+	}
+	return
+}

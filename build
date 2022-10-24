@@ -1,0 +1,34 @@
+compilation
+===========
+
+# recommended release compile flags
+-Wall -Werror.
+
+# recommended dev compile flags
+-fsanitize=memory -Wextra -Werror=format -Werror=switch -Wpedantic
+
+# gcc error example
+# solution: compile with CFLAG containing -fPIC or -mcmodel=large
+/usr/bin/ld: ./sort.o: relocation R_X86_64_PC32 against undefined symbol `rand@@GLIBC_2.2.5' can not be used when making a shared object; recompile with -fPIC
+/usr/bin/ld: final link failed: Bad value
+
+
+
+cmake
+=====
+
+# show all config options
+mkdir build && cd build && cmake ..
+cmake -LAH
+
+
+
+meson
+=====
+
+# example build commands
+mkdir build
+meson --prefix=/usr
+meson compile -C build
+meson install -C build --destdir "$pkgdir"
+

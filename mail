@@ -1,0 +1,90 @@
+protocols
+=========
+
+# imap commands
+1 LOGIN username pass	user's login
+1 LIST "" *		list all directories
+1 LIST "INBOX/" "*"	list all directories in INBOX
+1 SELECT "INBOX"	selects a mailbox to access messages
+1 SEARCH UNSEEN		find unseen messages
+1 FETCH 1:4 all		retrieves metadata for messages from 1 to 4
+1 FETCH 1:4 RFC822	retrieves messages from 1 to 4
+1 CREATE "INBOX"	creates a mailbox with a specified name
+1 DELETE "INBOX"	deletes a mailbox
+1 RENAME "Box1""Box2"	renames a mailbox
+1 LSUB "" *		returns a subset of names from the set of names that
+			the user has declared as being active or subscribed
+1 UNSELECT INBOX	exits the selected mailbox
+1 FETCH <ID> all	retrieves data associated with a message in the mailbox
+1 CLOSE			removes all messages with the deleted flag set
+1 LOGOUT		closes the connection with the imap server
+
+# pop3 commands
+USER username	identifies the user
+PASS password	authentication of the user using its password
+STAT		requests the number of saved emails from the server
+LIST		requests from the server the number and size of all emails
+RETR id		requests the server to deliver the requested email by id
+DELE id		requests the server to delete the requested email by id
+CAPA		requests the server to display the server capabilities
+RSET		requests the server to reset the transmitted information
+QUIT		closes the connection with the pop3 server
+
+
+
+misc
+====
+
+# extract email eml file
+munpack 1.eml
+
+# extract email eml file, also with text parts without a 'filename' parameter
+munpack -t 1.eml
+
+# expect smtp session via telnet example
+cat > smtp_user_enum.exp << EOF
+#!/usr/bin/expect
+set user [lindex \$argv 0]
+spawn telnet 10.10.1.1 25
+expect 'Connected'
+send "EHLO mailserver.com\\n"
+expect 220
+send "VRFY \$user\\n"
+expect {
+	"252" {send "yes\\n";exp_continue;};
+	"550" {send "no\\n";exp_continue}
+}
+send "quit\\n"
+EOF
+chmod +x smtp_user_enum.exp
+./smtp_user_enum.exp root
+
+
+
+mutt
+====
+
+# keys
+<$>	synchronize mutt with IMAP server
+<p>	encrypt mail with gpg
+ESC f	change the from field just before send
+<T>	view as text
+<h>	show headers
+<e>	edit e-mail with all header info included
+
+# to send mail with all attachments go to attachments screen and tag all the
+# attachments with t and then press ;f
+
+# sort mails
+:set sort="date"
+:set sort="size"
+:set sort="to"
+:set sort="from"
+
+# open mbox file
+mutt -f file.mbox
+
+# search for
+~b EXPR         messages which contain EXPR in the message body
+~B EXPR         messages which contain EXPR in the whole message
+<Esc>/		backward search

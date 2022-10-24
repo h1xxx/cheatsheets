@@ -1,0 +1,10 @@
+error
+=====
+# find error types
+go doc fs.errinvalid
+
+# check if error is of a specific type
+errors.Is(err, fs.ErrNotExist)
+
+# print error message
+errors.Unwrap(err)

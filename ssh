@@ -1,0 +1,77 @@
+openssh
+=======
+
+# generate host keys
+ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key
+---
+ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key
+---
+ssh-keygen -A
+
+# generate keys with a different name
+ssh-keygen -t ed25519 -C comment1 -f id_ed25519_file1
+
+# generate public key from a private key
+ssh-keygen -y -f id_rsa_server
+
+# replacement for scp command (todo: verify)
+ssh remote \"cd /src; tar -cf - .\" | (cd /dst; tar -xf -)
+---
+dd if=filename | ssh hostname dd of=remote_filename
+
+# login through a jumpbox
+ssh -J <user>@<jumpbox>[:port] <user>@<target_machine> [-p 2222]
+
+# copy keys to a remote host with a new identity file
+ssh-copy-id -i id_rsa_user.pub user@server
+
+# execute local script remotely
+ssh user@host 'bash -s' < /path/script.sh
+---
+cat /path/script.sh | ssh user@host 'bash -s'
+
+# run multiple commands via ssh
+ssh host1 << EOF
+ls some_folder;
+./someaction.sh 'some params'
+pwd
+./some_other_action 'other params'
+EOF
+
+# login without host key check
+ssh -o'StrictHostKeyChecking=no' -o'UserKnownHostsFile=/dev/null' root@1.1.0.4
+
+# test ssh connection
+ssh -q user@host exit && echo up || echo down
+
+# check if ssh server port is open
+ssh -o BatchMode=yes -o ConnectTimeout=5 -o PubkeyAuthentication=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ChallengeResponseAuthentication=no -p 22 10.0.0.1 2>&1 | grep -c "Permission denied"
+
+# run a command with colored output
+ssh -t ls --color=auto
+
+
+
+dropbear
+========
+
+# generate a keypair
+dropbearkey -f id_rsa -t rsa -s 2048
+
+# print public key
+dropbearkey -y  -f ~/.ssh/id_rsa  -b 2048 | grep '^ssh-rsa'
+
+# convert a key to dropbear format; wrong format produces string too long error
+dropbearconvert openssh dropbear id_rsa id_rsa.dropbear
+
+
+
+rsync
+=====
+
+# run rsync with ssh on a different port
+rsync -rvz -e 'ssh -p 2222' --progress
+
+# copy multiple files from a remote host
+rsync 'host://root/file1 file2' ./dir1
+

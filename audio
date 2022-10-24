@@ -1,0 +1,153 @@
+misc
+====
+
+# create a spectrogram
+sox "$file" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o spec.png
+
+# dump spectrum of frequencies in an audio file to txt
+sox in.flac -n stat -freq > freq.txt 2>&1
+
+# split audio files based on info from a cue file
+shnsplit -f file1.cue -t %n-%t -o flac file1.flac
+---
+shnsplit -f *.cue -t %n-%t -o flac *.flac
+
+# decode flac file
+flac -d input1.flac
+
+# compress a wave file
+ffmpeg -i file1.wav out.flac
+
+
+
+alsa
+====
+
+# display all soundcards and digital audio devices
+cat /proc/asound/cards
+
+# list playback devices
+aplay -l
+
+# list capture devices
+arecord -l
+---
+arecord -L
+
+# capture from mic
+arecord --device='hw:2,0' -vv -f S16_LE -c2 -r44100 file.wav
+---
+arecord --device='hw:2,0' -vv -f S16_LE -c2 -r48000 file.wav
+---
+arecord --device=plughw:0,0 --format S16_LE --rate 44100 -c1 /tmp/test.wav
+---
+arecord -vv -D plughw:2,0 -c1 -fdat stackoverflow.wav
+---
+ffmpeg -f alsa -i sysdefault:CARD=MID -t 30 out.wav
+
+# capture from cd and compress to mp3
+arecord -f cd -t raw -d number_of_seconds | lame -x -r – out.mp3
+
+# capture from cd and compress to ogg
+arecord -f cd -t raw | oggenc – -r -o out.ogg
+
+# set card 1 as the default in /etc/asound.conf
+defaults.pcm.card 1
+defaults.ctl.card 1
+
+# test soundcard, make some noise
+speaker-test -c 2
+
+# show settings for card 2
+amixer -c 2
+
+# set microphone volume for card 2
+amixer -c 2 sset Mic 40
+
+# list soundcard controls
+amixer scontrols
+
+# change volume
+amixer sset Master 244
+
+# unmute a control
+amixer sset 'IEC958' unmute
+
+# load loopback device module
+modprobe snd-aloop pcm-substreams=16
+
+
+
+pulseaudio
+==========
+
+# start pulseaudio
+# first create group pulse pulse-access
+# then start elogind and dbus
+pulseaudio  --disallow-exit
+
+# show info on pulseaudio
+pactl info
+
+
+
+snapcast
+========
+
+# start a server
+snapserver --user snapserver:snapserver [-d] -s pipe:///tmp/snapfifo?name=default
+
+# start clients
+snapclient --user snapclient:audio -h 127.0.0.1
+snapclient --user snapclient:audio -h 10.1.0.3
+
+# send music to clients via pipe
+mpv mark_lanegan_band-bubblegum.ape --audio-display=no --audio-channels=stereo --audio-samplerate=48000 --audio-format=s16 --ao=pcm --ao-pcm-file=/tmp/snapfifo
+---
+mpv file.flac --audio-channels=stereo --audio-samplerate=48000 --audio-format=s16 --ao=pcm --ao-pcm-file=/tmp/snapfifo
+
+# server with multiple input streams
+snapserver -d -s pipe:///tmp/snap_kitchen?name=kitchen -s pipe:///tmp/snap_livingroom?name=livingroom
+
+
+
+jack
+====
+
+# set priorities
+# @audio      -         rtprio          99
+@audio      hard      memlock      unlimited
+
+# find hw:X,Y
+play -l
+---
+cat /proc/asound/cards
+
+# master
+jackd -R -p64 -dalsa -P hw:0,1
+jack_netsource -H <slave_ip>
+
+# jack_connect <output>		<input>
+jack_connect system:playback_1  netjack:capture_1
+jack_connect system:playback_2  netjack:capture_2
+
+# slave
+jackd -R -dnet
+mpv --ao=jack file.flac
+
+# slave + server
+alsa_out -d hw:1
+jack_connect mpv:out_0 alsa_out:playback_1
+jack_connect mpv:out_1 alsa_out:playback_2
+
+# show connections and properties
+jack_lsp -c -p
+
+
+
+beets
+=====
+
+# import a file
+beet imp -C 102-britney_spears_-____baby_one_more_time.mp3
+

@@ -1,0 +1,95 @@
+permissions
+===========
+
+# list sudo permissions for current user
+sudo -l
+
+# allow su to another user for users in wheel group
+vi /etc/pam.d/su
+
+# remove user from a group
+gpasswd -d user group
+
+
+
+user config
+===========
+
+# show misc info on users
+id <user>	# user and group IDs of a user
+groups <user>	# groups of a user
+who -a		# users logged in, dead processes, last boot etc
+w -i		# users logged in and their ip address
+last -x		# user log history
+whoami		# who am I?
+
+# change users uid and gid (permissions need to be verified separately)
+usermod -u <uid> <user>
+groupmod -g <gid> <user>
+
+# create a system user for a daemon process
+useradd --system --shell /sbin/nologin <user>
+---
+useradd -r -s /bin/false <user>
+
+# set default shell for a user (shell must be listed in /etc/shells)
+chsh -s /bin/bash
+---
+usermod --shell /bin/bash <user>
+
+# get user info / check if user exists
+id -u user1
+
+# check if user exists
+grep -c '^user1:' /etc/passwd
+---
+getent passwd <user>
+---
+id -u <user>
+
+# check the status of the passowrd including created and expiry dates
+passwd -S user1
+
+# create a password SHA-512 hash for /etc/shadow (man 3 crypt)
+openssl passwd -6 -salt xyz
+---
+echo password1 | openssl passwd -6 -salt xyz -stdin
+
+# change a password from stdin
+echo <user>:<password> | chpasswd -c SHA512 -s 1000000
+
+# create a group
+groupadd <group_name>
+
+# list groups with group ids
+id <user>
+
+# add a user to a group
+usermod -a -G <group> <user>
+
+# assign a primary group to an user:
+usermod -g primarygroupname username
+
+# remove a user
+userdel <user>
+
+# delete user1 from group1
+gpasswd -d user1 group1
+
+# use a newly assigned group without logging out in a new shell session
+newgrp <group>
+
+# use a newly assigned group without logging out for a single command
+sg <new_group> -c <command>
+
+
+
+misc
+====
+
+# get a number of failed login attempts for root user
+pam_tally2 -u root
+
+# show all logins on the system
+last
+

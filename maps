@@ -1,0 +1,16 @@
+gpsd
+====
+
+# connect to gps device
+gpsd /dev/usb/006/004 -F /var/run/gpsd.sock
+
+# misc commands
+cgps -s
+sudo gpsd -n -N -D 2 /dev/ttyUSB0
+sudo gpsd -n -G -N -b /dev/ttyUSB0
+gpsmon
+sudo vim /usr/lib/systemd/system/gpsd.socket
+sudo systemctl enable gpsd
+sudo pacman -S garmindev
+sudo modprobe garmin_gps
+

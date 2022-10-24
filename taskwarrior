@@ -1,0 +1,197 @@
+print
+=====
+
+# list all reports
+task reports
+
+# list completed tasks
+task completed
+
+# list columns available for reports
+task columns
+
+
+
+tasks
+=====
+
+# add a task
+task add take over the world due:eom
+
+# change the description of a task
+task 1 modify something to be done
+
+# show information on a task
+task 1
+
+# change priority of many tasks
+task 1 2-5 19 modify pri:H
+
+# schedule a task for a particular date
+task 1 modify scheduled:sunday
+
+# delete due date
+task 1 modify due:
+
+# mark task as completed
+task 1 done
+
+# delete a task
+task 1 delete
+
+# make a task that is due at 9:00am every Monday, starting this coming Monday
+task add Do the thing due:2015-06-08T09:00 recur:weekly
+
+# make a reminder to pay the rent every month, but only for a year
+task add Pay rent due:28th recur:monthly until:now+1yr
+
+
+
+filter
+======
+
+# list tasks scheduled for current day
+task ready
+
+# Show tasks I added in the last 4 days
+task entry.after:today-4days list
+
+# Show tasks I added yesterday
+task entry:yesterday list
+
+# Show tasks I added in the last hour
+task entry.after:now-1hour list
+
+# Show tasks I completed between a date range
+task end.after:2015-05-01 and end.before:2015-05-31 completed
+
+# Show tasks I completed in the last week
+task end.after:today-1wk completed
+
+# Show tasks in This project or That project
+task project:This or project:That list
+
+# More complex algebraic filters
+task project:This and \( priority:H or priority:M \) list
+
+# Search for pattern in description and annotations
+task /pattern/ list
+task rc.search.case.sensitive:yes /pattern/ list
+task rc.search.case.sensitive:no /pattern/ list
+
+
+
+projects
+========
+
+# Search for tasks with no project
+task project: list
+
+# change the project of a task
+task 1 modify project:project1
+
+# move all tasks to a new project
+task project:OLDNAME modify project:NEWNAME
+
+# move all pending tasks to a new project
+task project:OLDNAME and status:pending modify project:NEWNAME
+
+# using a project hierarchy
+task add project:Home.Kitchen Clean the floor
+task add project:Home.Kitchen Replace broken light bulb
+task add project:Home.Garden Plant the bulbs
+task project:Home.Kitchen count
+task project:Home.Garden count
+task project:Home count
+
+# list projects currently used
+task projects
+task _projects
+
+# list all the projects ever used
+task rc.list.all.projects=1 projects
+task rc.list.all.projects=1 _projects
+task _unique projects
+
+# specify that a task is more important if it belongs to the “home” project
+task config urgency.user.project.home.coefficient 2.0
+
+
+
+tags
+====
+
+# list tasks that have a specific tag.
+task +home list
+
+# list tasks that do not have a specific tag.
+task -home list
+
+# add a tag for all tasks in a project
+task project:proj1 modify +tag1
+
+# list tasks that have any tags.
+task tags.any: list
+task +TAGGED list
+
+# list tasks that have no tags.
+task tags.none: list
+
+# list tasks that have two specific tags.
+task +this and +that list
+task +this +that list
+
+# list tasks that have either of two specific tags.
+task +this or +that list
+
+# list tasks that have just one of two specific tags.
+task +this xor +that list
+
+# list tags currently used
+task tags
+
+# list all tags ever used
+task rc.list.all.tags=1 tags
+task _tags
+
+# modify a task to boost it's urgency
+task 1 modify +next
+
+# list tasks due today.
+task +DUETODAY list
+task due.after:yesterday and due.before:tomorrow list
+
+# list tasks that are due, but not today.
+task +DUE -DUETODAY list
+
+# list tasks that are due this week.
+task +WEEK list
+
+# list task that are overdue.
+task +OVERDUE list
+
+# list virtual tags are present for the task
+task 1 info
+
+
+
+contexts
+========
+
+# create a context for a project and a tag
+task context define con1 project:pr1 or +tag1
+
+# switch context
+task context con1
+
+# reset (unset) context
+task context none
+
+
+
+misc
+====
+
+# check if everything is ok
+task diagnostics
+

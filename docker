@@ -1,0 +1,56 @@
+misc
+====
+
+# docker commands
+pull busybox		download an image from docker hub
+images			list all images
+ps			list currently running containers
+ps -a			list all containers
+run -it busybox sh	run interactive shell
+rm d3a0f8b42ecc		delete container/image with specific hashes
+rmi			delete image
+container prune		delete all stopped containers
+system prune		delete also dangling images
+volume prune		delete all dangling volumes
+system prune -a		delete all images
+
+# list image hashes with status exited
+docker ps -a -q -f status=exited
+
+# list dangling images and dangling volumes
+docker images -f dangling=true
+docker volume ls -f dangling=true
+
+# run docker file with two tags
+docker build -f dockerfile1 -t 'repo1:2010-01-01' -t 'repo1:latest' .
+
+# run and remove image
+docker run --rm image_name
+
+# run xorg container with sound
+XSOCK=/tmp/.X11-unix
+XAUTH=/tmp/.docker.xauth
+docker run -ti --shm-size 4G -e DISPLAY \
+	-v $XSOCK:$XSOCK -v $XAUTH:$XAUTH \
+	-e XAUTHORITY=$XAUTH --device /dev/snd arch_ff:Dockerfile
+
+# Dockerfile keywords
+ADD 		copies the files from a source on the host into the
+		container’s own filesystem at the set destination
+CMD 		can be used for executing a specific command within
+		the container
+ENTRYPOINT	sets a default application to be used every time a
+		container is created with the image
+ENV 		sets environment variables
+EXPOSE		associates a specific port to enable networking between
+		the container and the outside world
+FROM		defines the base image used to start the build process
+MAINTAINER	defines a full name and email address of the image
+		creator
+RUN		is the central executing directive for Dockerfiles
+USER		sets the UID (or username) which is to run the container
+VOLUME		is used to enable access from the container to a
+		directory on the host machine
+WORKDIR		sets the path where the command, defined with CMD, is
+		to be executed
+LABEL		allows you to add a label to your docker image

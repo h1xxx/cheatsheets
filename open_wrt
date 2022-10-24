@@ -1,0 +1,131 @@
+misc
+====
+
+# show devices connected to router
+arp
+cat /tmp/dhcp.leases
+iwinfo wlan0 assoclist
+iw dev wlan0 station dump
+
+# check if port is opened on remote hosts
+nc 192.168.1.2 22
+
+
+
+configuration
+=============
+
+# install tools
+opkg update
+opkg install wireless-tools iperf3 tcpdump tmux bind-tools
+
+# install packages for ppp
+opkg update
+opkg install ppp kmod-pppoe ppp-mod-pppoe
+
+# set proper protocol in /etc/config/network under interface wan section
+option proto pppoe
+option username bthomehub@btbroadband.com
+option password BT
+
+# config wifi in /etc/config/wireless
+set hwmode to 11ng
+set ssid my_wifi
+set encryption psk2
+set key pass123
+
+# drop silently incomming traffic in /etc/config/firewall
+set wan:wan options input and forward to DROP instead of REJECT
+set rule for ping with option target DROP instead of ACCEPT
+
+# hostname, timezone and led config
+vi /etc/config/system
+
+# ethernet config
+/etc/config/network
+
+# reload /etc/config/wireless
+wifi
+
+# reload /etc/config/network
+/etc/init.d/network reload
+
+# reload firewall rules in /etc/config/firewall
+/etc/init.d/firewall reload
+
+# config usb storage support
+opkg install kmod-fs-ext4 block-mount usbutils kmod-usb-storage libblkid
+/sbin/block info
+lsusb
+/sbin/block detect >> /etc/config/fstab
+/etc/init.d/fstab restart
+
+# config of ssh authorized public keys
+/etc/dropbear/authorized_keys
+
+# configure nfs
+opkg install nfs-kernel-server
+iptables -A INPUT -j ACCEPT -i br-lan -p tcp -m tcp --dport 2049
+echo '/mnt/shared 192.168.66.0/24(rw,sync)' >> /etc/exports
+/etc/init.d/nfs start
+/etc/init.d/nfs enable
+
+# edit cron entries
+crontab -e
+/etc/init.d/cron start
+/etc/init.d/cron enable
+
+# turn off wireless
+wifi down
+
+# config static ip lease in /etc/config/dhcp
+config host
+	option ip 192.168.10.10
+	option mac 'AA:BB:CC:DD:EE:FF'
+	option name pc
+
+# reload dhcp settings
+/etc/init.d/dnsmasq reload
+
+#  copy ssh authorized_keys to /etc/dropbear
+ssh root@192.168.1.1 "tee -a /etc/dropbear/authorized_keys" < ~/.ssh/id_rsa.pub
+
+# backup router config
+sysupgrade --create-backup /tmp/backup-`cat /proc/sys/kernel/hostname`-`date +%F`.tar.gz
+scp root@192.168.1.1:/tmp/backup-openwrt-2014-08-26.tar.gz .
+
+# system upgrade
+sysupgrade -v open_wrt.bin
+
+
+
+issues
+======
+
+# debricking wr1043nd: to access failsafe mode turn on the router while
+# pressing the QSS button repeatedly; SYS led should start blinking and router
+# should be accessible on 192.168.1.1; set computer's ip manually to
+# 192.168.1.2/24
+ssh 192.168.1.1
+mount_root	# remount partitions from read-only to read-write
+firstboot	# reset the settings
+reboot -f	# force reboot
+
+# wifi dropping the connection in wr1043nd after some time can be fixed with
+echo "echo 0 > /sys/kernel/debug/ieee80211/phy0/ath9k/ani" >> /etc/rc.local
+
+# autossh not starting correctly during boot
+ln -s /root/.ssh/ /.ssh
+
+# debricking netgear r7800
+# set computer's ip manually to 192.168.1.2/24; turn off the power, push and
+# hold the reset button with a pin; turn on the power and wait till power led
+# starts flashing white (after it first flashes orange for a while); release
+# the pin and tftp the factory img in binary mode; the power led will stop
+# flashing if you succeeded in transferring the image, and the router reboots
+# rather quickly with the new firmware
+tftp 192.168.1.1
+> mode binary
+> put openwrt-ar71xx-generic-wndr3700XXX-squashfs-factory.img
+> quit
+
