@@ -1,8 +1,7 @@
 package main
 
-// add help with syntax: ch [-d <dir>] [-c] [.dir] [..section] key1 !key2 key
+// add help with syntax: ch [-d <dir>] [-c] [.dir] [..file] key1 !key2 key
 // add negation
-// add section
 // add . for all
 // add search in item title
 // add case sensitive flag and make queries insensitive
@@ -270,7 +269,10 @@ func highlightKeywords(s string, query []string) string {
 
 func parseArgs() argsT {
 	var args argsT
-	args.rootDir = "~/cheatsheets"
+
+	homeDir, err := os.UserHomeDir()
+	errExit(err)
+	args.rootDir = fp.Join(homeDir, ".local/share/cheatsheets")
 
 	var skip bool
 	for i := 0; i < len(os.Args); i++ {
@@ -378,26 +380,9 @@ func getFiles(dir string) []string {
 }
 
 func skipFile(file string) bool {
-	if str.HasPrefix(file, ".") {
+	if str.HasPrefix(file, ".") || str.HasPrefix(file, "_") {
 		return true
 	}
-
-	skipNames := []string{
-		"ch",
-		"dotfiles",
-		"config",
-		"benchmark",
-		"template",
-		"install",
-		"todo",
-	}
-
-	for _, name := range skipNames {
-		if file == name {
-			return true
-		}
-	}
-
 	return false
 }
 
