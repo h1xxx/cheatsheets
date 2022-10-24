@@ -2,7 +2,6 @@ package main
 
 // add help with syntax: ch [-d <dir>] [-c] [.dir] [..file] key1 !key2 key
 // add negation
-// add . for all
 // add search in item title
 // add case sensitive flag and make queries insensitive
 
@@ -33,7 +32,6 @@ func main() {
 	args := parseArgs()
 
 	var items []itemT
-
 	for _, file := range args.files {
 		if args.checkOnly {
 			fmt.Printf("checking %s...\n",
@@ -275,7 +273,7 @@ func parseArgs() argsT {
 	args.rootDir = fp.Join(homeDir, ".local/share/cheatsheets")
 
 	var skip bool
-	for i := 0; i < len(os.Args); i++ {
+	for i := 1; i < len(os.Args); i++ {
 		if skip {
 			skip = false
 			continue
@@ -364,6 +362,11 @@ func getCheatDirs(rootDir, cheatDir string) []string {
 			cheatDirs = append(cheatDirs, filePath)
 		}
 	}
+
+	if len(cheatDirs) == 0 {
+		errExit(fmt.Errorf("no dir found containing %s", cheatDir))
+	}
+
 	return cheatDirs
 }
 
