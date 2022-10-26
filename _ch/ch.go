@@ -161,7 +161,7 @@ func parseFile(args argsT, file string) []itemT {
 			cheatDir = fp.Base(fp.Dir(file)) + "/"
 		}
 
-		lineType := getLineType(i, emptyCount, line, prevLine)
+		lineType := getLineType(i, emptyCount, line, prevLine, item)
 		switch lineType {
 		case "section":
 			item.section = section
@@ -197,7 +197,7 @@ func parseFile(args argsT, file string) []itemT {
 }
 
 // returns line types: "section", "desc", "info", "new_item" or "ignore"
-func getLineType(i, emptyCount int, line, prevLine string) string {
+func getLineType(i, emptyCount int, line, prevLine string, item itemT) string {
 	switch {
 	case emptyCount == 3 || i == 1:
 		return "section"
@@ -209,7 +209,7 @@ func getLineType(i, emptyCount int, line, prevLine string) string {
 	case emptyCount == 1:
 		return "new_item"
 
-	case str.HasPrefix(line, "# ") && str.HasPrefix(prevLine, "# "):
+	case str.HasPrefix(line, "# ") && item.info == "":
 		return "desc"
 
 	default:
