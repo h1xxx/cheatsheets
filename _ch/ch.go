@@ -1,7 +1,5 @@
 package main
 
-// add help with syntax: ch [-s] [-d <dir>] [-c] [.dir] [..file] key1 !key2 key
-
 import (
 	"bufio"
 	"fmt"
@@ -35,6 +33,10 @@ type posT struct {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "-h" {
+		printHelp()
+		os.Exit(0)
+	}
 	args := parseArgs()
 
 	var items []itemT
@@ -507,4 +509,29 @@ func errExit(err error) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func printHelp() {
+	help := `syntax: ch [-s] [-d <dir>] [-c] [.<dir>] [..<file>] [query]
+
+parameters:
+-s	case sensitive search
+-d	dir containing cheatsheets (default: ~/.local/share/cheatsheets/)
+-c	only check syntax of all cheatsheets
+-h	this help
+
+query:
+.		search all dirs and files
+.dir_str	search only in subdirectories containing string 'dir_str'
+..file_str	search only in files containing string 'file_str'
+keyword		find a string 'keyword' in cheatsheet items
+!keyword	don't print items containing 'keyword'
+
+examples:
+ch remove user !wget
+ch .go ..time string
+ch -s ESS
+`
+	fmt.Printf(help)
+
 }
