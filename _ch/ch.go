@@ -1,15 +1,15 @@
 package main
 
-// add help with syntax: ch [-d <dir>] [-c] [.dir] [..file] key1 !key2 key
+// add help with syntax: ch [-s] [-d <dir>] [-c] [.dir] [..file] key1 !key2 key
 // add negation
 // add search in item title
-// add case sensitive flag and make queries insensitive
 
 import (
 	"bufio"
 	"fmt"
 	"os"
 	fp "path/filepath"
+	"sort"
 	str "strings"
 )
 
@@ -20,12 +20,18 @@ type itemT struct {
 }
 
 type argsT struct {
-	checkOnly   bool
-	getAllFiles bool
-	query       []string
-	rootDir     string
-	cheatDirs   []string
-	files       []string
+	checkOnly     bool
+	getAllFiles   bool
+	caseSensitive bool
+	query         []string
+	rootDir       string
+	cheatDirs     []string
+	files         []string
+}
+
+type posT struct {
+	start int
+	end   int
 }
 
 func main() {
@@ -47,7 +53,7 @@ func main() {
 	}
 
 	if len(items) > 0 {
-		printItems(items, args.query)
+		printItems(items, args)
 	}
 }
 
@@ -159,7 +165,7 @@ func parseFile(args argsT, file string) []itemT {
 		switch lineType {
 		case "section":
 			item.section = section
-			if itemMatch(item, args.query) {
+			if itemMatch(item, args) {
 				items = append(items, item)
 			}
 			item = itemT{}
@@ -170,7 +176,7 @@ func parseFile(args argsT, file string) []itemT {
 			item.info += line + "\n"
 		case "new_item":
 			item.section = section
-			if itemMatch(item, args.query) {
+			if itemMatch(item, args) {
 				items = append(items, item)
 			}
 			item = itemT{}
@@ -182,7 +188,7 @@ func parseFile(args argsT, file string) []itemT {
 		prevLine = line
 	}
 
-	if itemMatch(item, args.query) {
+	if itemMatch(item, args) {
 		items = append(items, item)
 	}
 
@@ -212,17 +218,28 @@ func getLineType(i, emptyCount int, line, prevLine string) string {
 	return "empty"
 }
 
-func itemMatch(item itemT, query []string) bool {
-	if item.desc == "" && item.info == "" {
+func itemMatch(item itemT, args argsT) bool {
+	desc := item.desc
+	info := item.info
+
+	if desc == "" && info == "" {
 		return false
 	}
 
-	if query[0] == "" {
+	if args.query[0] == "" {
 		return true
 	}
 
-	for _, q := range query {
-		if !str.Contains(item.desc, q) && !str.Contains(item.info, q) {
+	if !args.caseSensitive {
+		desc = str.ToLower(desc)
+		info = str.ToLower(info)
+	}
+
+	for _, q := range args.query {
+		if !args.caseSensitive {
+			q = str.ToLower(q)
+		}
+		if !str.Contains(desc, q) && !str.Contains(info, q) {
 			return false
 		}
 	}
@@ -230,7 +247,7 @@ func itemMatch(item itemT, query []string) bool {
 	return true
 }
 
-func printItems(items []itemT, query []string) {
+func printItems(items []itemT, args argsT) {
 	var section string
 	for _, item := range items {
 		if section != item.section {
@@ -239,30 +256,64 @@ func printItems(items []itemT, query []string) {
 		}
 
 		// highlight keywords from the query
-		desc := highlightKeywords(item.desc, query)
-		info := highlightKeywords(item.info, query)
+		desc := highlightKeywords(item.desc, args)
+		info := highlightKeywords(item.info, args)
 
 		fmt.Printf("%s", desc)
 		fmt.Printf("%s\n", info)
 	}
 }
 
-func highlightKeywords(s string, query []string) string {
-	for i, q := range query {
-		var qJoin, joinRepl string
-		if i+1 < len(query) {
-			qJoin = q + query[i+1][1:]
-			joinRepl = "\033[1;31m" + qJoin + "\033[0m"
-		}
+func highlightKeywords(in string, args argsT) string {
+	red := "\033[1;31m"
+	reset := "\033[0m"
 
-		if qJoin != "" && str.Contains(s, qJoin) {
-			s = str.Replace(s, qJoin, joinRepl, -1)
-		} else {
-			s = str.Replace(s, q, "\033[1;31m"+q+"\033[0m", -1)
-		}
+	inLower := in
+	if !args.caseSensitive {
+		inLower = str.ToLower(in)
 	}
 
-	return s
+	var positions []posT
+
+	for _, q := range args.query {
+		if !args.caseSensitive {
+			q = str.ToLower(q)
+		}
+		index := str.Index(inLower, q)
+		if index == -1 {
+			continue
+		}
+		var pos posT
+		pos.start = index
+		pos.end = index + len(q)
+		positions = append(positions, pos)
+	}
+
+	sort.Slice(positions, func(i, j int) bool {
+		return positions[i].start <= positions[j].start
+	})
+
+	//var skipPos bool
+	for i, pos := range positions {
+		// handle overlapping keywords by expanding next pos range
+		if i < len(positions)-1 && pos.end > positions[i+1].start {
+			(&positions[i+1]).start = pos.start
+			continue
+		}
+
+		in = in[:pos.start] + red + in[pos.start:pos.end] + reset +
+			in[pos.end:]
+		movePos(positions, i, len(red)+len(reset))
+	}
+
+	return in
+}
+
+func movePos(positions []posT, index, offset int) {
+	for i := index; i < len(positions); i++ {
+		(&positions[i]).start += offset
+		(&positions[i]).end += offset
+	}
 }
 
 func parseArgs() argsT {
@@ -293,6 +344,9 @@ func parseArgs() argsT {
 		case arg == "-c":
 			args.checkOnly = true
 			args.getAllFiles = true
+
+		case arg == "-s":
+			args.caseSensitive = true
 
 		case arg == ".":
 			args.getAllFiles = true
