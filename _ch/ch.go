@@ -396,7 +396,7 @@ func parseArgs() argsT {
 	if args.getAllFiles {
 		args.files = getAllFiles(args.rootDir)
 	} else if len(args.filesFixed) != 0 {
-		args.files = args.filesFixed
+		args.files = getFixedFiles(args)
 	} else {
 		for _, d := range args.cheatDirs {
 			args.files = append(args.files, getFiles(d)...)
@@ -417,6 +417,21 @@ func getAllFiles(rootDir string) []string {
 		dir := fp.Join(rootDir, d)
 		subFiles := getFiles(dir)
 		res = append(res, subFiles...)
+	}
+	return res
+}
+
+func getFixedFiles(args argsT) []string {
+	var res []string
+	for _, d := range args.cheatDirs {
+		files := getFiles(d)
+		for _, ff := range args.filesFixed {
+			for _, f := range files {
+				if str.Contains(f, ff) {
+					res = append(res, f)
+				}
+			}
+		}
 	}
 	return res
 }
