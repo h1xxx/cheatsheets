@@ -1,7 +1,6 @@
 package main
 
 // add help with syntax: ch [-s] [-d <dir>] [-c] [.dir] [..file] key1 !key2 key
-// add negation
 
 import (
 	"bufio"
@@ -23,6 +22,7 @@ type argsT struct {
 	getAllFiles   bool
 	caseSensitive bool
 	query         []string
+	queryNeg      []string
 	rootDir       string
 	cheatDirs     []string
 	files         []string
@@ -238,6 +238,20 @@ func itemMatch(item itemT, args argsT) bool {
 		info = str.ToLower(info)
 	}
 
+	for _, q := range args.queryNeg {
+		if !args.caseSensitive {
+			q = str.ToLower(q)
+		}
+
+		sectionHasQ := str.Contains(section, q)
+		descHasQ := str.Contains(desc, q)
+		infoHasQ := str.Contains(info, q)
+
+		if sectionHasQ || descHasQ || infoHasQ {
+			return false
+		}
+	}
+
 	for _, q := range args.query {
 		if !args.caseSensitive {
 			q = str.ToLower(q)
@@ -357,6 +371,10 @@ func parseArgs() argsT {
 
 		case arg == ".":
 			args.getAllFiles = true
+
+		case str.HasPrefix(arg, "!"):
+			args.queryNeg = append(args.queryNeg,
+				str.TrimPrefix(arg, "!"))
 
 		case str.HasPrefix(arg, ".."):
 			args.filesFixed = append(args.filesFixed,
