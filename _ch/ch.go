@@ -2,7 +2,6 @@ package main
 
 // add help with syntax: ch [-s] [-d <dir>] [-c] [.dir] [..file] key1 !key2 key
 // add negation
-// add search in item title
 
 import (
 	"bufio"
@@ -221,6 +220,7 @@ func getLineType(i, emptyCount int, line, prevLine string, item itemT) string {
 }
 
 func itemMatch(item itemT, args argsT) bool {
+	section := item.section
 	desc := item.desc
 	info := item.info
 
@@ -233,6 +233,7 @@ func itemMatch(item itemT, args argsT) bool {
 	}
 
 	if !args.caseSensitive {
+		section = str.ToLower(section)
 		desc = str.ToLower(desc)
 		info = str.ToLower(info)
 	}
@@ -241,7 +242,12 @@ func itemMatch(item itemT, args argsT) bool {
 		if !args.caseSensitive {
 			q = str.ToLower(q)
 		}
-		if !str.Contains(desc, q) && !str.Contains(info, q) {
+
+		sectionHasQ := str.Contains(section, q)
+		descHasQ := str.Contains(desc, q)
+		infoHasQ := str.Contains(info, q)
+
+		if !sectionHasQ && !descHasQ && !infoHasQ {
 			return false
 		}
 	}
