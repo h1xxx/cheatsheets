@@ -189,6 +189,7 @@ func parseFile(args argsT, file string) []itemT {
 	}
 
 	if itemMatch(item, args) {
+		item.section = section
 		items = append(items, item)
 	}
 
@@ -293,7 +294,6 @@ func highlightKeywords(in string, args argsT) string {
 		return positions[i].start <= positions[j].start
 	})
 
-	//var skipPos bool
 	for i, pos := range positions {
 		// handle overlapping keywords by expanding next pos range
 		if i < len(positions)-1 && pos.end > positions[i+1].start {
