@@ -27,6 +27,7 @@ type argsT struct {
 	rootDir       string
 	cheatDirs     []string
 	files         []string
+	filesFixed    []string
 }
 
 type posT struct {
@@ -351,6 +352,10 @@ func parseArgs() argsT {
 		case arg == ".":
 			args.getAllFiles = true
 
+		case str.HasPrefix(arg, ".."):
+			args.filesFixed = append(args.filesFixed,
+				str.TrimPrefix(arg, ".."))
+
 		case str.HasPrefix(arg, "."):
 			args.cheatDirs = append(args.cheatDirs,
 				getCheatDirs(args.rootDir, os.Args[i])...)
@@ -366,6 +371,8 @@ func parseArgs() argsT {
 
 	if args.getAllFiles {
 		args.files = getAllFiles(args.rootDir)
+	} else if len(args.filesFixed) != 0 {
+		args.files = args.filesFixed
 	} else {
 		for _, d := range args.cheatDirs {
 			args.files = append(args.files, getFiles(d)...)
