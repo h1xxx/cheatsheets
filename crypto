@@ -145,6 +145,9 @@ misc
 # calculate base64 with no new line
 echo text | base64 -w 0
 
+# generate 2 random bytes in hex format
+od -N2 -tx1 -An /dev/random
+
 # generate a random string
 openssl rand -base64 32
 ---

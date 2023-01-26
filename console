@@ -90,3 +90,7 @@ misc
 
 # change screen colors to contain less blue light
 redshift -m drm -l 51.5:0 -t 5700:3800 -v
+
+# connect to a serial (rs232) connection
+tio /dev/ttyUSB0
+

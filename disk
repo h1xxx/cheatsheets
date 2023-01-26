@@ -77,6 +77,12 @@ sgdisk --new 1:+2M:+1G --typecode=1:ef02 /dev/sda	# boot bios part 1
 sgdisk --attributes 1:set:2 /dev/sda	 # set attr 'legacy BIOS bootable'
 sgdisk --new 2::-0 --typecode=2:8300 /dev/sda	# root part 2 till the end
 
+# create a partition 1 with a specific PARTUUID
+sgdisk --new 1:+1M:+12M -u 1:00000000-0000-0000-0000-f88e684033e /dev/sda
+
+# create a filesystem on partition 1 with a specific UUID
+mkfs.ext4 -U 00000000-0000-0000-0000-f88e684033f /dev/sda1
+
 
 
 info
@@ -85,6 +91,9 @@ info
 # get uuid of disks
 blkid -s UUID -o value /dev/sda2
 blkid -s PARTUUID -o value /dev/sda2
+
+# show detailed info on PARTUUID
+blkid -p /dev/sda2 | sed 's| |\n|'g
 
 # detailed information on a disk
 hdparm -I /dev/sdb
@@ -232,4 +241,7 @@ misc
 
 # copy MBR to a file
 dd if=/dev/sda of=mbr.bin bs=512 count=1
+
+# generate a random uuid
+uuidgen
 

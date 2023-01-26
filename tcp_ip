@@ -31,6 +31,9 @@ ip link set dev tun0 mtu 1350
 # change mac address of a device
 ip link set dev eth0 address AA:BB:CC:DD:EE:FF
 
+# lower the speed of ethernet iface
+ethtool -s eth0 speed 100 duplex full autoneg off
+
 # create a bridge
 ip link add br0 type bridge
 ip link set dev eth0 master br0
@@ -242,6 +245,10 @@ ncat -nvlp 4444 -e cmd.exe
 # connect to a server and provide a reverse shell
 ncat -nv 192.168.0.1 -e /bin/bash
 
+# serve a file
+ncat -nvlp 4242 --keep-open < /bin/zstd
+ncat 127.0.0.1 4242 > z
+
 
 
 network monitoring
@@ -274,6 +281,39 @@ dhcpcd -T
 # get address with debug info and without forking into background
 /sbin/dhcpcd -b -4 -d -B eth0
 
+# run dhcp server for one specific iface offering one ip address w/o forking
+dnsmasq -p 0 -d -F eth0,10.10.10.2,10.10.10.2 -O wlan0,option:router,10.10.10.1 -O wlan0,option:dns-server,10.10.10.1
+---
+dnsmasq -p 0 -d -G eth00,a1:12:f4:22:27:42,10.10.10.2 -O wlan0,option:router,10.10.10.1 -O wlan0,option:dns-server,10.10.10.1
+
+# discover dhcp servers on network
+nmap --script broadcast-dhcp-discover -e eth0
+
+
+vpn
+===
+
+# connect to a wireguard server
+ip l add dev wg0 type wireguard
+ip addr add 10.0.0.1/24 dev wg0
+wg set wg0 private-key /etc/wireguard/priv.key
+wg set wg0 peer PEER_PUBLIC_KEY endpoint IP:PORT allowed-ips 0.0.0.0/0
+ip r add 0.0.0.0/1 dev wg0
+ip r add 128.0.0.0/1 dev wg0
+ip r add ENDPOINT_IP via ROUTER dev eth0
+ip l set wg0 up
+
+# connect to a wireguard server from a wireguard config w/o wg-quick
+source <(grep -v -e '^\[' -e '^$' /etc/wireguard/ch16.conf | tr -d ' ')
+gw=192.168.0.1
+ip l add dev wg0 type wireguard
+ip a add "${Address}" dev wg0
+wg set wg0 private-key <(echo "${PrivateKey}")
+wg set wg0 peer "${PublicKey}" endpoint "${Endpoint}" allowed-ips "${AllowedIPs}"
+ip r add 0.0.0.0/1 dev wg0
+ip r add 128.0.0.0/1 dev wg0
+ip r add "$(echo "${Endpoint}"|cut -d: -f1)"  via "${gw}" dev eth0
+ip l set wg0 up
 
 
 docs

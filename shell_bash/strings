@@ -52,3 +52,15 @@ var1=$'\n'
 # escape each special shell character in a string
 sed -e 's|[^a-zA-Z0-9,._+@%/-]|\\&|g' -e '1{$s|^$|""|}' -e '1!s|^|"|' -e '$!s|$|"|'
 
+# check if string is numeric
+[[ "${cores}" =~ [^0-9] ]] && echo 'is not numeric'
+
+# check if string is alphanumeric
+[[ "${str1}" =~ [^a-zA-Z0-9] ]] && echo 'is not alphanum'
+
+# check if string denotes size, e.g. 512M, 4G
+[[ "${mem}" =~ ^[0-9]{1,4}[MG]$ ]] || echo 'is not a size'
+
+# check if string is a mac address
+[[ "${mac}" =~ ^[a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5}$ ]] && echo 'is a mac'
+

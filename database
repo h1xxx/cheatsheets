@@ -131,6 +131,9 @@ sqlite> .import test.csv foo
 postgres
 ========
 
+# start a newly created database
+pg_ctl -D /var/lib/postgres/data -l logfile start
+
 # login as root user
 psql -U postgres
 

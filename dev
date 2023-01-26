@@ -4,3 +4,22 @@ github
 # get the latest release for a package
 curl --silent 'https://api.github.com/repos/joncampbell123/dosbox-x/releases/latest' | jq '.tag_name'
 
+
+
+patch
+=====
+
+# create and apply a patch to a file
+diff -u file.c.orig file.c > file.patch
+patch file.c < file.patch
+
+
+libs
+====
+
+# view objects in a static lib
+nm libonetwo.a
+
+# view all undefined externally objects in a static lib
+nm --undefined-only libonetwo.a
+

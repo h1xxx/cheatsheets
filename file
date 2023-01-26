@@ -69,6 +69,17 @@ readlink -f file1
 # diff dirs
 diff -R dir1 dir2
 
+# find all non-text based, binary, and empty files
+grep -rIL .
+
+# find all non-empty binary files
+find . -type f ! -size 0 -exec grep -IL . "{}" +
+---
+find . -type f | perl -lne 'print if -B'
+
+# find only text files
+find . -type f | perl -lne 'print if -T'
+
 
 
 binary
@@ -128,6 +139,12 @@ gcc -dumpmachine
 
 # compare files byte by byte
 cmp file1 file2
+
+# find if an object file was compiled with -fpic
+readelf --relocs file.o | egrep '(GOT|PLT|JU?MP_SLOT)' && echo with_pic
+
+# find if a shared object file was compiled with -fpic
+readelf -d file.so | grep TEXT || echo with_pic
 
 # envvars
 LD_LIBRARY_PATH		colon separated list of paths that the linker

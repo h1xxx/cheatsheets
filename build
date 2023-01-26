@@ -12,6 +12,22 @@ compilation
 /usr/bin/ld: ./sort.o: relocation R_X86_64_PC32 against undefined symbol `rand@@GLIBC_2.2.5' can not be used when making a shared object; recompile with -fPIC
 /usr/bin/ld: final link failed: Bad value
 
+# test the compiler
+echo 'int main(){}' > dummy.c
+gcc dummy.c -v -Wl,--verbose &> dummy.log
+readelf -l a.out | grep ': /lib'
+
+
+
+make
+====
+
+# assign a variable value if no value is already assigned
+ENABLE_SHARED ?= 1
+
+# show executed commands commands (increase verbosity)
+make V=1
+
 
 
 cmake

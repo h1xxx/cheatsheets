@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"os/user"
+	str "strings"
 	"unicode/utf8"
 )
 
@@ -15,7 +16,51 @@ func main() {
 	u, _ := user.Current()
 	fmt.Printf("%+v\n\n", u)
 
-	Cp("", "")
+	parseEnv()
+}
+
+
+func parseEnv() {
+	s := `AXXX='zxc' BB="xx zz" CC="musl-gcc -lulz -static" CLFAGS=-O2`
+	env := getIniEnv(s)
+
+	for _, e := range env {
+	fmt.Printf("%+v\n", e)
+	}
+}
+
+func getIniEnv(s string) []string {
+        var env []string
+        var v string
+        var isQuoted bool
+
+        fields := str.Split(s, " ")
+        for _, f := range fields {
+                if str.Contains(f, "=\"") || str.Contains(f, "='") {
+                        isQuoted = true
+                        v = f
+			if str.HasSuffix(f, "\"") || str.HasSuffix(f, "'") {
+				env = append(env, f)
+				isQuoted = false
+			}
+			continue
+		}
+
+                if !isQuoted {
+                        env = append(env, f)
+			continue
+		}
+
+                if str.HasSuffix(f, "\"") || str.HasSuffix(f, "'") {
+                        isQuoted = false
+                        v += " " + f
+			env = append(env, v)
+			v = ""
+                } else {
+                        v += " " + f
+                }
+        }
+	return env
 }
 
 func isText(file string) {

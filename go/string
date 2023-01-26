@@ -119,6 +119,14 @@ i, err := strconv.Atoi("1")
 f, err := strconv.ParseFloat(s, 64)
 
 
+# parse a space separated string with elements inside quotes
+import encoding/csv
+s := `"CC=musl-gcc -static" CLFAGS=-O2`
+r := csv.NewReader(strings.NewReader(s))
+r.Comma = ' '
+fields, err := r.Read()
+
+
 
 bool
 ====

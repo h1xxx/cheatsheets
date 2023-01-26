@@ -44,6 +44,12 @@ swap = swaptotal - swapfree
 # check statistics on how cpu and memory are overcommited on the system
 cat /proc/pressure
 
+# allocate 8GB of hugepages (4096 pages * 2 MB/page = 8 GB)
+sysctl vm.nr_hugepages=4096
+
+# mount the hugepages
+mount -t hugetlbfs hugetlbfs /dev/hugepages
+
 
 
 time
@@ -106,6 +112,9 @@ for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do
 	cat governor_name > "${f}";
 done
 
+# show load per cpu
+mpstat -P ALL 3
+
 
 
 gpu
@@ -128,6 +137,9 @@ systemd
 # clean journal in journald
 journalctl --rotate
 journalctl --vacuum-time=1s
+
+# boot systemd into a debug shell, add to kernel parameters
+systemd.debug-shell=1
 
 
 
@@ -253,6 +265,8 @@ cat /proc/swaps
 <M>				sort by memory usage
 <F>, select col, <s>, <q>	sort by chosen column
 <x>				highlight sort column
+<z>				disable colored output
+<W>				write config to ~/.config/procps/toprc
 
 # reload sysctl.conf
 sysctl -p
@@ -305,3 +319,12 @@ efibootmgr -b 0014 -A
 # check if system is running in UEFI mode
 [ -e /sys/firmware/efi/efivars ] && echo yes
 
+
+
+shared libs
+===========
+
+# list all loaded shared libraries
+cat /proc/*/maps | awk '{print $6;}' | grep '\.so' | sort | uniq
+---
+lsof -p <pid> | grep '\.so'

@@ -48,6 +48,9 @@ git shortlog -s -n --no-merges
 # view a history of all the changes in a file
 git log -p <filename>
 
+# view a history of all the changes in a file even if it was renamed
+git log -p --follow <filename>
+
 # view a history of a single file from all the branches
 git log --follow -p <filename>
 
@@ -196,6 +199,9 @@ git commit -S -m "Description"
 # change the description of last commit, use checkout <commit> if there's a need
 to change more than one commit
 git commit --amend -m "New description"
+
+# create a commit with a different date
+git ci -m 'commit1' --date="Thu Dec 01 02:19 2022 +0100"
 
 # change the commit messages for many commits
 git rebase -i HEAD~8 || git rebase -i 'e3c3431d^'

@@ -12,6 +12,9 @@ while [ ! -e /dev/disk/by-uuid/aaa-bbb ]; do
         [ ${msec} -gt 300 ] && echo 'error: no file'
 done
 
+# rename a file - change the extension from .cfg to .conf
+for f in $(find -type f -name '*.cfg'); do echo mv -- "${f}" "$(dirname "${f}")/$(basename "${f}" .cfg).conf"; done
+
 
 
 strings

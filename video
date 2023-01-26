@@ -36,18 +36,36 @@ mpv --drm-connector=1.VGA-1 --vo=drm --drm-mode=3
 # mpv keys
 r/R	move subtitles up and down
 
-# mpv useful arguments
+# subtitle args
 --sub-file=file.srt	subtitle file
 --sub-scale=<0-100>	make subtitles bigger (default 1)
 --sub-back-color 0	turn on black background in subtitles
+
+# skip display of tags like artist or description
+mpv --display-tags=none	file.mkv
 
 
 
 ffmpeg
 ======
 
+# arguments
+-c copy		don't reencode the input video
+
 # add subtitles to a video
 ffmpeg -i infile.mp4 -i infile.srt -c copy -c:s mov_text outfile.mp4
+
+# remove audio fron the video
+ffmpeg -i in.mkv -c copy -an out.mkv
+
+# keep only 3 first seconds from the video
+ffmpeg -i in.avi -t 3 -c copy out.avi
+
+# keep only 3 last seconds from the video
+ffmpeg -i in.avi -sseof 3 -c copy out.avi
+
+# keep only middle section of the video
+ffmpeg -ss 01:00:00 -to 01:32:00 -i in.mp4 -c copy out.mp4
 
 # convert git to avi
 convert in.gif tmp.png && ffmpeg -i tmp.png out.avi
