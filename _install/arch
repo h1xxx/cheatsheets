@@ -1,6 +1,13 @@
+# host
+# ====
+qemu-img create -f raw arch.img 64G
+
+
 # in tty
 # ======
-arch64 nomodeset
+
+# type blindly in qemu ncurses display
+<tab><space>nomodeset<enter>
 
 dhcpcd
 ssh-keygen -A
@@ -54,14 +61,14 @@ echo KEYMAP=pl > /etc/vconsole.conf
 printf '%s\n%s\n' 'en_US.UTF-8 UTF-8' 'pl_PL.UTF-8 UTF-8' > /etc/locale.gen
 locale-gen
 
-echo arch-base > /etc/hostname
+echo arch > /etc/hostname
 cat <<EOF > /etc/hosts
-127.0.0.1        localhost
-::1              localhost
+127.0.0.1        localhost local
+::1              localhost local
 EOF
 
 pacman --noconfirm -Sy
-pacman --noconfirm -S linux linux-lts openssh openssh syslinux
+pacman --noconfirm -S linux linux-lts openssh syslinux
 pacman --noconfirm -S vim wget git dhcpcd usbutils lsof chrony bind-tools
 
 mkdir -p /boot/syslinux
@@ -102,6 +109,8 @@ usermod -a -G users x
 usermod -a -G network x
 usermod -a -G power x
 
+
+# !!! manual step
 mkdir -p /root/.ssh /home/x/.ssh
 echo 'ssh-ed25519 <key>' > /root/.ssh/authorized_keys
 echo 'ssh-ed25519 <key>' > /home/x/.ssh/authorized_keys
@@ -109,9 +118,11 @@ chmod 700 /root/.ssh/ /home/x/.ssh/
 chmod 600 /root/.ssh/authorized_keys /home/x/.ssh/authorized_keys
 chown -R x:x /home/x/
 rm -f /etc/ssh/ssh_host_dsa_key* /etc/ssh/ssh_host_ecdsa_key*
-echo 'ssh-ed25519 <key>' > /etc/ssh/ssh_host_ed25519_key.pub
+ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key
 
-cat << EOF > /etc/ssh/ssh_host_ed25519_key
+# !!! (optional) manual step
+echo 'ssh-ed25519 <key>' > /etc/ssh/ssh_host_ed25519_key.pub
+cat <<EOF > /etc/ssh/ssh_host_ed25519_key
 -----BEGIN OPENSSH PRIVATE KEY-----
 <...>
 -----END OPENSSH PRIVATE KEY-----
@@ -121,28 +132,140 @@ chmod 600 /etc/ssh/ssh_host_ed25519_key
 systemctl enable sshd
 systemctl enable chronyd
 systemctl enable dhcpcd
-pacman -Sc
 
 passwd
 passwd x
+
+# install cli pkgs
+p=
+p+=' archlinux-tools linux-tools multilib-devel dos2unix openvpn avahi sqlmap'
+p+=' vim libpciaccess clang llvm ninja go rust i7z traceroute nss-mdns wpscan'
+p+=' dotnet-runtime iperf3 postgresql sqlite meson man-pages nfs-utils zaproxy'
+p+=' busybox bc lxc cpio zip unzip unrar p7zip rsync p7zip imagemagick fq npm'
+p+=' cmake strace arp-scan mtr iputils inetutils fping tcpdump dmidecode nikto'
+p+=' termshark vlock gptfdisk dosfstools cronie mtools tmux metasploit libnfs'
+p+=' sysstat iotop efivar efitools efibootmgr checksec acpi exploitdb sslsplit'
+p+=' syslog-ng iw wpa_supplicant hostapd wireguard-tools nmap ttf-dejavu maven'
+p+=' socat wol smartmontools hdparm flashrom task vifm ncdu python-socksio ghc'
+p+=' transmission-cli geoip geoip-database android-tools python-shodan ipython'
+p+=' acme aircrack-ng dnsmasq fetchmail httpie distcc ccache ssh-audit gcc-ada'
+p+=' iftop iodine irssi lftp lorcon macchanger man w3m net-snmp mariadb jadx'
+p+=' mitmproxy mktorrent nethogs siege speedtest-cli tor geoip-database-extra'
+p+=' vnstat whois  fdupes hplip lshw powertop pigz pixz mercurial stack hwinfo'
+p+=' sl stress testdisk asciidoc ebook-tools xmlto w3m python-beautifulsoup4'
+p+=' smbclient samba xmlstarlet php enca uchardet man-pages proxychains mutt'
+p+=' scapy python-scapy python-pip bpython expect python-lxml shellcheck'
+p+=' tesseract tesseract-data-eng jdk-openjdk jdk11-openjdk jdk17-openjdk ovmf'
+p+=' arch-wiki-docs cabal-install cdrkit fuseiso mlocate atftp figlet uchardet'
+p+=' fbset tlp gdisk cdrtools rtorrent msmtp links rsync cowsay elinks rclone'
+p+=' perl-text-charwidth subversion python-pandas splint cmus yt-dlp sc cmark'
+p+=' john hashcat hashcat-utils subdl ebook-tools latex2html latex2rtf dblatex'
+p+=' texlive-most dot2tex graphviz pandoc dialog psutils python-html2text tidy'
+p+=' php-tidy asciinema weechat guile hunspell-en_us hunspell-pl tcc fastjar'
+p+=' gpsd modemmanager firejail python-pyserial docker iptstate quota-tools jq'
+p+=' vim-spell-pl checkbashisms dash ansible ansible-lint iucode-tool tree nnn'
+p+=' ranger shellharden units logwatch logrotate tcl chrpath openssl-1.1'
+p+=' jre-openjdk jre11-openjdk jre17-openjdk'
+
+pacman --noconfirm -S ${p}
+pacman --noconfirm -Scc
 
 exit
 sync
 poweroff
 
 
-# gui
-# ===
+# config after reboot
+# ===================
+
+# proxychains
+sed -i  's|^#quiet_mode$|quiet_mode|g' /etc/proxychains.conf
+sed -i  's|^socks4|#socks4|g' /etc/proxychains.conf
+echo 'http    127.0.0.1 8080' >> /etc/proxychains.conf
+
+# configure postgres for metasploit
+usermod -a -G postgres x
+su - postgres -c 'initdb -D /var/lib/postgres/data'
+systemctl status postgresql
+systemctl enable postgresql
+
+# MANUAL STEP! enter password:
+su - postgres -c 'createuser msf -P -S -R -D'
+
+su - postgres -c 'createdb -O msf msf'
+
+su - x
+
+mkdir -p /home/x/.msf4
+cat <<EOF > /home/x/.msf4/database.yml
+production:
+   adapter: postgresql
+   database: msf
+   username: msf
+   password: 'ffL_msf.3..:::'
+   host: 127.0.0.1
+   port: 5432
+   pool: 75
+   timeout: 5
+EOF
+chown x:x /home/x/.msf4/database.yml
+
+# mitmproxy
+mkdir -p /home/x/.mitmproxy
+cat <<EOF > /home/x/.mitmproxy/config.yaml
+listen_host: 127.0.0.1
+listen_port: 8080
+console_mouse: false
+console_palette: lowdark
+view_order: time
+EOF
+
+# zap
+pip install python-owasp-zap-v2.4
+pip install PyJWT
+
+# mongodb manual steps as a user
+git clone https://aur.archlinux.org/mongosh-bin.git
+cd mongosh-bin && makepkg
+exit
+pacman -U /home/x/mongosh-bin/mongosh*.tar.zst
+su - x
+
+git clone https://aur.archlinux.org/mongodb-bin.git
+cd mongodb-bin && makepkg
+exit
+pacman -U /home/x/mongodb-bin/mongodb*.tar.zst
+su - x
+
+# for a wordpress exploit php/webapps/47361.pl
+perl -MCPAN -e shell
+cpan[1]> install WWW::UserAgent::Random
+
+cat /dev/zero >> /root/zeros.bin 2>&1 ||:; sync; rm /root/zeros.bin && sync
+poweroff
+
+
+# gui programs
+# ============
 
 echo arch-gui > /etc/hostname
 sed -i 's| nomodeset||g' /boot/syslinux/syslinux.cfg
 
-pacman --noconfirm -S xorg-server xorg-xinit xorg-xrandr
+pacman --noconfirm -S xorg-server xorg-xinit xorg-xrandr i3
 pacman --noconfirm -S alsa-utils alsa-plugins pulseaudio-alsa pulseaudio libpulse pavucontrol
 pacman --noconfirm -S qemu-guest-agent spice-vdagent
-pacman --noconfirm -S firefox chromium gimp libreoffice hunspell-en_US hunspell-pl
+pacman --noconfirm -S gimp libreoffice hunspell-en_US hunspell-pl
 pacman --noconfirm -S ttf-inconsolata ttf-dejavu ttf-droid ttf-liberation terminus-font
 pacman --noconfirm -S ttf-font-awesome noto-fonts noto-fonts-extra
+
+
+# gui tools
+p=''
+p+='wireshark-qt tigervnc feh zathura zathura-pdf-poppler gimp remmina '
+
+electrum
+
+
 
 fc-cache -f
 systemctl enable qemu-guest-agent
