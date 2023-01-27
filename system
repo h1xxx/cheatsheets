@@ -143,65 +143,6 @@ systemd.debug-shell=1
 
 
 
-xorg
-====
-
-# turn off the screen (on remote machine export DISPLAY=:0)
-xset dpms force off
-
-# create xorg.conf configuration file
-X -configure
-
-# autoselect best resolution
-xrandr --auto
-
-# show supported resolutions
-xrandr --query
-
-# set a resolution
-xrandr --output LVDS1 --scale-from 1920x1080
----
-xrandr -s 1280x800
-
-# list monitors
-xrandr --listmonitors
-
-# list drivers loaded in xorg
-cat /var/log/Xorg.0.log | grep Load
-
-# generate a modeline 1280x1024_60.00 for xorg.conf.d, monitor section
-cvt 1280 1024 60
-
-# change keymap
-setxkbmap pl
-
-# modify keypress rate in xorg
-xset r rate 180 60
-
-# remap 'Caps Lock' key to 'Escape'
-xmodmap -e "clear lock"
-xmodmap -e "keycode 0x42 = Escape"
-
-# remap 'Caps Lock' key to back to 'Caps Lock'
-xmodmap -e "keycode 0x42 = Caps_Lock"
-xmodmap -e "add lock = Caps_Lock"
-
-
-
-fonts
-=====
-
-# list installed fonts
-fc-list
-
-# print alias of the font
-fc-match liberation
-
-# gui program to edit ttf and other fonts
-fontforge
-
-
-
 keyboard
 ========
 
