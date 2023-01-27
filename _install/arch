@@ -165,7 +165,7 @@ p+=' php-tidy asciinema weechat guile hunspell-en_us hunspell-pl tcc fastjar'
 p+=' gpsd modemmanager firejail python-pyserial docker iptstate quota-tools jq'
 p+=' vim-spell-pl checkbashisms dash ansible ansible-lint iucode-tool tree nnn'
 p+=' ranger shellharden units logwatch logrotate tcl chrpath openssl-1.1'
-p+=' jre-openjdk jre11-openjdk jre17-openjdk'
+p+=' jre-openjdk jre11-openjdk jre17-openjdk arch-install-scripts'
 
 pacman --noconfirm -S ${p}
 pacman --noconfirm -Scc
@@ -241,6 +241,19 @@ su - x
 perl -MCPAN -e shell
 cpan[1]> install WWW::UserAgent::Random
 
+# dotfiles
+mkdir -p ~/.vim/colors/
+url='https://raw.githubusercontent.com/h1xxx/cheatsheets/master/_dot'
+wget ${url}/.bashrc -O ~/.bashrc
+cp /etc/skel/.bash_profile ~/
+wget ${url}/.tmux.conf -O ~/.tmux.conf
+wget ${url}/.vimrc -O ~/.vimrc
+col_scheme_path='.vim/colors/industry-vintage.vim'
+wget ${url}/${col_scheme_path} -O ${col_scheme_path}
+
+exit
+# repeat the previous step
+
 cat /dev/zero >> /root/zeros.bin 2>&1 ||:; sync; rm /root/zeros.bin && sync
 poweroff
 
@@ -251,24 +264,33 @@ poweroff
 echo arch-gui > /etc/hostname
 sed -i 's| nomodeset||g' /boot/syslinux/syslinux.cfg
 
-pacman --noconfirm -S xorg-server xorg-xinit xorg-xrandr i3
-pacman --noconfirm -S alsa-utils alsa-plugins pulseaudio-alsa pulseaudio libpulse pavucontrol
-pacman --noconfirm -S qemu-guest-agent spice-vdagent
-pacman --noconfirm -S gimp libreoffice hunspell-en_US hunspell-pl
-pacman --noconfirm -S ttf-inconsolata ttf-dejavu ttf-droid ttf-liberation terminus-font
-pacman --noconfirm -S ttf-font-awesome noto-fonts noto-fonts-extra
+# add ungoogled-chromium repo
+url='https://download.opensuse.org/repositories/home:/ungoogled_chromium/Arch/x86_64/home_ungoogled_chromium_Arch.key'
+curl -s ${url} | sudo pacman-key -a -
+cat <<EOF >> /etc/pacman.conf
 
+[home_ungoogled_chromium_Arch]
+SigLevel = Required TrustAll
+Server = https://download.opensuse.org/repositories/home:/ungoogled_chromium/Arch/\$arch
+EOF
 
-# gui tools
-p=''
-p+='wireshark-qt tigervnc feh zathura zathura-pdf-poppler gimp remmina '
+p=
+p+=' xorg-server xorg-xinit xorg-xrandr xorg-xwininfo i3 unclutter openbox'
+p+=' alsa-utils alsa-plugins pulseaudio-alsa pulseaudio libpulse pavucontrol'
+p+=' qemu-guest-agent spice-vdagent rxvt-unicode rxvt-unicode-terminfo pamixer'
+p+=' gimp libreoffice qemu-full spice-gtk3 android-file-transfer electrum' 
+p+=' ttf-inconsolata ttf-dejavu ttf-droid ttf-liberation terminus-font picard'
+p+=' ttf-font-awesome noto-fonts noto-fonts-extra marble dosbox chromaprint'
+p+=' wireshark-qt tigervnc feh zathura zathura-pdf-poppler gimp remmina beets'
+p+=' python-pyacoustid netsurf qutebrowser znc dmenu ungoogled-chromium zbar'
+p+=' mpv firefox xss-lock ttf-ubuntu-font-family xorg-xfontsel scrot'
+p+=' xorg-mkfontscale'
 
-electrum
-
-
+pacman -Syu
+pacman --noconfirm -S ${p}
+yes | pacman -Scc
 
 fc-cache -f
-systemctl enable qemu-guest-agent
 
 mkdir -p '/etc/systemd/system/getty@tty1.service.d'
 cat <<EOF >> /etc/systemd/system/getty\@tty1.service.d/autologin.conf
@@ -311,12 +333,6 @@ Section "Monitor"
         Option          "PreferredMode"         "1920x1080_60.00"
 EndSection
 
-Section "Device"
-        Identifier  "Card0"
-        Driver      "modesetting"
-        BusID       "PCI:0:3:0"
-EndSection
-
 Section "Screen"
         Identifier "Screen0"
         Device     "Card0"
@@ -335,37 +351,28 @@ Xft.autohint:  0
 Xft.hinting:   1
 Xft.hintstyle: hintslight
 EOF
- 
 
-# reboot
-# ======
-# mostly to get rid of nomodeset
+su - x
+mkdir -p ~/.config/i3{,status}
+url='https://raw.githubusercontent.com/h1xxx/cheatsheets/master/_dot'
+wget ${url}/.config/i3/config -O ~/.config/i3/config
+wget ${url}/.config/i3status/config.xorg_vm -O ~/.config/i3status/config
+wget ${url}/.Xdefaults -O ~/.Xdefaults
+
+
+# config after reboot
+# ===================
+
+# mostly to get rid of nomodeset for X -configure
 reboot
 
 X -configure
 mv xorg.conf.new /etc/X11/xorg.conf
 
-git clone https://git.suckless.org/dwm
-wget https://dwm.suckless.org/patches/autostart/dwm-autostart-20210120-cb3f58a.diff
-cd dwm
-git apply ../dwm-autostart-20210120-cb3f58a.diff
-cp config.def.h config.h
-sed -i 's|MODKEY Mod1Mask|MODKEY Mod4Mask|' config.h
-sed -i 's|#005577|#005c35|' config.h
-make clean install
-mkdir /home/x/.dwm/
-echo firefox > /home/x/.dwm/autostart.sh
-chmod +x /home/x/.dwm/autostart.sh
-cd
-git clone https://git.suckless.org/st
-cd st && make clean install
-
-echo 'exec dwm' > /home/x/.xinitrc
+echo 'exec i3' > /home/x/.xinitrc
 echo '[ -z "${DISPLAY}" ] && [ "$(tty)" = /dev/tty1 ] && startx' >> /home/x/.bash_profile
 chown -R x:x /home/x/
 
-pacman -Sc
-sync
-
-reboot
+cat /dev/zero >> /root/zeros.bin 2>&1 ||:; sync; rm /root/zeros.bin && sync
+poweroff
 
