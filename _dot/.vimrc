@@ -1,7 +1,6 @@
 " ---- general settings
 
-" execute defaults.vim before /etc/vimrc
-source /usr/share/vim/vim82/defaults.vim
+" do not execute defaults.vim
 let skip_defaults_vim = 1
 
 " disable vi compatible mode (noop in most cases)
@@ -19,31 +18,41 @@ set ts=8
 " when using the >> or << commands, shift lines by 8 spaces
 set shiftwidth=8
 
+" expand tab to spaces for text alignment, don't expand for indentation
+function! TabOnlyIndent()
+if strpart(getline('.'), 0, col('.') - 1) =~ '^\s*$'
+    return "\<Tab>"
+  else
+    return "    "
+  endif
+endfunction
+imap <Tab> <C-r>=TabOnlyIndent()<CR>
+
+" indent when moving to the next line while writing code
+set autoindent
+
 " disable syntax highlighting
 syntax off
 
 " set line numbers: nu/nonu (numbers/nonumbers)
 set nonu
 
-" indent when moving to the next line while writing code
-set autoindent
-
 " show the matching part of the pair for [] {} and ()
 set showmatch
 
 " limit number of characters in one line
-set textwidth=80
+set textwidth=79
 
 " always use 16 colors because linux console is the best
 set t_Co=16
 
 " set colors
-colorscheme industry
+colorscheme industry-vintage
 
 " stop search at the end of the file
 set nowrapscan 
 
-" unset the "last search pattern" register by hitting return
+" unset the "last search pattern" register by hitting <Enter>
 nnoremap <CR> :noh<CR><CR>
 
 " command history buffer size
