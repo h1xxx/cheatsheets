@@ -1,0 +1,93 @@
+! default window size in chars; $COLUMNS x $LINES
+URxvt*geometry:  212x58
+
+! configure font
+URxvt*font: xft:UbuntuMono:pixelsize=17:antialias=true:hinting=true
+URxvt*boldFont: xft:UbuntuMono:bold:pixelsize=17:antialias=true:hinting=true
+URxvt.letterSpace: -1
+
+! terminal name from terminfo
+URxvt*termName: rxvt-unicode-256color
+
+! set double buffering
+URxvt*buffered: true
+
+! disable cursor blinking
+URxvt*cursorBlink: false
+
+! disable window borders
+URxvt*borderless: 1
+
+! colors
+URxvt*background: black
+URxvt*foreground: #dedede
+URxvt.transparent: false
+
+! scrollback buffer history
+URxvt*saveLines: 8192
+
+! do not show the scroll bar
+URxvt.scrollBar: false
+
+! do not scroll with output
+URxvt*scrollTtyOutput: false
+
+! scroll in relation to buffer (with mouse scroll or Shift+Page Up)
+URxvt*scrollWithBuffer: true
+
+! scroll back to the bottom on keypress
+URxvt*scrollTtyKeypress: true
+
+! disable the scrollback buffer for the secondary screen (e.g. in a pager)
+URxvt.secondaryScreen: 1
+URxvt.secondaryScroll: 0
+
+! disable printing the terminal contents when pressing PrintScreen
+URxvt.print-pipe: "cat > /dev/null"
+
+! disable perl extensions
+URxvt.perl-ext:
+URxvt.perl-ext-common:
+
+! -----------------------------------------------------------------------------
+
+! font examples
+! URxvt*font: xft:DejaVuSansMono:pixelsize=14:antialias=true:hinting=true
+! URxvt*font: xft:Inconsolata:pixelsize=17:antialias=true:hinting=true
+! URxvt*boldFont: xft:Inconsolata:bold:pixelsize=17:antialias=true:hinting=true
+! URxvt*font: xft:inconsolata:size=12:antialias=true
+! URxvt.font: -*-terminus-medium-*-*-*-*-160-*-*-*-*-iso8859-1
+! URxvt*font: -*-terminus-*-*-*-*-16-*-*-*-*-*-*-*
+! URxvt*boldFont: -*-terminus-bold-*-*-*-16-*-*-*-*-*-*-*
+! URxvt*font: xft:SourceCodePro:pixelsize=14:antialias=true:hinting=true
+! URxvt*font: xft:UbuntuMono:pixelsize=14:antialias=true:hinting=true
+! URxvt*font: xft:AnonymousPro:pixelsize=14:antialias=true:hinting=true
+
+! color examples
+! black
+! URxvt*color0  : black
+! URxvt*color8  : black
+! URxvt*color0  : #2E3436
+! URxvt*color8  : #555753
+! red
+! URxvt*color1  : #CC0000
+! URxvt*color9  : #EF2929
+! green
+! URxvt*color2  : #4E9A06
+! URxvt*color10 : #8AE234
+! yellow
+! URxvt*color3  : #C4A000
+! URxvt*color11 : #FCE94F
+! blue
+! URxvt*color4  : #3465A4
+! URxvt*color12 : #729FCF
+! magenta
+! URxvt*color5  : #75507B
+! URxvt*color13 : #AD7FA8
+! cyan
+! URxvt*color6  : #06989A
+! URxvt*color14 : #34E2E2
+! white
+! URxvt*color7  : #D3D7CF
+! URxvt*color15 : #EEEEEC
+

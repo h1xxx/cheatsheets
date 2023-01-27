@@ -1,0 +1,38 @@
+# possible locations:
+#   /etc/i3status.conf
+#   ~/.config/i3status/config
+
+general {
+	colors = false
+	interval = 1
+}
+
+order += "load"
+order += "memory"
+order += "disk /"
+order += "ethernet eth0"
+order += "tztime local"
+
+load {
+	format = "load: %1min "
+}
+
+memory {
+	format = " mem: %used "
+	threshold_degraded = "512M"
+	format_degraded = " MEMORY < %available "
+}
+
+disk "/" {
+	format = " / free: %free "
+}
+
+ethernet eth0 {
+	format_up = " E: %ip (%speed) "
+	format_down = " E: down "
+}
+
+tztime local {
+	format = " %Y-%m-%d %H:%M:%S"
+}
+
