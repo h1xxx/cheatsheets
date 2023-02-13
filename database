@@ -265,3 +265,16 @@ with open('output.csv','w', newline='') as out_csv_file:
         csv_out.writerow(result)
 inpsql3.close()
 
+
+
+redis
+=====
+
+# example redis-cli session
+redis-cli -s /run/redis.sock
+keys *
+SELECT 1
+keys *
+INFO memory
+INFO
+

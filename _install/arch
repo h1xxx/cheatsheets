@@ -129,6 +129,8 @@ cat <<EOF > /etc/ssh/ssh_host_ed25519_key
 EOF
 chmod 600 /etc/ssh/ssh_host_ed25519_key
 
+ssh-keygen -t ed25519
+
 systemctl enable sshd
 systemctl enable chronyd
 systemctl enable dhcpcd
@@ -154,7 +156,7 @@ p+=' mitmproxy mktorrent nethogs siege speedtest-cli tor geoip-database-extra'
 p+=' vnstat whois  fdupes hplip lshw powertop pigz pixz mercurial stack hwinfo'
 p+=' sl stress testdisk asciidoc ebook-tools xmlto w3m python-beautifulsoup4'
 p+=' smbclient samba xmlstarlet php enca uchardet man-pages proxychains mutt'
-p+=' scapy python-scapy python-pip bpython expect python-lxml shellcheck'
+p+=' scapy python-scapy python-pip bpython expect python-lxml shellcheck vi'
 p+=' tesseract tesseract-data-eng jdk-openjdk jdk11-openjdk jdk17-openjdk ovmf'
 p+=' arch-wiki-docs cabal-install cdrkit fuseiso mlocate atftp figlet uchardet'
 p+=' fbset tlp gdisk cdrtools rtorrent msmtp links rsync cowsay elinks rclone'
@@ -166,9 +168,10 @@ p+=' gpsd modemmanager firejail python-pyserial docker iptstate quota-tools jq'
 p+=' vim-spell-pl checkbashisms dash ansible ansible-lint iucode-tool tree nnn'
 p+=' ranger shellharden units logwatch logrotate tcl chrpath openssl-1.1'
 p+=' jre-openjdk jre11-openjdk jre17-openjdk arch-install-scripts'
+p+=' dvdbackup dvdauthor mkvtoolnix-cli handbrake-cli'
 
 pacman --noconfirm -S ${p}
-pacman --noconfirm -Scc
+yes | pacman -Scc
 
 exit
 sync
@@ -186,7 +189,7 @@ echo 'http    127.0.0.1 8080' >> /etc/proxychains.conf
 # configure postgres for metasploit
 usermod -a -G postgres x
 su - postgres -c 'initdb -D /var/lib/postgres/data'
-systemctl status postgresql
+systemctl start postgresql
 systemctl enable postgresql
 
 # MANUAL STEP! enter password:
@@ -237,6 +240,13 @@ exit
 pacman -U /home/x/mongodb-bin/mongodb*.tar.zst
 su - x
 
+git clone https://aur.archlinux.org/wayback_machine_downloader.git
+cd wayback_machine_downloader
+makepkg
+exit 
+pacman -U /home/x/wayback_machine_downloader/wayback_machine_downloader*.tar.zst
+su - x
+
 # for a wordpress exploit php/webapps/47361.pl
 perl -MCPAN -e shell
 cpan[1]> install WWW::UserAgent::Random
@@ -283,7 +293,7 @@ p+=' ttf-inconsolata ttf-dejavu ttf-droid ttf-liberation terminus-font picard'
 p+=' ttf-font-awesome noto-fonts noto-fonts-extra marble dosbox chromaprint'
 p+=' wireshark-qt tigervnc feh zathura zathura-pdf-poppler gimp remmina beets'
 p+=' python-pyacoustid netsurf qutebrowser znc dmenu ungoogled-chromium zbar'
-p+=' mpv firefox xss-lock ttf-ubuntu-font-family xorg-xfontsel scrot'
+p+=' mpv firefox xss-lock ttf-ubuntu-font-family xorg-xfontsel scrot seahorse'
 p+=' xorg-mkfontscale'
 
 pacman -Syu
@@ -359,6 +369,17 @@ wget ${url}/.config/i3/config -O ~/.config/i3/config
 wget ${url}/.config/i3status/config.xorg_vm -O ~/.config/i3status/config
 wget ${url}/.Xdefaults -O ~/.Xdefaults
 
+git clone https://aur.archlinux.org/skypeforlinux-stable-bin.git
+cd skypeforlinux-stable-bin
+makepkg
+exit
+cd /home/x/skypeforlinux-stable-bin/
+pacman -U skypeforlinux-stable-bin-*.pkg.tar.zst
+rm -r /home/x/skypeforlinux-stable-bin/
+
+# !!! manual step - create a keyring
+seahorse
+
 
 # config after reboot
 # ===================
@@ -369,9 +390,106 @@ reboot
 X -configure
 mv xorg.conf.new /etc/X11/xorg.conf
 
-echo 'exec i3' > /home/x/.xinitrc
+echo '. /etc/X11/xinit/xinitrc.d/50-systemd-user.sh' > /home/x/.xinitrc
+echo 'exec i3' >> /home/x/.xinitrc
 echo '[ -z "${DISPLAY}" ] && [ "$(tty)" = /dev/tty1 ] && startx' >> /home/x/.bash_profile
 chown -R x:x /home/x/
+
+# blackarch
+# =========
+
+curl -O https://blackarch.org/strap.sh
+sh strap.sh
+pacman -Sy
+
+useradd -m gvm
+usermod -a -G gvm x
+
+p=
+p+=' ffuf responder mimikatz exploitdb wpscan peass linenum onesixtyone braa'
+p+=' gobuster ffuf-scripts seclists dirb dirbuster-ng whatweb hydra cewl'
+p+=' zaproxy sslsplit rsmangler mentalist fq gospider jaeles metabigor nikto'
+p+=' wapiti python-socksio vuls detect-secrets whispers xxeinjector fierce'
+p+=' restler-fuzzer xsstrike python-shodan smbmap crackmapexec evil-winrm'
+p+=' enum4linux-ng libnfs dnsenum dnsrecon braa ssh-audit rdp-sec-check jd-cli'
+p+=' dex2jar aquatone droopescan juumla theharvester waybackurls wafw00f'
+p+=' sublist3r pnscan openldap'
+p+=' gvmd openvas-scanner ospd-openvas perl-xml-twig mosquitto hiredis'
+
+pacman --noconfirm -S ${p}
+yes | pacman -Scc
+
+# missing pg extension
+wget https://github.com/greenbone/pg-gvm/archive/refs/tags/v22.4.0.tar.gz
+tar xf v22.4.0.tar.gz
+cd pg-gvm-22.4.0/
+cmake . && make && make install
+rm -r pg-gvm-22.4.0/ v22.4.0.tar.gz
+
+# configure postgres for openvas
+su -l postgres
+createuser gvm
+createdb -O gvm gvmd
+psql gvmd
+create role dba with superuser noinherit;
+grant dba to gvm;
+create extension "uuid-ossp";
+create extension "pg-gvm";
+\q
+exit
+
+# check postgres connection from msf
+msfdb status --connection-string=postgresql://postgres@localhost:5432/postgres
+
+# configure redis for openvas
+mv /etc/redis/redis-openvas.conf /etc/redis/redis.conf
+sed -i 's|^dir .*|dir /var/lib/redis|' /etc/redis/redis.conf
+echo 'db_address = /run/redis-openvas/redis.sock' > /etc/openvas/openvas.conf
+chmod 770 /var/lib/redis
+ln -s libhiredis.so.1.1.0 /usr/lib/libhiredis.so.1.0.0
+
+# configure openvas
+mkdir -p /var/lib/notus
+ln -s /usr/bin/vendor_perl/xml_split /usr/bin/xml_split
+chown gvm:gvm /var/log/gvm
+chown -R gvm:gvm /var/lib/openvas
+chown -R gvm:gvm /var/lib/notus
+su - gvm
+greenbone-nvt-sync
+openvas --update-vt-info
+greenbone-feed-sync --type GVMD_DATA
+greenbone-scapdata-sync --rsync
+greenbone-certdata-sync --rsync
+gvm-manage-certs -a
+gvmd --create-user=admin --role=Admin --password=admin
+exit
+
+# !!! manual step
+visudo
+# add line: gvm ALL = NOPASSWD: /usr/bin/openvas
+
+# install gvm-cli
+pip install gvm-tools
+
+# start and configure openvas
+install -dm 777 /run/gvmd
+install -dm 777 /run/redis-openvas
+systemctl start redis
+systemctl start mosquitto
+systemctl start ospd-openvas
+systemctl start gvmd
+su - gvm
+# !!! manual steps
+gvmd --get-scanners
+gvmd --modify-scanner=__scanner_id__ --scanner-host=/run/gvm/ospd.sock
+gvmd --verify-scanner=__scanner_id__
+gvmd --get-users --verbose
+gvmd --modify-setting 78eceaec-3385-11ea-b237-28d24461215b --value __admin_id__
+exit
+
+# vulscan for nmap
+git clone https://github.com/scipag/vulscan /opt/vulscan
+ln -s /opt/vulscan /usr/share/nmap/scripts/
 
 cat /dev/zero >> /root/zeros.bin 2>&1 ||:; sync; rm /root/zeros.bin && sync
 poweroff

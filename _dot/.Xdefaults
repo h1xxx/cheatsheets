@@ -1,9 +1,9 @@
 ! default window size in chars; $COLUMNS x $LINES
-URxvt*geometry:  212x58
+URxvt*geometry:  212x65
 
 ! configure font
-URxvt*font: xft:UbuntuMono:pixelsize=17:antialias=true:hinting=true
-URxvt*boldFont: xft:UbuntuMono:bold:pixelsize=17:antialias=true:hinting=true
+URxvt*font: xft:UbuntuMono:pixelsize=16:antialias=true:hinting=true
+URxvt*boldFont: xft:UbuntuMono:bold:pixelsize=16:antialias=true:hinting=true
 URxvt.letterSpace: -1
 
 ! terminal name from terminfo

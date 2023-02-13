@@ -2,7 +2,7 @@ dig
 ===
 
 # query dns A records
-dig ddg.co
+dig ddg.co A
 
 # query dns A records and get only ip numbers
 dig +short ddg.co
@@ -13,7 +13,7 @@ dig ddg.co MX
 # query dns all records
 dig ddg.co ANY
 
-# reverse dns lookup
+# reverse dns lookup (PTR records)
 dig -x 8.8.8.8
 
 # query dns A records and trace the path of the query
@@ -38,7 +38,7 @@ dig 127.0.0.1 -t txt -c chaos trustanchor.unbound
 # zone transfer
 dig axfr internal.inlanefreight.htb @10.1.1.1
 
-# dig +short myip.opendns.com @resolver1.opendns.com
+# query txt fields
 dig TXT +short o-o.myaddr.l.google.com @ns1.google.com
 
 

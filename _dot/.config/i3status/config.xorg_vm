@@ -27,6 +27,7 @@ disk "/" {
 	format = " / free: %free "
 }
 
+# %speed requires CAP_NET_ADMIN
 ethernet eth0 {
 	format_up = " E: %ip (%speed) "
 	format_down = " E: down "
