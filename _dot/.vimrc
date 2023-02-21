@@ -3,7 +3,7 @@
 " expand tab to spaces for text alignment, don't expand for indentation
 function! TabOnlyIndent()
   if strpart(getline('.'), 0, col('.') - 1) =~ '^\s*$'
-		return "\<Tab>"
+    return "\<Tab>"
   else
     set expandtab
     execute "normal! i\<Tab>"
@@ -24,64 +24,64 @@ endfunction
 
 " toggle pasting with a nice message on the current state
 function! PasteToggle()
-	if &paste
+  if &paste
     call feedkeys(":set nopaste\<CR>", "n")
-	else
+  else
     call feedkeys(":set paste\<CR>", "n")
-	endif
+  endif
 endfunction
 
 " toggle spell check - first to "en", then to "pl", then turn if off
 function! SpellToggle()
-	if &spell && &spelllang == "pl"
+  if &spell && &spelllang == "pl"
     call feedkeys(":set nospell\<CR>", "n")
-	elseif &spell && &spelllang == "en"
+  elseif &spell && &spelllang == "en"
     call feedkeys(":set spelllang=pl\<CR>", "n")
-	else
-		set spell
+  else
+    set spell
     call feedkeys(":set spelllang=en\<CR>", "n")
-	endif
+  endif
 endfunction
 
 " toggle spell check in insert mode (doesn't print commands)
 function! SpellToggleInsert()
-	if &spell && &spelllang == "pl"
-		set nospell
-	elseif &spell && &spelllang == "en"
-		set spell
+  if &spell && &spelllang == "pl"
+    set nospell
+  elseif &spell && &spelllang == "en"
+    set spell
     set spelllang=pl
-	else
-		set spell
+  else
+    set spell
     set spelllang=en
-	endif
+  endif
 endfunction
 
 " toggle syntax highlighting
 function! SyntaxToggle()
-	if exists("g:syntax_on")
+  if exists("g:syntax_on")
     call feedkeys(":syntax off\<CR>", "n")
-	else
+  else
     call feedkeys(":syntax on\<CR>", "n")
-	endif
+  endif
 endfunction
 
 " toggle syntax highlighting in insert mode
 function! SyntaxToggleInsert()
-	if exists("g:syntax_on")
+  if exists("g:syntax_on")
     syntax off
-	else
+  else
     syntax on
-	endif
+  endif
 endfunction
 
 " toggle highlighting the column just behind the text width
 function! ColorColumnToggle()
-	if &colorcolumn != ""
-		set colorcolumn=
-	else
-		set colorcolumn=+1
-		highlight colorcolumn ctermbg=lightgrey ctermfg=black
-	endif
+  if &colorcolumn != ""
+    set colorcolumn=
+  else
+    set colorcolumn=+1
+    highlight colorcolumn ctermbg=lightgrey ctermfg=black
+  endif
 endfunction
 
 
@@ -124,7 +124,7 @@ set textwidth=79
 set t_Co=16
 
 " set color scheme
-colorscheme industry-vintage
+colorscheme industry
 
 " stop search at the end of the file
 set nowrapscan 
@@ -234,7 +234,7 @@ nnoremap <silent> <F1> :call PasteToggle()<CR>
 nnoremap <silent> <F2> :call SpellToggle()<CR>
 inoremap <silent> <F2> <C-o>:call SpellToggleInsert()<CR>
 
-" syntax
+" toggle syntax highlighting
 nnoremap <silent> <F3> :call SyntaxToggle()<CR>
 inoremap <silent> <F3> <C-o>:call SyntaxToggleInsert()<CR>
 
