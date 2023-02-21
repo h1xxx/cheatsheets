@@ -1,0 +1,399 @@
+
+# debian env
+apt-get install build-essential gcc make git libssl-dev autoconf automake libtool flex bison libncurses5-dev wget zlib1g-dev gnat
+
+# info
+commit hashes are taken from link 'upstream tree' from coreboot webpage
+
+# get the latest repository
+
+clone the repo
+git clone https://review.coreboot.org/coreboot
+cd coreboot
+
+checkout a sub-repository in the 3rdparty directory
+git submodule update --init --checkout
+
+
+# switch to the latest commit and build toolchain (x86 needed to avoid errors)
+commit for x200 as of 2018-07-11
+git checkout 3130a93bfa953011fed7429b17d3727abd3b4100
+
+commit for x200 as of 2021-01-12
+a36b8472eb35d4725b3d9e296fd24c878114a989
+
+commit for t500 as of 2018-09-07 (taken from t400)
+git checkout 41979d862a972375d6800afdf2b8b52d408fd220
+
+commit for t60 as of 2018-12-27
+git checkout e9be44e6d897602c1a714c7f7f25be1686b175b4
+
+commit for ga-g41-es2l as of 2018-11-16
+git checkout 28114ae71bd94c5db17073e1e9a96173331055be
+
+commit for d510mo 2017-04-17
+git checkout 2a7c519c89fc05c3640ee457883829b1d7221f0e
+
+commit for qemu q35/ich9 2018-02-06
+git checkout da6f4ae0b98313aae9e6295e412d87b11199501f
+
+commit for kgpe-d16 2017-10-07
+git checkout d6735b0
+
+commit for kgpe-d16 2019-07-20
+git checkout ea58adddf4c8890c9172ba4c344babb08da1837a
+
+
+# switch to the latest commit and build toolchain (x86 needed to avoid errors)
+
+$ git submodule update --checkout
+make crossgcc-i386 CPUS=4 -b
+make crossgcc-x64 CPUS=4 -b
+
+-------------------------------------------------------------------------------
+
+
+# x200, t500, t60
+
+## configure coreboot
+make nconfig
+
+choose mainboard
+> Mainboard -> Mainboard vendor -> Lenovo
+> Mainboard -> Mainboard model -> Thinkpad X200/T500
+> Mainboard -> ROM chip size -> 4 MB / 8 MB (double check size)
+
+enable microcode, as of 2018-10 system crashes when playing video without it
+> Chipset -> Include CPU microcode -> Generate from tree
+
+add a payload
+> Payload -> Add a payload -> An ELF executable payload
+> Payload -> Payload path and filename
+
+
+## compile
+make -j4
+
+## add payload
+
+view the rom contents
+cbfstool build/coreboot.rom print
+
+## add grub config
+
+
+
+## prepare flash
+
+./blobtool ifd-x200.spec ifd-x200.set ifd.bin
+
+if your flash is not 8M modify ifd-x200.set e.g. 4M
+
+diff --git a/util/blobtool/ifd-x200.set b/util/blobtool/ifd-x200.set
+index 255eb88b70..25ae281906 100644
+--- a/util/blobtool/ifd-x200.set
++++ b/util/blobtool/ifd-x200.set
+@@ -35,7 +35,7 @@
+        "flmap2_msl" = 0x1,
+        "flmap2_reserved" = 0x0,
+
+-       "flcomp_density1" = 0x4,
++       "flcomp_density1" = 0x3,
+        "flcomp_density2" = 0x2,
+        "flcomp_reserved0" = 0x0,
+        "flcomp_reserved1" = 0x0,
+@@ -56,7 +56,7 @@
+        "flreg0_reserved1" = 0x0,
+        "flreg1_base" = 0x3,
+        "flreg1_reserved0" = 0x0,
+-       "flreg1_limit" = 0x7ff,
++       "flreg1_limit" = 0x3ff,
+        "flreg1_reserved1" = 0x0,
+        "flreg2_base" = 0x1fff,
+        "flreg2_reserved0" = 0x0,
+
+
+or for 16M flash
+
+diff --git a/util/blobtool/ifd-x200.set b/util/blobtool/ifd-x200.set
+index 255eb88b70..bbcb159616 100644
+--- a/util/blobtool/ifd-x200.set
++++ b/util/blobtool/ifd-x200.set
+@@ -35,7 +35,7 @@
+        "flmap2_msl" = 0x1,
+        "flmap2_reserved" = 0x0,
+
+-       "flcomp_density1" = 0x4,
++       "flcomp_density1" = 0x5,
+        "flcomp_density2" = 0x2,
+        "flcomp_reserved0" = 0x0,
+        "flcomp_reserved1" = 0x0,
+@@ -56,7 +56,7 @@
+        "flreg0_reserved1" = 0x0,
+        "flreg1_base" = 0x3,
+        "flreg1_reserved0" = 0x0,
+-       "flreg1_limit" = 0x7ff,
++       "flreg1_limit" = 0x1fff,
+        "flreg1_reserved1" = 0x0,
+        "flreg2_base" = 0x1fff,
+        "flreg2_reserved0" = 0x0,
+
+Now let's start by flashing this descriptor. It first needs some padding since as of writing flashrom still needs image that match the whole flash size even if
+only a region is flashed.
+
+modify '8' in the command to create your flash by your flash size in MB.
+
+dd if=/dev/zero of=padding.bin bs=$((8 * 1024 * 1024 - 4096)) count=1
+cat ifd.bin padding.bin > ifd_8M.bin
+flashrom -p "external_programmer" -w ifd_8M.bin --ifd --image fd --noverify-all
+
+Given that the GBE region is a different offset compared to vendor, we need to move it around too. First extract it from the vendor image:
+
+ifdtool vendor.rom -x
+
+Now inject the GBE region into the previously created ifd_8M.bin and flash it to the SPI flash.
+
+t500 chip: mx25l6405d
+
+ifdtool -i GBE:flashregion_3_gbe.bin ifd_8M.bin
+flashrom -p "external_programmer" -w ifd_8M.bin.new --ifd --image gbe --noverify-all
+
+Now finally we can flash our coreboot image. Notice that when building coreboot CONFIG_CBFS_SIZE can now be safely set to 0x7fd000 (8 * 1024 * 1024 - 4096 -
+8192) for 8M flash to make a maximal use of the available flash:
+
+flashrom -p "external_programmer" -w coreboot.rom --ifd --image bios --noverify-all
+
+
+On future coreboot updates (no need for external programmer now) simply never touch the other regions again:
+
+flashrom -p internal -w coreboot.rom --ifd --image bios
+
+
+
+
+## flash only bios region to chip (e.g. MX25L3205D/MX25L3208D)
+flashrom -p internal -w coreboot.rom --ifd --image bios -c <chip name>
+
+#flashrom -p internal -V
+#flashrom -p internal -w coreboot.rom
+
+
+
+-------------------------------------------------------------------------------
+
+
+# ga-g41m-es2l 
+
+
+# set up SeaBios
+if you want SeaBIOS, do this before configuring coreboot compilation to make 
+booting faster on this board due to slow PIO mode
+cd payloads/external/SeaBIOS
+git clone https://review.coreboot.org/seabios.git seabios
+cd seabios
+
+create a file .config with content:
+CONFIG_COREBOOT=y
+CONFIG_ATA_DMA=y
+CONFIG_VGA_COREBOOT=y
+
+generate full config file
+make nconfig
+
+deselect bios interfaces for PCI cards, so PXE from ethernet cards won't run
+> BIOS interfaces -> PCIBIOS interface
+> BIOS interfaces -> PnP BIOS interface
+
+mv .config ../.seabiosconfig
+cd ../../../..
+
+## make selections for the board with make nconfig
+
+choose mainboard
+> Mainboard -> Mainboard vendor -> Gigabyte
+> Mainboard -> Mainboard model -> GA-G41M-ES2L
+> Mainboard -> ROM chip size -> 1 MB (double check size)
+
+select config for seabios
+> Payload -> SeaBIOS config file -> .seabiosconfig
+
+disable microcode updates
+> Chipset -> Include CPU microcode in CBFS -> Do not ...
+CONFIG_CPU_MICROCODE_CBFS_NONE=y
+
+disable serial console output
+> Console -> Serial port console output
+CONFIG_CONSOLE_SERIAL=n     # or not set
+
+use cmos for configuration values
+> General setup -> Use cmos for configuration values
+
+
+CONFIG_VENDOR_GIGABYTE=y
+CONFIG_BOARD_GIGABYTE_GA_G41M_ES2L=y
+
+# CONFIG_USE_OPTION_TABLE=y
+
+## compile coreboot rom
+make -j4
+
+## compile nvramtool to change rom settings
+cd util/nvramtool/
+make
+
+## configure rom
+
+show current configuration and all possible values for one setting
+./nvramtool -C build/coreboot.rom -a
+./nvramtool -C build/coreboot.rom -e gfx_uma_size
+
+change shared VGA RAM
+./nvramtool -C build/coreboot.rom -w gfx_uma_size=352M
+
+
+## make a copy of main and backup BIOS chip and flash coreboot
+sudo flashrom -p internal:dualbiosindex=0 -r m_bios.rom
+sudo flashrom -p internal:dualbiosindex=1 -r b_bios.rom
+sudo flashrom -p internal:dualbiosindex=0 -w coreboot.rom
+sudo flashrom -p internal:dualbiosindex=1 -w coreboot.rom
+
+-------------------------------------------------------------------------------
+
+# d510mo
+
+# if errors exist with the compilation of crossgcc downgrade gcc, cc and g++ by 
+# make crossgcc-clean and then linking to previous version of gcc higher in the PATH
+# sudo ln -s /usr/bin/g++-5 /usr/bin/local/g++
+# sudo ln -s /usr/bin/gcc-5 /usr/bin/local/gcc
+# sudo ln -s /usr/bin/cc-5 /usr/bin/local/cc
+# or try modifying the MakeFile
+
+make crossgcc-x64 CPUS=8 -b
+make
+
+
+# flashing
+If flashrom tells you '/dev/mem mmap failed: Operation not permitted':
+reboot with iomem=relaxed in your kernel command line
+
+# D510MO
+flashrom -p internal -V
+flashrom -p internal -w coreboot.rom
+
+
+# connecting bbb via usb when dhcp doesn't work
+sudo ip addr add 192.168.7.1/16 dev enp0s20f0u3
+#!/bin/bash
+
+-------------------------------------------------------------------------------
+
+# qemu coreboot config
+
+
+> Mainboard -> ROM chip size -> 1MB
+
+Disable
+> Generic Drivers -> bochs dispi interface vga driver 
+> Generic Drivers -> Support Intel PCI-e WiFi adapters
+
+> Payload -> Add a payload (An ELF executable)
+> Payload -> Payload path and filename
+
+
+optionally replace grub payload with another one
+
+cbfstool coreboot.rom remove -n fallback/payload
+cbfstool coreboot.rom add-payload -n fallback/payload -f grub2.elf -t raw
+
+
+add grub config
+cbfstool coreboot.rom add -n etc/grub.cfg -f grub.cfg -t raw
+
+run qemu vm with coreboot
+qemu-system-x86_64 -bios coreboot.rom -curses
+
+
+-------------------------------------------------------------------------------
+# compiling grub
+
+details are in the file INSTALL
+
+clone git repo
+git clone git://git.savannah.gnu.org/grub.git
+
+select version
+git checkout grub-2.02
+
+run autogen, configure for coreboot and compile
+./autogen.sh
+./configure --with-platform=coreboot
+make
+
+make an efi file to use as payload
+./grub-mkstandalone -O i386-coreboot \
+                    -o grub2.elf \
+                    --fonts= \  
+                    --locales= \
+                    -d ./grub-core/ \
+                    --compress=gz \
+                     /boot/grub/grub.cfg=./grub_memdisk.cfg
+
+
+-------------------------------------------------------------------------------
+# memory compatibility
+
+didn't work with ga-g41-es2l rev 1.0  and xeon X5460 stepping 10
+Samsung 4GB DDR2 6400U M395T5160QZ4-CF7
+
+# cpu compatibility
+
+vt-x doesn't work in this model
+
+# CPU family:          6
+# Model:               23
+# Model name:          Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz
+# Stepping:            10
+
+
+-------------------------------------------------------------------------------
+
+# cleaning 
+
+remove toolchain
+make crossgcc-clean
+
+remove coreboot builds and settings
+make distclean
+
+-------------------------------------------------------------------------------
+
+
+# cbfstool - manage ROM contents
+
+location in coreboot repo
+./util/cbfstool
+
+print contents of rom
+cbfstool coreboot.rom print
+
+add a grub payload additional to SeaBIOS to rom in img/grub2_coreboot
+cbfstool coreboot.rom add-payload -n img/grub2_coreboot -f grub2.elf -t raw
+
+remove a grub payload or any other file
+cbfstool coreboot.rom remove -n img/grub2_coreboot
+
+add a grub as main payload to rom
+cbfstool coreboot.rom add-payload -n fallback/payload -f grub2.elf -t raw
+
+add a file to cbfs
+cbfstool coreboot.rom add -n etc/grub.cfg -f grub.cfg -t raw
+
+extaract a file from cbfs
+cbfstool coreboot.rom  extract -n grub.cfg -f grub.cfg
+
+----------------------------------------------------------
+
+# kgpe-d16
+pass x-vga=on for pci passthrough to enable legacy vga
+
+flashrom -p ch341a_spi -r backup.bin

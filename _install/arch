@@ -413,7 +413,7 @@ p+=' wapiti python-socksio vuls detect-secrets whispers xxeinjector fierce'
 p+=' restler-fuzzer xsstrike python-shodan smbmap crackmapexec evil-winrm'
 p+=' enum4linux-ng libnfs dnsenum dnsrecon braa ssh-audit rdp-sec-check jd-cli'
 p+=' dex2jar aquatone droopescan juumla theharvester waybackurls wafw00f'
-p+=' sublist3r pnscan openldap'
+p+=' sublist3r pnscan openldap snyk nuclei'
 p+=' gvmd openvas-scanner ospd-openvas perl-xml-twig mosquitto hiredis'
 
 pacman --noconfirm -S ${p}

@@ -25,7 +25,7 @@ cp file1.apk .
 
 
 
-aosp install LG Nexus 5X
+aosp install lg nexus 5x
 ========================
 
 # developer options (including usb debugging)
@@ -69,7 +69,7 @@ sudo fastboot reboot-bootloader
 
 
 
-aosp install OnePlus 8T
+aosp install oneplus 8t
 =======================
 
 # developer options (including usb debugging)
@@ -103,6 +103,13 @@ adb reboot bootloader
 (on device in recovery) 'ADB Sideload'
 adb sideload lineage-18.1-20220303-nightly-kebab-signed.zip
 
+# install nethunter
+adb reboot bootloader
+fastboot boot twrp-3.7.0_11-0-kebab.img
+<install twrp-install, wipe /data, install magisk>
+<reboot, connect to internet, install full magisk>
+<install nethunter as magisk module>
+
 
 
 graphene os install pixel 3a
@@ -121,6 +128,10 @@ fastboot flashing lock
 lineage xperia xz2 compact
 ==========================
 
+# notes
+- fastboot mode is just a black screen with green or blue led
+
+# install
 <get oem unlock key from sony webpage>
 adb reboot bootloader
 fastboot devices
