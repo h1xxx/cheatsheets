@@ -292,11 +292,13 @@ dnsmasq -p 0 -d -G eth00,a1:12:f4:22:27:42,10.10.10.2 -O wlan0,option:router,10.
 nmap --script broadcast-dhcp-discover -e eth0
 
 
+
 ssh
 ===
 
 # local port forward
 ssh -N -L local_port:destination_server_ip:remote_port user@ssh_server
+
 
 
 vpn
@@ -323,6 +325,7 @@ ip r add 0.0.0.0/1 dev wg0
 ip r add 128.0.0.0/1 dev wg0
 ip r add "$(echo "${Endpoint}"|cut -d: -f1)"  via "${gw}" dev eth0
 ip l set wg0 up
+
 
 
 docs

@@ -133,6 +133,10 @@ git merge another_branch_name
 # delete a branch
 git branch -d branch_name
 
+# fetch (download) all the remote branches
+git branch -r | grep -v '\->' | while read -r remote; do git branch --track "${remote#origin/}" "${remote}"; done
+git pull --all
+
 
 
 local / staging

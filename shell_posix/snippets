@@ -15,6 +15,9 @@ done
 # rename a file - change the extension from .cfg to .conf
 for f in $(find -type f -name '*.cfg'); do echo mv -- "${f}" "$(dirname "${f}")/$(basename "${f}" .cfg).conf"; done
 
+# remove all empty directories
+find -type d -empty -delete
+
 
 
 strings

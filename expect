@@ -1,0 +1,10 @@
+misc
+====
+
+# automated su root login
+#!/usr/bin/expect
+spawn su - root
+expect "Password:"
+send "PASS123\n"
+interact
+

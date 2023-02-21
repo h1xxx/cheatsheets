@@ -64,3 +64,8 @@ sed -e 's|[^a-zA-Z0-9,._+@%/-]|\\&|g' -e '1{$s|^$|""|}' -e '1!s|^|"|' -e '$!s|$|
 # check if string is a mac address
 [[ "${mac}" =~ ^[a-fA-F0-9]{2}(:[a-fA-F0-9]{2}){5}$ ]] && echo 'is a mac'
 
+# loop over zero (null) terminated strings
+while IFS= read -r -d $'\0' file; do
+	echo $"{file}"
+done < <(find /home -type f -print0)
+

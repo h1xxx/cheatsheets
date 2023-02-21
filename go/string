@@ -118,7 +118,6 @@ i, err := strconv.Atoi("1")
 # convert string to float64
 f, err := strconv.ParseFloat(s, 64)
 
-
 # parse a space separated string with elements inside quotes
 import encoding/csv
 s := `"CC=musl-gcc -static" CLFAGS=-O2`
