@@ -185,13 +185,22 @@ au FileType c inoremap <Tab> <C-r>=TabOnlyIndent()<CR>
 au FileType c nnoremap <silent> <F5> :w<CR>:!tcc -run %<CR>
 
 
+" ---- shell file settings
+
+" use google convention for tabs
+au FileType sh set expandtab ts=2 shiftwidth=2
+
+" save, compile and run
+au FileType sh nnoremap <silent> <F5> :w<CR>:!go run %<CR>
+
+
 " ---- go file settings
 
 " expand tab to spaces for text alignment, don't expand for indentation
 au FileType go inoremap <Tab> <C-r>=TabOnlyIndent()<CR>
 
 " save, compile and run
-au FileType c nnoremap <silent> <F5> :w<CR>:!go run %<CR>
+au FileType go nnoremap <silent> <F5> :w<CR>:!go run %<CR>
 
 
 " ---- python file settings
