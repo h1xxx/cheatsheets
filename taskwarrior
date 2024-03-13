@@ -1,8 +1,61 @@
+basics
+======
+
+# add a task with a date
+task add this is a task due:eom
+---
+task add this is a task due:2024-08-01T20:00
+
+# add a task in a project pr1
+task add this is a task project:pr1
+
+# show detailed info on a task
+task 1
+
+# change the project of a task
+task 1 modify project:pr1
+
+# change the description of a task
+task 1 modify something to be done
+---
+task 1 edit
+
+# delete due date of a task
+task 1 modify due:
+
+# modify a task to boost it's urgency
+task 1 modify +next
+
+# mark task as completed
+task 1 done
+
+# delete a task
+task 1 delete
+
+# make a task that is repeated every week
+task add do a recurring task due:2015-06-08T09:00 recur:weekly
+
+# make a task repeated every month, but only for a year
+task add do a recurring task due:28th recur:monthly until:now+1yr
+
+# show tasks with no project
+task project: list
+
+
+
+calendar
+========
+
+# show tasks in a given year
+task calendar 2024
+
+# show tasks for the next year
+task calendar y
+
+
+
 print
 =====
-
-# list all reports
-task reports
 
 # list completed tasks
 task completed
@@ -15,163 +68,127 @@ task columns
 tasks
 =====
 
-# add a task
-task add take over the world due:eom
-
-# change the description of a task
-task 1 modify something to be done
-
-# show information on a task
-task 1
-
 # change priority of many tasks
 task 1 2-5 19 modify pri:H
 
 # schedule a task for a particular date
 task 1 modify scheduled:sunday
 
-# delete due date
-task 1 modify due:
-
-# mark task as completed
-task 1 done
-
-# delete a task
-task 1 delete
-
-# make a task that is due at 9:00am every Monday, starting this coming Monday
-task add Do the thing due:2015-06-08T09:00 recur:weekly
-
-# make a reminder to pay the rent every month, but only for a year
-task add Pay rent due:28th recur:monthly until:now+1yr
-
-
-
-filter
-======
-
 # list tasks scheduled for current day
 task ready
 
-# Show tasks I added in the last 4 days
+# show tasks added in the last 4 days
 task entry.after:today-4days list
 
-# Show tasks I added yesterday
+# show tasks added yesterday
 task entry:yesterday list
 
-# Show tasks I added in the last hour
+# show tasks added in the last hour
 task entry.after:now-1hour list
 
-# Show tasks I completed between a date range
+# show tasks completed between a date range
 task end.after:2015-05-01 and end.before:2015-05-31 completed
 
-# Show tasks I completed in the last week
+# show tasks completed in the last week
 task end.after:today-1wk completed
 
-# Show tasks in This project or That project
-task project:This or project:That list
+# show tasks in project pr1 and pr2
+task project:pr1 or project:pr2 list
 
-# More complex algebraic filters
-task project:This and \( priority:H or priority:M \) list
+# show tasks in project pr1 and high or medium priority
+task project:pr1 and \( priority:H or priority:M \) list
 
-# Search for pattern in description and annotations
+# search for pattern in description and annotations
 task /pattern/ list
+---
 task rc.search.case.sensitive:yes /pattern/ list
+---
 task rc.search.case.sensitive:no /pattern/ list
+
+# list tasks due today
+task +DUETODAY list
+---
+task due.after:yesterday and due.before:tomorrow list
+
+# list tasks that are due, but not today
+task +DUE -DUETODAY list
+
+# list tasks that are due this week
+task +WEEK list
+
+# list task that are overdue
+task +OVERDUE list
 
 
 
 projects
 ========
 
-# Search for tasks with no project
-task project: list
-
-# change the project of a task
-task 1 modify project:project1
-
 # move all tasks to a new project
-task project:OLDNAME modify project:NEWNAME
+task project:pr1 modify project:pr2
 
 # move all pending tasks to a new project
-task project:OLDNAME and status:pending modify project:NEWNAME
+task project:pr1 and status:pending modify project:pr2
 
-# using a project hierarchy
-task add project:Home.Kitchen Clean the floor
-task add project:Home.Kitchen Replace broken light bulb
-task add project:Home.Garden Plant the bulbs
-task project:Home.Kitchen count
-task project:Home.Garden count
-task project:Home count
+# use a project hierarchy (subprojects in projects)
+task add project:pr1.subpr1 task1
+task add project:pr1.subpr2 task2
 
 # list projects currently used
 task projects
+---
 task _projects
 
-# list all the projects ever used
+# list all projects ever used
 task rc.list.all.projects=1 projects
+---
 task rc.list.all.projects=1 _projects
+---
 task _unique projects
 
-# specify that a task is more important if it belongs to the “home” project
-task config urgency.user.project.home.coefficient 2.0
+# specify that a task is more important if it belongs to the 'pr1' project
+task config urgency.user.project.pr1.coefficient 2.0
 
 
 
 tags
 ====
 
-# list tasks that have a specific tag.
-task +home list
+# list tasks that have a specific tag
+task +tag1 list
 
-# list tasks that do not have a specific tag.
-task -home list
+# list tasks that do not have a specific tag
+task -tag1 list
 
 # add a tag for all tasks in a project
 task project:proj1 modify +tag1
 
-# list tasks that have any tags.
+# list tasks that have a tag
 task tags.any: list
+---
 task +TAGGED list
 
-# list tasks that have no tags.
+# list tasks that have no tags
 task tags.none: list
 
-# list tasks that have two specific tags.
-task +this and +that list
-task +this +that list
+# list tasks that have two specific tags
+task +tag1 and +tag2 list
+---
+task +tag1 +tag2 list
 
-# list tasks that have either of two specific tags.
-task +this or +that list
+# list tasks that have any of the two specific tags
+task +tag1 or +tag2 list
 
-# list tasks that have just one of two specific tags.
-task +this xor +that list
+# list tasks that have just one of two specific tags
+task +tag1 xor +tag2 list
 
 # list tags currently used
 task tags
 
 # list all tags ever used
 task rc.list.all.tags=1 tags
+---
 task _tags
-
-# modify a task to boost it's urgency
-task 1 modify +next
-
-# list tasks due today.
-task +DUETODAY list
-task due.after:yesterday and due.before:tomorrow list
-
-# list tasks that are due, but not today.
-task +DUE -DUETODAY list
-
-# list tasks that are due this week.
-task +WEEK list
-
-# list task that are overdue.
-task +OVERDUE list
-
-# list virtual tags are present for the task
-task 1 info
 
 
 
@@ -194,4 +211,16 @@ misc
 
 # check if everything is ok
 task diagnostics
+
+# create holidays file
+for d in $(curl -s https://holidata.net/pl-PL/2024.json | jq -r '.["date"]'); do echo holiday.pl-PL$d.date=$d; done >> .task/holidays.rc
+
+# show all colors
+task color legend
+
+# list all reports
+task reports
+
+# show settings for a report
+task show report.list
 
