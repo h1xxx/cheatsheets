@@ -11,17 +11,17 @@ import (
 )
 
 func main() {
-
 	host := "log"
 	port := "22"
 	user := "root"
-	cmd  := "ps"
+	cmd := "ps"
 
 	// get host public key
 	hostKey := getHostKey(host)
 
 	// ssh client config
-	config := &amp;ssh.ClientConfig{
+	config := &amp
+	ssh.ClientConfig{
 		User: user,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(pass),
@@ -41,7 +41,7 @@ func main() {
 			ssh.KeyAlgoED25519,
 		},
 		// optional tcp connect timeout
-		Timeout:         5 * time.Second,
+		Timeout: 5 * time.Second,
 	}
 
 	// connect

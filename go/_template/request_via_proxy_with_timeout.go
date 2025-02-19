@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 	"net/url"
+	"time"
 )
 
 var PROXY = "http://localhost:8080"
 
 func main() {
-
 	proxyURL, err := url.Parse(PROXY)
 	if err != nil {
 		panic(err)
@@ -26,7 +25,7 @@ func main() {
 
 	client := http.Client{
 		Transport: PTransport,
-		Timeout: timeout,
+		Timeout:   timeout,
 	}
 
 	req, err := http.NewRequest("GET", "https://am.i.mullvad.net/json", nil)
@@ -43,5 +42,4 @@ func main() {
 
 	bodyString := string(bodyBytes)
 	fmt.Printf("GET Response = %s \n", string(bodyString))
-
 }

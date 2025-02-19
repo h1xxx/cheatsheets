@@ -28,7 +28,7 @@ func main() {
 }
 
 func convName(line string) string {
-	l :=  strings.Replace(line, "name\t", "N:", -1)
+	l := strings.Replace(line, "name\t", "N:", -1)
 	return l
 }
 
@@ -38,4 +38,3 @@ func errExit(err error, msg string) {
 		log.Fatal(err)
 	}
 }
-
