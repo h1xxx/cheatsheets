@@ -16,15 +16,16 @@ alias.pr=projects
 include dark-16.theme
 color.due=white
 color.due.today=green
+color.recurring=white
 
 # default report - 'next'
-report.next.columns=id,project,tags,recur,due,description,urgency
-report.next.labels=ID,Project,Tag,Recur,Due,Description,Urg
+report.next.columns=id,project,tags,due,description,urgency
+report.next.labels=ID,Project,Tag,Due,Description,Urg
 report.next.dateformat=Y-M-D H:N
 
 # report - 'list'/ calendar task list
-report.list.columns=id,project,tags,recur.indicator,due,description.count,urgency
-report.list.labels=ID,Project,Tags,R,Due,Description,Urg
+report.list.columns=id,project,tags,due,description.count,urgency
+report.list.labels=ID,Project,Tags,Due,Description,Urg
 report.list.dateformat=Y-M-D H:N
 report.list.context=0
 

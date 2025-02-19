@@ -1,4 +1,5 @@
-HISTSIZE=32768
+# unlimited history (value of 0 disables history)
+HISTSIZE=""
 HISTFILE="${HOME}/.bash_history"
 HISTCONTROL=ignoredups:ignorespace
 HISTIGNORE='l:ls:ll:la:lx:lm:d'
@@ -36,7 +37,7 @@ alias lm='ls -lFN --block-size=M --group-directories-first'
 alias grep='grep -s --devices=skip --color=auto'
 alias egrep='egrep -s --devices=skip --color=auto'
 alias fgrep='fgrep -s --devices=skip --color=auto'
-alias cal='cal -m'
+alias cal='ncal -M -b'
 alias du='du -hs'
 alias df='df -h'
 alias free='free -h'

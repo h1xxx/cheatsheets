@@ -2,9 +2,15 @@
 URxvt*geometry:  212x65
 
 ! configure font
-URxvt*font: xft:UbuntuMono:pixelsize=16:antialias=true:hinting=true
-URxvt*boldFont: xft:UbuntuMono:bold:pixelsize=16:antialias=true:hinting=true
+URxvt*font: xft:FiraCode-Regular:pixelsize=14:antialias=true
+URxvt*boldFont: xft:FiraCode-Bold:pixelsize=14:antialias=true
 URxvt.letterSpace: -1
+
+! automatically copy from clipboard
+URxvt.clipboard.autocopy: true
+
+!!! urxvt perl modules to load
+!URxvt.perl-ext-common:  clipboard,default,fullscreen
 
 ! terminal name from terminfo
 URxvt*termName: rxvt-unicode-256color

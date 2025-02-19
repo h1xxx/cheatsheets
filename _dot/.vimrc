@@ -108,8 +108,8 @@ set shiftwidth=8
 " indent when moving to the next line while writing code
 set autoindent
 
-" disable syntax highlighting
-syntax off
+" enable syntax highlighting
+syntax on
 
 " set line numbers: nu/nonu (numbers/nonumbers)
 set nonu
@@ -218,7 +218,14 @@ au FileType python set expandtab ts=4 shiftwidth=4
 " ---- yaml file settings
 
 " use common convention for tabs
-au FileType python set expandtab ts=2 shiftwidth=2
+au FileType yaml set expandtab ts=2 shiftwidth=2
+
+
+" ---- html file settings
+
+" set html syntax in gohtml files
+au BufRead *.gohtml set syntax=html
+au FileType html set expandtab ts=2 shiftwidth=2
 
 
 " ---- mutt file settings
@@ -231,6 +238,10 @@ au BufRead /tmp/mutt-* set tw=1024
 
 " expand tab to spaces for text alignment, don't expand for indentation
 au BufRead /*/cheatsheets/* inoremap <Tab> <C-r>=TabOnlyIndent()<CR>
+
+
+" ---- misc files
+au BufRead hosts set expandtab ts=2 shiftwidth=2
 
 
 " ---- key mappings
