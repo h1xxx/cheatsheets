@@ -1,0 +1,17 @@
+misc
+====
+
+# start ssh server in windows 10 powershell 
+Get-WindowsCapability -Online | Where-Object {$_.Name -like 'OpenSSH.Server*'} | Add-WindowsCapability -Online
+Start-Service sshd
+Set-Service -Name sshd -StartupType 'Automatic'
+New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled true -Protocol TCP -Action Allow -LocalPort 22
+Get-Service -Name sshd
+
+# start ssh server in windows <10 powershell 
+Add-WindowsFeature -Name OpenSSH.Server
+Start-Service sshd
+Set-Service -Name sshd -StartupType 'Automatic'
+New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled true -Protocol TCP -Action Allow -LocalPort 22
+Get-Service -Name sshd
+

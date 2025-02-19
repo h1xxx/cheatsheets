@@ -7,6 +7,14 @@ mklink /j link_naMe target_name
 # delete a file only when it exists
 if exist file_name del file_name
 
+# find a file
+dir /s *foo*
+---
+where /r c:\Windows *.exe
+
+# show short names (8.3 format) of long file and dir names
+dir /x
+
 
 
 system
