@@ -84,6 +84,7 @@ hidepid=2	Same as hidepid=1 but the /proc/<pid> directories of other
 # tmpfs /var/log tmpfs defaults,mode=0755 0 0
 # tmpfs /var/log/apt tmpfs defaults 0 0
 # tmpfs /tmp tmpfs rw,nosuid,noatime,nodev,size=4G,mode=1777
+# tmpfs /tmp tmpfs rw,nosuid,noatime,nodev,size=4G,nr_inodes=64m,mode=1777
 # tmpfs /run tmpfs rw,nosuid,noatime,nodev,mode=1755
 # none /var/cache unionfs dirs=/tmp:/var/cache=ro 0 0
 
