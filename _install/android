@@ -117,6 +117,7 @@ graphene os install pixel 3a
 
 adb reboot bootloader
 fastboot flashing unlock
+- select unlock on phone
 ./flash_all.sh
 - test if ok -
 adb reboot bootloader
@@ -129,13 +130,18 @@ lineage xperia xz2 compact
 ==========================
 
 # notes
-- fastboot mode is just a black screen with green or blue led
+- fastboot mode is just a black screen with blue led (0fce:0dde)
+- flash mode is just a black screen with green led (0fce:b00b)
+- fastboot mode is while holding volumeup and at the same time connect usb
+  cable while holding volume up
+- flash mode is when holding volumedown and at the same time connect usb
+  cable while holding volume down
 
 # install
 <get oem unlock key from sony webpage>
 adb reboot bootloader
 fastboot devices
-fastboot oem unlock 4BB24D7ED18DFD23 <- key from sony
+fastboot oem unlock 4BB24D7ED18DFD23  # <- key from sony
 adb reboot bootloader
 fastboot flash boot lineage-18.1-20220311-recovery-xz2c.img
 <power off, then volume down + power>

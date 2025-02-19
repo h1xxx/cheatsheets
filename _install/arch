@@ -18,25 +18,27 @@ passwd
 ssh -o 'StrictHostKeyChecking no' -o  'UserKnownHostsFile /dev/null' -p 10122 root@localhost
 
 
-# after ssh
-# =========
+# after ssh - BIOS + syslinux
+# ===========================
 
-sgdisk --zap-all /dev/vda
-sgdisk --clear /dev/vda
-sgdisk -g /dev/vda
-sgdisk --new 1:+2M:+256M --typecode=1:ef02 /dev/vda
+disk='/dev/vda'
 
-sgdisk --attributes 1:set:2 /dev/vda
-sgdisk --new 2::-0 --typecode=2:8300 /dev/vda
+sgdisk --zap-all ${disk}
+sgdisk --clear ${disk}
+sgdisk -g ${disk}
+sgdisk --new 1:+2M:+256M --typecode=1:ef02 ${disk}
 
-mkfs.ext4 -F /dev/vda1
-mkfs.ext4 -F /dev/vda2
-resize2fs -s /dev/vda1
-dd bs=440 count=1 conv=notrunc if=/usr/lib/syslinux/bios/gptmbr.bin of=/dev/vda
+sgdisk --attributes 1:set:2 ${disk}
+sgdisk --new 2::-0 --typecode=2:8300 ${disk}
 
-mount /dev/vda2 /mnt/
+mkfs.ext4 -F ${disk}1
+mkfs.ext4 -F ${disk}2
+resize2fs -s ${disk}1
+dd bs=440 count=1 conv=notrunc if=/usr/lib/syslinux/bios/gptmbr.bin of=${disk}
+
+mount ${disk}2 /mnt/
 mkdir /mnt/boot /mnt/shared
-mount /dev/vda1 /mnt/boot
+mount ${disk}1 /mnt/boot
 
 pacman-key --init
 pacman-key --populate archlinux
@@ -46,6 +48,34 @@ echo 'host0 /mnt/shared 9p trans=virtio,version=9p2000.L,_netdev 0 0' >> /mnt/et
 pacstrap /mnt base base-devel
 
 arch-chroot /mnt
+
+
+# after ssh - EFI with grub
+# =========================
+
+disk='/dev/vda'
+
+sgdisk --zap-all ${disk}
+sgdisk --clear ${disk}
+sgdisk -g ${disk}
+sgdisk --new 1::+1024M --typecode=1:ef00 ${disk}
+sgdisk --new 2::-0 --typecode=2:8300 ${disk}
+
+mkfs.fat -F 32 ${disk}1
+mkfs.ext4 -F ${disk}2
+
+mount ${disk}2 /mnt/
+mkdir /mnt/boot /mnt/shared
+mount ${disk}1 /mnt/boot
+
+pacman-key --init
+pacman-key --populate archlinux
+
+genfstab -U /mnt > /mnt/etc/fstab
+pacstrap /mnt base base-devel
+
+arch-chroot /mnt
+
 
 
 # commands in chroot
@@ -68,8 +98,15 @@ cat <<EOF > /etc/hosts
 EOF
 
 pacman --noconfirm -Sy
-pacman --noconfirm -S linux linux-lts openssh syslinux
+pacman --noconfirm -S linux linux-lts openssh
 pacman --noconfirm -S vim wget git dhcpcd usbutils lsof chrony bind-tools
+
+
+
+# bootloader - syslinux
+# =====================
+
+pacman --noconfirm -S syslinux
 
 mkdir -p /boot/syslinux
 extlinux --install /boot/syslinux
@@ -82,21 +119,69 @@ TIMEOUT 10
 LABEL arch-lts
 MENU LABEL Arch Linux LTS
 LINUX ../vmlinuz-linux-lts
-APPEND root=/dev/vda2 rw net.ifnames=0 nomodeset quiet
+APPEND root=${disk}2 rw net.ifnames=0 nomodeset quiet
 INITRD ../initramfs-linux-lts.img
 
 LABEL arch
 MENU LABEL Arch Linux
 LINUX ../vmlinuz-linux
-APPEND root=/dev/vda2 rw net.ifnames=0 nomodeset quiet
+APPEND root=${disk}2 rw net.ifnames=0 nomodeset quiet
 INITRD ../initramfs-linux.img
 
 LABEL arch-fallback
 MENU LABEL Arch Linux fallback
 LINUX ../vmlinuz-linux-lts
-APPEND root=/dev/vda2 rw net.ifnames=0 nomodeset quiet
+APPEND root=${disk}2 rw net.ifnames=0 nomodeset quiet
 INITRD ../initramfs-linux.img
 EOF
+
+
+
+# bootloader - grub
+# =====================
+
+pacman --noconfirm -S grub efibootmgr
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+grub-mkconfig -o /boot/grub/grub.cfg
+
+
+
+# continue install
+# =================
+
+# install cli pkgs
+p=
+p+=' dos2unix openvpn avahi debootstrap parted debian-archive-keyring'
+p+=' vim libpciaccess i7z traceroute nss-mdns debian-ports-archive-keyring'
+p+=' iperf3 sqlite man-pages nfs-utils'
+p+=' busybox bc lxc cpio zip unzip unrar p7zip rsync p7zip imagemagick'
+p+=' strace arp-scan mtr iputils inetutils fping tcpdump dmidecode'
+p+=' termshark vlock gptfdisk dosfstools cronie mtools tmux'
+p+=' sysstat iotop efivar efitools efibootmgr checksec acpi'
+p+=' iw wpa_supplicant hostapd wireguard-tools nmap'
+p+=' socat wol smartmontools hdparm flashrom vifm ncdu'
+p+=' transmission-cli geoip geoip-database android-tools ipython'
+p+=' dnsmasq'
+p+=' iftop irssi lftp macchanger man w3m'
+p+=' nethogs siege speedtest-cli tor geoip-database-extra'
+p+=' vnstat whois  fdupes hplip lshw powertop pigz pixz hwinfo'
+p+=' sl stress testdisk asciidoc ebook-tools xmlto'
+p+=' smbclient samba xmlstarlet uchardet man-pages proxychains mutt'
+p+=' python-pip bpython expect vi'
+p+=' arch-wiki-docs mlocate atftp figlet uchardet'
+p+=' fbset tlp gdisk cdrtools rtorrent links rsync cowsay elinks rclone'
+p+=' yt-dlp sc'
+p+=' asciinema weechat hunspell-en_us hunspell-pl'
+p+=' gpsd docker jq'
+p+=' vim-spell-pl ansible ansible-lint tree nnn'
+p+=' ranger'
+p+=' arch-install-scripts'
+
+pacman --noconfirm -S ${p}
+yes | pacman -Scc
+
+echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+systemctl enable dhcpcd
 
 useradd -m -p '' x
 usermod -a -G disk x
@@ -111,9 +196,12 @@ usermod -a -G power x
 
 
 # !!! manual step
+key='ssh-ed25519 aaa comment1'
+install -o root -g root -m 0700 -d /root/.ssh
+echo "${key}" > /root/.ssh/authorized_keys
+
 mkdir -p /root/.ssh /home/x/.ssh
-echo 'ssh-ed25519 <key>' > /root/.ssh/authorized_keys
-echo 'ssh-ed25519 <key>' > /home/x/.ssh/authorized_keys
+echo "ssh-ed25519 ${key}" > /home/x/.ssh/authorized_keys
 chmod 700 /root/.ssh/ /home/x/.ssh/
 chmod 600 /root/.ssh/authorized_keys /home/x/.ssh/authorized_keys
 chown -R x:x /home/x/
@@ -167,8 +255,8 @@ p+=' php-tidy asciinema weechat guile hunspell-en_us hunspell-pl tcc fastjar'
 p+=' gpsd modemmanager firejail python-pyserial docker iptstate quota-tools jq'
 p+=' vim-spell-pl checkbashisms dash ansible ansible-lint iucode-tool tree nnn'
 p+=' ranger shellharden units logwatch logrotate tcl chrpath openssl-1.1'
-p+=' jre-openjdk jre11-openjdk jre17-openjdk arch-install-scripts'
-p+=' dvdbackup dvdauthor mkvtoolnix-cli handbrake-cli'
+p+=' jre-openjdk jre11-openjdk jre17-openjdk arch-install-scripts calibre'
+p+=' dvdbackup dvdauthor mkvtoolnix-cli handbrake-cli squashfs-tools'
 
 pacman --noconfirm -S ${p}
 yes | pacman -Scc
@@ -413,8 +501,9 @@ p+=' wapiti python-socksio vuls detect-secrets whispers xxeinjector fierce'
 p+=' restler-fuzzer xsstrike python-shodan smbmap crackmapexec evil-winrm'
 p+=' enum4linux-ng libnfs dnsenum dnsrecon braa ssh-audit rdp-sec-check jd-cli'
 p+=' dex2jar aquatone droopescan juumla theharvester waybackurls wafw00f'
-p+=' sublist3r pnscan openldap snyk nuclei'
+p+=' sublist3r pnscan openldap snyk nuclei lfimap aws-cli webanalyze ruby2.7'
 p+=' gvmd openvas-scanner ospd-openvas perl-xml-twig mosquitto hiredis'
+p+=' ltrace recon-ng naabu'
 
 pacman --noconfirm -S ${p}
 yes | pacman -Scc

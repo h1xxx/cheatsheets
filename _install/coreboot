@@ -20,7 +20,10 @@ commit for x200 as of 2018-07-11
 git checkout 3130a93bfa953011fed7429b17d3727abd3b4100
 
 commit for x200 as of 2021-01-12
-a36b8472eb35d4725b3d9e296fd24c878114a989
+git checkout a36b8472eb35d4725b3d9e296fd24c878114a989
+
+commit for x230 as of 2023-02-06
+git checkout db4b71ff10b48624a1a0b76e3255bd206ef921d5
 
 commit for t500 as of 2018-09-07 (taken from t400)
 git checkout 41979d862a972375d6800afdf2b8b52d408fd220
@@ -46,9 +49,9 @@ git checkout ea58adddf4c8890c9172ba4c344babb08da1837a
 
 # switch to the latest commit and build toolchain (x86 needed to avoid errors)
 
-$ git submodule update --checkout
-make crossgcc-i386 CPUS=4 -b
-make crossgcc-x64 CPUS=4 -b
+git submodule update --checkout
+make crossgcc-i386 CPUS=$(nproc) -b
+make crossgcc-x64 CPUS=$(nproc) -b
 
 -------------------------------------------------------------------------------
 
@@ -177,10 +180,74 @@ flashrom -p internal -w coreboot.rom --ifd --image bios -c <chip name>
 #flashrom -p internal -V
 #flashrom -p internal -w coreboot.rom
 
+-------------------------------------------------------------------------------
+
+# x230
+# ====
+
+# chip pin layout (both chips)
+           __
+MOSI  5 --|  |-- 4  GND
+ CLK  6 --|  |-- 3  N/C
+ N/C  7 --|  |-- 2  MISO
+ VCC  8 --|__|-- 1  CS
+
+# read rom (read exact chip version from the top of the chip) 
+flashrom -p ch341a_spi -r x230_factory_top.bin -c "MX25L3206E/MX25L3208E"
+flashrom -p ch341a_spi -r x230_factory_bottom.bin -c "EN25QH64"
+
+# combine the files
+cat x230_factory_bottom.bin x230_factory_top.bin \
+> x230_factory_bios_combined.bin
+
+# extract the blobs
+cd coreboot/util/ifdtool/
+make
+./ifdtool -x ~/x230/x230_factory_bios_combined.bin
+mv flashregion_* ~/x230/
+
+# configure
+cd ~/coreboot
+make nconfig
+Mainboard
+  • Select: Mainboard vendor (Lenovo)
+  • Select: Mainboard model (ThinkPad X230)
+Chipset
+  • Select: Add Intel descriptor.bin file
+      □ (/home/x/x230/flashregion_0_flashdescriptor.bin)
+  • Select: Add Intel ME/TXE firmware
+      □ (/home/x/x230/flashregion_2_intel_me.bin)
+  • Select: Verify the integrity of the supplied ME/TXE firmware
+  • Select: Strip down the Intel ME/TXE firmware
+  • Select: Add gigabit ethernet firmware
+      □ (/home/x/x230/flashregion_3_gbe.bin)
+Devices
+  • Display
+      □ Select: Enable PCIe Clock Power Management
+      □ Select: Enable PCIe ASPM L1 SubState
+
+# build
+make
+
+# configure final rom
+cd util/nvramtool
+make
+./nvramtool -C ../../build/coreboot.rom -a
+cd ~/coreboot/build/
+../util/nvramtool/nvramtool -C coreboot.rom -D ../src/mainboard/lenovo/x230/cmos.default -a
+../util/nvramtool/nvramtool -C coreboot.rom -D ../src/mainboard/lenovo/x230/cmos.default -w wwan=Disable
+../util/nvramtool/nvramtool -C coreboot.rom -D ../src/mainboard/lenovo/x230/cmos.default -w backlight=None
+
+# split
+dd if=coreboot.rom of=coreboot_bottom.rom bs=1M count=8
+dd if=coreboot.rom of=coreboot_top.rom bs=1M skip=8
+
+# flash
+flashrom -p ch341a_spi -w coreboot_top.bin -c "MX25L3206E/MX25L3208E"
+flashrom -p ch341a_spi -w coreboot_bottom.bin -c "EN25QH64"
 
 
 -------------------------------------------------------------------------------
-
 
 # ga-g41m-es2l 
 

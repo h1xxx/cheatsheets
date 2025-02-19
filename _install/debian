@@ -1,0 +1,145 @@
+# host
+# ====
+qemu-img create -f raw arch.img 32G
+
+
+# in vm
+# =====
+
+# to boot into text mode without framebuffer
+- press <Esc>
+- type 'install vga=normal fb=none'
+- type 'install vga=normal fb=false nomodeset'
+
+# install
+
+# before reboot:
+- press <Esc>
+- select 'Execute a shell'
+- run commands:
+mount --rbind /dev/ /target/dev/
+mount --rbind /proc /target/proc
+mount --rbind /sys /target/sys
+chroot /target /bin/bash
+sed -i 's|#GRUB_TERMINAL=|GRUB_TERMINAL=|' /etc/default/grub
+sed -i 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX="vga=normal fb=none net.ifnames=0"|' /etc/default/grub
+grub-mkconfig -o /boot/grub/grub.cfg
+echo 'blacklist bochs_drm' > /etc/modprobe.d/blacklist.conf
+
+echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+systemctl restart sshd
+ssh -o 'StrictHostKeyChecking no' -o  'UserKnownHostsFile /dev/null' -p 10222 root@localhost
+
+cat << EOF > /etc/network/interfaces
+auto lo
+iface lo inet loopback
+allow-hotplug eth0
+iface eth0 inet dhcp
+EOF
+
+printf '%s\n%s\n' 'en_US.UTF-8 UTF-8' 'pl_PL.UTF-8 UTF-8' > /etc/locale.gen
+locale-gen
+
+cat <<EOF > /etc/hosts
+127.0.0.1        localhost local
+::1              localhost local
+EOF
+
+# !!! manual step
+mkdir -p /root/.ssh /home/x/.ssh
+echo 'ssh-ed25519 <key>' > /root/.ssh/authorized_keys
+echo 'ssh-ed25519 <key>' > /home/x/.ssh/authorized_keys
+chmod 700 /root/.ssh/ /home/x/.ssh/
+chmod 600 /root/.ssh/authorized_keys /home/x/.ssh/authorized_keys
+chown -R x:x /home/x/
+rm -f /etc/ssh/ssh_host_{dsa,ecdsa,rsa}_key*
+
+echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/70-disable-ipv6.conf
+sysctl -p -f /etc/sysctl.d/70-disable-ipv6.conf
+
+timedatectl set-timezone Europe/Warsaw
+
+cat << EOF > /etc/apt/sources.list
+
+deb http://deb.debian.org/debian bullseye main contrib non-free
+deb-src http://deb.debian.org/debian bullseye main contrib non-free
+
+deb http://deb.debian.org/debian-security/ bullseye-security main contrib non-free
+deb-src http://deb.debian.org/debian-security/ bullseye-security main contrib non-free
+
+deb http://deb.debian.org/debian bullseye-updates main contrib non-free
+deb-src http://deb.debian.org/debian bullseye-updates main contrib non-free
+
+EOF
+
+apt-get update && apt-get upgrade
+
+p=
+p+=' build-essential tor g++-multilib gcc-multilib vim git clang dos2unix gnat'
+p+=' autoconf automake libtool flex bison gdb git libgd-tools usbutils lsof'
+p+=' dnsutils chrony postgresql meson nfs-common rsync bc cpio cmake strace'
+p+=' arp-scan mtr fping tcpdump termshark sysstat iotop acpi nmap socat w3m' 
+p+=' dosfstools mtools tmux checksec iw hostapd distcc docbook cowsay sudo'
+p+=' flashrom hdparm vifm ncdu dnsmasq ccache iftop lftp nethogs smbclient'
+p+=' vnstat pigz pixz sl stress testdisk asciidoc texlive-full ruby-dev'
+p+=' dot2tex graphviz pandoc dialog psutils inetutils-inetd tcl ipython3'
+p+=' asciinema hunspell hunspell-en-us hunspell-pl tcc exiftool cowsay-off'
+p+=' geoipupdate geoip-database ncat ndiff ranger logwatch logrotate'
+p+=' wkhtmltopdf groff ghc nodejs php python r-base-core libncurses5-dev'
+p+=' docker jq dash ansible ansible-lint tree'
+
+apt-get install -y ${p}
+
+systemctl enable chrony
+
+sync
+poweroff
+
+
+# debootstrap bootstrap
+# =====================
+
+# just an example on how to install debian from initramfs with busybox only;
+# on remote:
+mkdir /root/del /lib /usr/share
+mv /bin/mount /bin/wget /bin/dpkg* /root/del/
+# copy from host:
+host=10.1.0.1
+ssh_args='-i .ssh/_retired/id_rsa -P 922'
+scp ${ssh_args} /home/xx/prog/net/wget/pkg/musl-1.21.4-00/bin/wget \
+	/home/xx/prog/lang/perl/pkg/musl-5.36.0-00/bin/* \
+	/home/xx/prog/sys/bash/pkg/musl-5.1.16-00/bin/bash \
+	/home/xx/prog/sys/util-linux/pkg/musl-2.38.1-02/bin/* \
+	/home/xx/prog/sys/gptfdisk/pkg/musl-1.0.8-00/bin/sgdisk \
+	/home/xx/prog/sys/coreutils/pkg/musl-9.0-00/bin/numfmt \
+	/home/xx/prog/sys/parted/pkg/musl-3.6-00/sbin/parted \
+	/home/xx/prog/sys/e2fsprogs/pkg/musl-1.46.1-00/sbin/mkfs.ext4 \
+	/home/xx/prog/sys/tmux/pkg/musl-3.3a-00/bin/tmux \
+	/home/xx/prog/arch/zstd/pkg/musl-1.5.5-00/bin/* \
+	/home/xx/prog/dev/binutils/pkg/musl-2.39-00/bin/* \
+	/home/xx/prog/sys/gnupg/pkg/musl-2.2.27-00/bin/* \
+	/home/xx/prog/dev/ncurses/pkg/musl-6.3-00/bin/* \
+	root@${host}://bin/
+scp -r ${ssh_args} /home/xx/prog/sys/tmux/cfg/all-latest/etc/tmux.conf \
+	/home/xx/prog/sys/ca-certificates/pkg/musl-20211016-01/etc/ssl \
+	root@${host}://etc/
+scp -r ${ssh_args} /home/xx/prog/lang/perl/pkg/musl-5.36.0-00/lib/* \
+	/home/xx/prog/dev/ncurses/pkg/musl-6.3-00/lib/* \
+	root@${host}://lib/
+# on remote:
+tmux
+echo 'nameserver 9.9.9.9' > /etc/resolv.conf
+wget http://ftp.us.debian.org/debian/pool/main/d/debian-archive-keyring/debian-archive-keyring_2023.3+deb12u1_all.deb
+# verify keyring deb file 
+# c1bac61abefa0d957394d33c02b7bfb2a3ab3ce5e6d90617c4019ddea4bdbf63
+busybox dpkg-deb -x debian-archive-keyring_2023.3\+deb12u1_all.deb  .
+cp -a usr/share/keyrings /usr/share/
+wget https://salsa.debian.org/installer-team/debootstrap/-/archive/master/debootstrap-master.tar.bz2
+tar xf debootstrap-master.tar.bz2 -C /usr/share
+mv /usr/share/debootstrap-master /usr/share/debootstrap
+mv /usr/share/debootstrap/debootstrap /bin/
+wget https://raw.githubusercontent.com/h1xxx/utils/master/misc/debian_installer
+# find correct en* interface
+# chmod 644 /etc/resolv.conf
+bash ./debian_installer -t /dev/sda -i enp3s0 -l main -k ~/.ssh/authorized_keys -p -b 512M -r 16G -h 16G -v 64G
+reboot -f
