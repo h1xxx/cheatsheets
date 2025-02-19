@@ -1,0 +1,79 @@
+global config
+=============
+
+# print ssh args
+- name: print ssh config
+  debug:
+    msg: "{{q('ansible.builtin.config', 'ssh_args', plugin_type='connection', plugin_name='ssh')}}"
+
+# print vars for all hosts in group1 from inventory 
+- name: print vars for all hosts in group1 from inventory 
+  debug:
+    msg: "{{ hostvars[item] }}"
+  loop: "{{ groups.group1 }}"
+
+# print all facts
+- name: print all facts
+  debug:
+    msg: "{{ ansible_facts }}"
+
+# print hostname
+- name: print hostname
+  debug:
+    msg: "{{ ansible_facts.hostname }}"
+
+# get a shell output into a variable
+- name: get id
+  shell: id
+  register: id_var
+  changed_when: false
+- name: set id_var variable
+  set_fact:
+    id_var: "{{ id_var.stdout }}"
+
+# gather facts for a group in inventory and print host info
+- name: gather facts for group1
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['group1'] }}"
+- name: print ssh config
+  debug:
+    msg: "{{ hostvars[item] }}"
+  loop: "{{ groups.group1 }}"
+
+# print debian distro version (e.g. "bookworm")
+- name: print all variables
+   debug: var=hostvars[inventory_hostname].ansible_facts.distribution_release
+
+# print debian kernel version (e.g. "6.1.0-18-amd64")
+- name: print all variables
+   debug: var=hostvars[inventory_hostname].ansible_facts.kernel
+
+# replace character in a string variable
+{{ item.name | replace('-','_') }}
+
+# check if variables are defined
+- name: check mandatory variables are defined
+  assert:
+    that:
+      - v1 is defined
+      - v2 is defined
+
+# for loop in jinja (j2) template example
+{% for host in host_args.fixed_ip %}
+host {{ host.name }} {
+  hardware ethernet {{ host.mac }};
+  fixed-address {{ host.ip }};
+{% endfor %}
+
+# skip an item in a loop
+loop:
+  - 1
+  - 2
+  - 3
+when: (item != 2) or (item == 2 and test_var is defined)
+
+# sub index of a loop
+loop: "{{ sub_directories[1:] }}"
+

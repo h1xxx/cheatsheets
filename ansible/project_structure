@@ -1,0 +1,19 @@
+misc
+====
+
+# include common handlers
+shell> cat playbook.yml
+- hosts: localhost
+  tasks:
+    - include_tasks: tasks/main.yml
+  handlers:
+    - import_tasks: handlers/main.yml
+shell> cat tasks/main.yml
+- command: date
+  register: result
+  notify: test me now
+shell> cat handlers/main.yml
+- name: test me now
+  debug:
+    msg: "{{ result.stdout }} Running handler."
+

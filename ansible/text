@@ -1,0 +1,113 @@
+text
+====
+
+# multi-line strings in yaml
+>      newlines are stripped out, adds newline at the end 
+|      newlines are preserved, adds newline at the end 
+>-     newlines are stripped out, no newline at the end 
+|-     newlines are preserved, no newline at the end 
+
+# replace a line in a file
+- name: enable iommu
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT="((?:(?!intel_iommu=on).)*?)"$'
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="\1 intel_iommu=on"'
+    backrefs: true
+  notify: update grub
+---
+- name: check if splash is configured in the boot command
+  lineinfile:
+    backup: true
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX=".*splash'
+    state: absent
+  check_mode: true
+  register: grub_cmdline_check
+  changed_when: false
+
+- name: insert splash if missing
+  lineinfile:
+    backrefs: true
+    path: /etc/default/grub
+    regexp: "^(GRUB_CMDLINE_LINUX=\".*)\"$"
+    line: '\1 splash"'
+  when: grub_cmdline_check.found == 0
+  notify: update grub
+
+# add lines to a file
+- name: configure libvirtd.conf
+  blockinfile:
+    path: /etc/libvirt/libvirtd.conf
+    marker: "# <!-- {mark} ANSIBLE MANAGED BLOCK -->"
+    block: |
+      unix_sock_group = 'libvirt'
+      auth_unix_ro = 'none'
+      auth_unix_rw = 'none'
+      unix_sock_ro_perms = '0600'
+      unix_sock_rw_perms = '0600'
+      unix_sock_admin_perms = '0600'
+      access_drivers = [ ]
+
+# replace multiple lines in a config file
+all:
+  vars:
+    sshd_config:
+      - { opt: X11Forwarding, val: 'no' }
+      - { opt: MaxStartups, val: '10:30:100' }
+...
+- name: configure sshd
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^{{ item.opt }}"
+    line: "{{ item.opt }} {{ item.val }}"
+  loop: "{{ host_args.sshd_config }}"
+
+# remove a string from a file
+- name: drop root= paramater from update-grub
+  replace:
+    path: /etc/grub.d/10_linux
+    regexp: ' root=\$\{linux_root_device_thisversion\}'
+    replace: ''
+
+# join a list of strings
+  - name: Examine the list
+    debug:
+        msg: "{{ groups.group1 | join(' ') }}"
+
+# join two lists
+- name: append string to list
+  set_fact:
+    my_strings: "{{ my_strings + [ my_other_string ] }}"
+
+# add a suffix to each element of the list
+- set_fact:
+  output: "{{ list_to_suffix | product(['-Z']) | map('join') }}"
+
+# add a prefix to each element of the list
+- set_fact:
+  output: "{{ ['prefix_'] | product(list_to_prefix) | map('join') }}"
+
+# add prefix and suffix to each element of the list
+- name: concatenate and add prefix and suffix
+  debug: msg={{ ['wg-quick@'] | product(list_to_mod) | map('join') | product(['.service']) | map('join') | join(' ') }}
+
+
+# insert a line at the beginning of the file
+- name: insert a line
+  lineinfile:
+    path: path/to/file
+    insertbefore: BOF
+    line: my_line
+
+# insert multiple lines at the beginning of the file
+- name: insert multiple lines 
+  blockinfile:
+    dest: /root/.ssh/config
+    insertbefore: BOF
+    content: |
+      Host *
+          connectionattempts 10
+          identityfile /root/.ssh/id_ed25519
+    create: true
+

@@ -1,3 +1,11 @@
+config
+======
+
+# generate example ansible.cfg config
+ansible-config init --disabled > ansible.cfg
+
+
+
 hosts file syntax example
 =========================
 
@@ -51,11 +59,6 @@ tasks:
   shell: /usr/bin/somecommand
   ignore_errors: True
 
-# copy a file to the host
-tasks:
-  - name: Copy ansible inventory file to client
-    copy: src=/etc/ansible/hosts dest=/etc/ansible/hosts owner=root group=root mode=0644
-
 # use a variable defined in vars section with a template
 tasks:
 - name: create a virtual host file for {{ vhost }}
@@ -72,3 +75,22 @@ tasks:
   notify:
      - restart memcached
      - restart apache
+
+# loop over multiple values
+- name: add several users
+  user:
+    name: "{{ item.name }}"
+    state: present
+    groups: "{{ item.groups }}"
+  loop:
+    - { name: 'testuser1', groups: 'wheel' }
+    - { name: 'testuser2', groups: 'root' }
+
+
+
+misc
+====
+
+# execute reboot command on all host
+ansible host_group1 -a 'shutdown -r now'
+

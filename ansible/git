@@ -1,0 +1,15 @@
+misc
+====
+
+# set git name
+- name: set global git name
+  git_config:
+    name: user.name
+    value: empty
+
+# set git email
+- name: set global git email
+  git_config:
+    name: user.email
+    value: empty
+

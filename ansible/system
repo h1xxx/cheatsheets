@@ -1,0 +1,142 @@
+systemd
+=======
+
+# mask a service
+- name: disable service httpd and ensure it is masked
+  ansible.builtin.systemd_service:
+    name: httpd
+    enabled: false
+    masked: yes
+
+ssh
+===
+
+# set ssh config file (requires python3-paramiko on host system)
+- name: add crawlaer hosts ssh config
+  community.general.ssh_config:
+    user: root
+    host: host1
+    hostname: 192.168.1.11
+    identity_file: /root/.ssh/id_ed25519_priv_key_file
+    port: 22
+    state: present
+
+# add all hosts from group1 to remote ssh config 
+- name: gather facts for group1
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['group1'] }}"
+- name: add group1 hosts to ssh config
+  community.general.ssh_config:
+    user: root
+    host: "{{ item }}"
+    hostname: "{{ hostvars[item]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}"
+    identity_file: /root/.ssh/id_ed25519_group1
+    port: 22
+    state: present
+  loop: "{{ groups.group1 }}"
+ 
+# add all hosts from group1 to ssh known_hosts file
+- name: gather facts for group1
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['group1'] }}"
+- name: add hosts to known_hosts
+  known_hosts:
+    path: /root/.ssh/known_hosts
+    name: "{{ hostvars[item]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}"
+    key: >                                                                                {{ hostvars[item]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}                    ssh-ed25519
+      {{ hostvars[item]['ansible_ssh_host_key_ed25519_public'] }}
+    state: present
+  loop: "{{ groups.group1 }}"
+- name: set authorized key taken from file
+  ansible.posix.authorized_key:
+    user: charlie
+    state: present
+    key: "{{ lookup('file', '/home/charlie/.ssh/id_rsa.pub') }}"
+
+
+
+users
+=====
+
+# add a user
+- name: configure user1 user
+  user:
+    name: user1
+    shell: /bin/bash
+    update_password: always
+    password: $6$rounds=1048576$PBFcN9ZaGTW.e0Xs$7sOpJhwouMo5zlGJf//8RFMr5i4qc9ZcjMgUguDXKb3UL3nSy9Ob7349cgFSyuqlfs3QlMyxv/xW.e8oiLEpw0                                   
+
+# create a system user
+- name: create user1
+  user:
+    name: user1
+    shell: /bin/false
+    create_home: false
+    password: !
+    system: true
+
+# create a group
+- name: create a group
+  group:
+    name: group1
+    state: present
+
+# get info on uid, gid, home dir, and shell for users
+- getent:
+    database: passwd
+- debug:
+    msg: >
+      {{ item }} uid: {{ getent_passwd[item].1 }}
+      {{ item }} gid: {{ getent_passwd[item].2 }}
+      {{ item }} home: {{ getent_passwd[item].4 }}
+      {{ item }} shell: {{ getent_passwd[item].5 }}
+  loop:
+    - root
+    - user1
+
+# get info on group gid
+- getent:
+    database: group
+- debug:
+    msg: >
+      gid: {{ getent_group["libvirt"].1 }}
+
+
+
+misc
+====
+
+# restart a machine
+- name: restart machine
+  reboot:
+    reboot_timeout: 300
+
+# set vfio on nvidia cards
+- name: set vfio on nvidia cards
+  copy:
+    content: "options vfio-pci ids=10de:2531,10de:228e"
+    dest: /etc/modprobe.d/vfio.conf
+  notify: update initramfs
+
+# load vfio modules in initramfs
+- name: load vfio modules in initramfs
+  blockinfile:
+    dest: /etc/initramfs-tools/modules
+    insertbefore: BOF
+    content: |
+      vfio_pci
+      vfio
+      vfio_iommu_type1
+  notify: update initramfs
+
+# load module now and during boot
+- name: load nvidia driver
+  modprobe:
+    name: nvidia
+    state: present
+    persistent: present
+

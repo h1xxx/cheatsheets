@@ -1,0 +1,20 @@
+misc
+====
+
+# start a container as a user
+- name: get dvwa uid
+  shell: id -u dvwa
+  register: uid
+  changed_when: false
+- name: get dvwa gid
+  shell: id -g dvwa
+  register: gid
+  changed_when: false
+- name: start a dvwa container
+  docker_container:
+    name: dvwa
+    user: "{{ uid.stdout }}:{{ gid.stdout }}"
+    image: debian:bookworm
+    state: started
+    command: sleep infinity
+

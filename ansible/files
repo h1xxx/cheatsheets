@@ -1,0 +1,195 @@
+file operations
+===============
+
+# copy a file or a dir to the host and show the diff
+tasks:
+  - name: copy ansible inventory file to client
+    copy:
+      src=/etc/ansible/hosts
+      dest=/etc/ansible/hosts
+      owner=root
+      group=root
+      mode=0644
+    diff: true
+---
+tasks:
+  - name: copy ansible inventory file to client
+    copy: src=/etc/ansible/hosts dest=/etc/ansible/hosts mode=0644
+    diff: true
+
+# copy contents of a dir to the host (slow for large amount of files)
+- name: copy content of directory 'files'
+  copy:
+    src: files/wireguard/    # note the '/' <-- !!!
+    dest: /etc/wireguard
+
+# copy contents of a dir to the host (fast even for large amount of files)
+- name: copy wireguard config files
+  synchronize:
+    src: files/etc/wireguard
+    dest: /etc/wireguard
+    use_ssh_args: true
+    owner: false
+    group: false
+    perms: false
+    checksum: true
+    recursive: true
+
+# copy/sync files on remote machine (locally)
+- name: copy wireguard config files
+  copy:
+    src: /home/x/wireguard
+    dest: /etc/wireguard
+    remote_src: true
+
+# copy a jinja template with variable defined in vars section
+tasks:
+- name: create a virtual host file for {{ vhost }}
+  template:
+    src: somefile.j2
+    dest: /etc/httpd/conf.d/{{ vhost }}
+
+# change permissions
+- name: change file ownership, group and permissions
+  file:
+    path: /etc/foo.conf
+    owner: foo
+    group: foo
+    mode: '0644'
+
+# change permissions recursively
+- name: change file ownership, group and permissions
+  file:
+    path: /etc/dir1
+    recurse: yes
+    owner: foo
+    group: foo
+    mode: u=rwX,g=rX,o=rX
+
+# create a link if it doesn't exist
+- name: get stats of a file
+  stat:
+    path: /etc/wireguard/wg-airvpn.conf
+    get_checksum: no
+  register: file_stat
+- name: create wg-airvpn.conf
+  file:
+    src: wg-airvpn-de.conf
+    dest: /etc/wireguard/wg-airvpn.conf
+    state: link
+    force: true
+  when: not file_stat.stat.exists or not file_stat.stat.islnk
+
+# run a handler if a file doesn't exist
+- name: Get reboot-required status
+  stat: path=/var/run/reboot-required
+  register: file_reboot_required
+  changed_when: file_reboot_required.stat.exists
+  notify: reboot
+
+# run a handler if a service is not running or is not enabled
+- name: check wireguard service
+  systemd: name=wg-quick@wg.service
+  register: s
+  changed_when: s.status.ActiveState != 'active' or s.status.UnitFileState != "enabled"
+  notify: start wireguard service
+
+# create a file with content
+- name: "create a file"
+  copy:
+    dest: "file1"
+    content: |
+      line1
+      line2
+
+# ensure resolv.conf is immutable
+- name: protect resolv.conf
+  file:
+    path: /etc/resolv.conf
+    attr: +i
+  register: resolv_file
+  changed_when: "'i' not in resolv_file.diff.before.attributes"
+
+# create an empty file
+- name: ensure file exists
+  copy:
+    content: ""
+    dest: /etc/nologin
+    force: false
+    group: sys
+    owner: root
+    mode: 0555
+
+# create a file with content from hosts' variable in inventory
+- name: ensure file exists
+  copy:
+    content: "{{ hostvars[inventory_hostname].airvpn_ports }}"
+    dest: /etc/var1
+    force: false
+    group: sys
+    owner: root
+    mode: 0555
+
+# create a dir
+- name: create a directory
+  file:
+    path: /etc/some_directory
+    state: directory
+    mode: '0755'
+
+# delete dir
+- name: delete content and directory
+  file:
+    state: absent
+    path: /home/x/data/
+
+# delete files
+- name: delete files
+  file:
+    state: absent
+    path: "{{ item }}"
+  loop:
+    - /home/x/file1
+    - /home/x/file2
+
+# unpack a tar archive
+name: unpack golang
+  unarchive:
+    src: /home/x/go1.21.4.linux-amd64.tar.gz
+    dest: /home/x
+    remote_src: true
+    owner: x
+    group: x
+
+
+
+# misc
+# ====
+
+# read contents of a file
+- name: show file content
+  debug: msg="{{ lookup('file', 'file.conf') }}"
+content
+
+# download directory from remote server
+- name: download lets encrypt certs
+  synchronize:
+    src: /etc/letsencrypt/
+    dest: files/certs/lets_encrypt/{{ inventory_hostname }}/
+    mode: pull
+    owner: false
+    group: false
+    perms: false
+
+# download specific files from remote server
+- name: get torrent-analytics packages from dev host
+  synchronize:
+    src: /home/ta-dev/torrent-analytics/bin/pkg/
+    dest: /root/system/ansible/files/pkg/
+    rsync_opts: --include '*.deb' --exclude '*'
+    mode: pull
+    owner: false
+    group: false
+    perms: false
+    flat: no
+

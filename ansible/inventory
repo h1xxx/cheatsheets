@@ -1,0 +1,12 @@
+misc
+====
+
+# define hosts with variables
+[group1]
+host1  http_port=80
+---
+group1:
+  hosts:
+    host1:
+      http_port: 80
+

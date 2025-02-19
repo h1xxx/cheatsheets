@@ -1,0 +1,57 @@
+disk
+====
+
+# get a localtion of the disk by the label (e.g. main-root => /dev/sda)
+- name: get main disk location
+  shell: lsblk "$(blkid -L main-root)" -o PKNAME -n
+  register: main_disk
+  changed_when: false
+- name: set main_disk variable
+  set_fact:
+    main_disk: "{{ main_disk.stdout }}"
+
+# read info on disk, create a partition on next free slot
+- name: read info on main disk
+  parted:
+    device: "{{ main_disk }}"
+    unit: s
+  register: device_info
+  
+# 
+- name: create a new partition for LVM
+  parted:
+    device: "{{ main_disk }}"
+    number: 6
+    label: gpt
+    flags: [ lvm ]
+    part_start: "{{ device_info.partitions[4].end + 1 }}s"
+    part_end: '100%'
+    state: present
+
+# create an lvm volume group on partition
+- name: create a volume group
+  lvg:
+    vg: vg_vm
+    pvs: /dev/sda6
+    state: active
+
+# 
+- name: create a logical volume of 512 MB
+  lvol:
+    vg: firefly
+    lv: test
+    size: 512
+
+# find home partition and store in variable
+- name: get home partition
+  shell: |
+    root_disk="/dev/$(lsblk $(findmnt / -o SOURCE -n) -o PKNAME -n)"
+    lsblk ${root_disk} -o KNAME,PARTLABEL -n \
+      | grep '.*-home$' \
+      | awk '{print $1}'
+  register: home_partition
+  changed_when: false
+- name: set home_partition variable
+  set_fact:
+    home_partition: "/dev/{{ home_partition.stdout }}"
+

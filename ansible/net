@@ -1,0 +1,9 @@
+misc
+====
+
+# download a file from the internet (dest must be a file to avoid re-download)
+- name: download pkg1
+  get_url:
+    url: https://github.com/pkg1/pkg1/releases/download/v1/pkg1-1.linux-amd64.tar.gz
+    dest: /home/user/download/dest.tar.gz
+

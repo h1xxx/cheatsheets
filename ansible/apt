@@ -1,0 +1,11 @@
+misc
+====
+
+# don't start and enable services after apt install
+- name: install pkgs
+  apt:
+    pkg:
+      - tor
+    state: latest
+    policy_rc_d: 101
+

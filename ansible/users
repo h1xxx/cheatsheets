@@ -1,0 +1,31 @@
+misc
+====
+
+# add a user to a group
+- name: add a user to a group
+  user:
+    name: james
+    groups: admins,developers
+    append: yes
+
+# create a user with locked/disabled password
+- name: set password for postgres linux user
+  user:
+    name: postgres
+    shell: /bin/bash
+    update_password: always
+    password: '!'
+
+# create a system user
+- name: create a system user
+  user:
+    name: user1
+    uid: 100000
+    group: lxc-root
+    shell: /bin/false
+    update_password: always
+    home: /nonexistent
+    create_home: false
+    system: true
+    password: '!'
+

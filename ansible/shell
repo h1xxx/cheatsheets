@@ -1,0 +1,12 @@
+shell
+=====
+
+# run a command if file does not exist and in a different PWD
+- name: register certbot
+  shell: |
+    certbot -n register --agree-tos
+    touch /etc/letsencrypt/.registered
+  args:
+    chdir: /home/spotifyd/spotifyd
+    creates: /etc/letsencrypt/.registered
+

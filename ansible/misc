@@ -1,6 +1,9 @@
 basic commands
 ==============
 
+# list hosts in inventory
+ansible all -i inventory   --list-hosts
+
 # ping all hosts configured in /etc/ansible/hosts
 ansible all -m ping
 
@@ -8,7 +11,7 @@ ansible all -m ping
 ansible all -m ping -u user2 --become
 
 # ping a host as root and authenticate with a password (sshpass needed)
-ansible host_name -m ping -u root -k
+ansible -i ./hosts host_name -m ping -u root -k
 
 # ping all hosts as root when no root ssh login (-K - ask for password)
 ansible rtr2 -m ping --become-user=root --become-method=su -b -K
@@ -27,4 +30,34 @@ ansible all -m copy -a "src=/etc/hosts dest=/tmp/hosts"
 
 # run a playbook and provide a password for the user to become
 ansible-playbook -K play_book.yml
+
+
+
+install
+=======
+
+# install via anaconda
+wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
+sh Anaconda3-2023.03-Linux-x86_64.sh -b -p anaconda -s
+. ./anaconda/bin/activate
+conda install -c conda-forge ansible
+
+misc
+====
+
+# force start of all notified handlers
+- name: flush handlers
+  meta: flush_handlers
+
+# install pkg via pip
+- name: install pkgs
+  apt:
+    pkg:
+      - python3-pip
+      - python3-setuptools
+    state: latest
+- name: install stormssh module
+  pip:
+    name: stormssh
+    extra_args: --break-system-packages
 

@@ -1,0 +1,11 @@
+misc
+====
+
+- name: set PATH envvar in crontab
+  cron:
+    name: PATH
+    user: root
+    env: yes
+    job: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    state: present
+
