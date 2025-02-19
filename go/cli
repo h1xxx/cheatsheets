@@ -16,3 +16,23 @@ func init() {
 func main() {
         flag.Parse()
 }
+
+
+
+misc
+====
+
+# install go
+wget https://go.dev/dl/go1.21.3.linux-amd64.tar.gz
+tar xf go1.*.tar.gz
+export PATH="/home/x/go/bin:${PATH}"
+
+# install goimports
+go install golang.org/x/tools/cmd/goimports@latest
+
+# install deadcode to find unused functions
+go install golang.org/x/tools/cmd/deadcode@latest
+
+# install modd for dynamic reloading of developed programs
+go install github.com/cortesi/modd/cmd/modd@latest
+

@@ -40,3 +40,7 @@ resp, err := client.Do(req)
 bodyText, err := ioutil.ReadAll(resp.Body)
 s := string(bodyText)
 scanner := bufio.NewScanner(strings.NewReader(s))
+
+get a url parameter from the request
+param1 := r.URL.Query().Get("param1")
+

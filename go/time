@@ -15,6 +15,12 @@ fmt.Println(duration)	 // formatted string e.g."2h3m0.5s", "4.503μs"
 fmt.Println(duration.Nanoseconds())	 // Nanoseconds as int64
 fmt.Println(duration.Milliseconds())	 // Miliseconds as int64
 
+# check if 30 seconds elapsed since a time variable
+wasLongAgo := time.Since(startTime) >= 30 * time.Second 
+
+# pretty print time diff (duration)
+fmt.Println(d.Round(time.Second))
+
 # convert int to time
 t := time.Unix(i, 0)
 
@@ -53,10 +59,13 @@ time.Now().Add(time.Second * time.Duration(seconds))
 time.Now().Add(time.Minute * time.Duration(minutes))
 time.Now().Add(time.Hour * time.Duration(hours))
 
-# add 15 minutes
+# add 15 minutes to a date
 newT = t.Add(time.Minute * 15)
 
-# add 1 year 2 months 4 days
+# add 7 days to a date
+myDate.AddDate(0, 0, 7 * weeksToAdd)
+
+# add 1 year 2 months 4 days to a date
 newT = time.Now().AddDate(1, 2, 4)
 
 # get timezone information
@@ -64,6 +73,40 @@ zone_name, offset := timeVar.Zone()
 
 # round time
 rounded := time.Date(toRound.Year(), toRound.Month(), toRound.Day(), 0, 0, 0, 0, toRound.Location())
+
+# wait a bit
+time.Sleep(2 * time.Second)
+
+# compare times (dates)
+isBefore := t1.Before(t2)
+iSAfter := t1.After(t2)
+iStheSame := t1.Equal(t2)
+iStheSame := t1 == t2
+
+# get the beginning end end of month
+func BeginningOfMonth(date time.Time)  (time.Time) {
+	return date.AddDate(0, 0, -date.Day() + 1)
+}
+func EndOfMonth(date time.Time) (time.Time) {
+	return date.AddDate(0, 1, -date.Day())
+}
+
+# parse date and time in local time
+dt, err := time.ParseInLocation(timeLayout, timeString, time.Local)
+
+# create date from year, month, day integers
+t := time.Date(1980, time.Month(12), 31, 0, 0, 0, 0, time.Local)
+
+# set time zone globally (use UTC for UTC)
+func init() {
+    os.Setenv("TZ", "Africa/Cairo")
+}
+
+# convert integer to time.Duration
+i := 5
+td := time.Duration(i) * time.Second
+---
+td := 5 * time.Second
 
 
 

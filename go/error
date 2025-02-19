@@ -8,3 +8,17 @@ errors.Is(err, fs.ErrNotExist)
 
 # print error message
 errors.Unwrap(err)
+
+# print error fields
+fmt.Printf("%#v\n", err)
+
+# find error type
+fmt.Println(reflect.ValueOf(err).Type())
+
+# print postgres error code after casting to error type
+import "github.com/jackc/pgx/v5/pgconn"
+pgErr := err.(*pgconn.PgError)
+fmt.Printf("%#v\n", pgErr.Code)
+
+# convert error to string
+s := err.Error()

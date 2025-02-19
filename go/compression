@@ -1,0 +1,30 @@
+deflate
+=======
+
+# decompress a deflate compressed string (RFC 1951)
+import "compress/flate"
+inflated, err := ioutil.ReadAll(flate.NewReader(bytes.NewReader(binMessage)))
+
+
+
+zstd
+====
+
+# read zstd archive line by line
+import "github.com/klauspost/compress/zstd"
+func readZstd(fd io.Reader) error {
+        d, err := zstd.NewReader(fd, zstd.WithDecoderMaxWindow(1 << 31))
+        if err != nil {
+                return err
+        }
+        defer d.Close()
+
+        var i int
+        scanner := bufio.NewScanner(d)
+        for scanner.Scan() {
+                i++
+        }
+
+        return nil
+}
+

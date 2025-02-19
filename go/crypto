@@ -7,6 +7,10 @@ rand.Seed(time.Now().UnixNano())
 rand.Intn(16)
 
 # shuffle a slice
+rand.Shuffle(len(slice), func(i, j int) {
+        slice[i], slice[j] = slice[j], slice[i]
+})
+---
 import (
 	"fmt"
 	"math/rand"

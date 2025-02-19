@@ -17,32 +17,36 @@ os.Stdin.Read(b)
 text file
 =========
 
-# read lines from a list of files in a stream
-files := os.Args[1:]
-for _, arg := range files {
-	f, err := os.Open(arg)
+# read lines from a file in a stream
+f, err := os.Open(arg)
+if err != nil {
+	fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+	continue
+}
+input := bufio.NewScanner(f)
+for input.Scan() {
+	fmt.Println(input.Text())
+}
+f.Close()
+
+# read lines from a file in a stream (fast)
+fd, err := os.Open(arg)
+rd := bufio.NewReaderSize(fd, 32)
+for {
+	lineBin, notLoadedFully, err := rd.ReadLine()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
-		continue
+		if err == io.EOF {
+			break
+		}
+		log.Fatalf("read file line error: %v", err)
+		return
 	}
-	input := bufio.NewScanner(f)
-	for input.Scan() {
-		fmt.Println(input.Text())
-	}
-	f.Close()
+	fmt.Println(string(lineBin))
 }
 
-# read lines from a list of files in bulk
-for _, filename := range os.Args[1:] {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "dup3: %v\n", err)
-		continue
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		fmt.Println(line)
-	}
-}
+# read whole file to a string
+b, err := os.ReadFile("file.txt")
+str := string(b)
 
 # increase buffer to read long lines
 scanner := bufio.NewScanner(fd)

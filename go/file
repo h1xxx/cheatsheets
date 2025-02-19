@@ -5,12 +5,16 @@ file
 fd, err := os.OpenFile("/tmp/x.txt", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 defer file.Close()
 
-# write a string to a file
+# write a string to a file fast
 w := bufio.NewWriter(fd)
- _, _ = w.WriteString(fd)
+n, err := w.WriteString(str)
 w.Flush()
 ---
 _, err = io.Copy(fd, strings.NewReader("text"))
+
+# write a byte array to a file
+byteArray := []byte("to be written to a file\n")
+err := ioutil.WriteFile("file.txt", byteArray, 0640)
 
 # create an empty file
 fd, err := os.Create("emptyFile.txt")
@@ -54,13 +58,16 @@ homeDir, err := os.UserHomeDir()
 info, err := os.Stat(<filename>)
 info.IsDir()
 
-# check if file exist
-_, err := os.Stat(<file path>)
-if errors.Is(err, os.ErrNotExist) {
-	fmt.Println("file doesn't exists")
+# check if file exists
+func fileExists(file string) bool {
+        _, err := os.Stat(file)
+        if errors.Is(err, os.ErrNotExist) {
+                return false
+        }
+        return true
 }
 
-# check if a file is a dir
+# check if file is a dir
 func pathIsDir(path string) bool {
 	file, err := os.Open(path)
 	if err != nil {
@@ -72,6 +79,32 @@ func pathIsDir(path string) bool {
 		return true
 	}
 	return false
+}
+
+# check if file is empty
+func fileIsEmpty(file string) (bool, error) {
+        fi, err := os.Stat(file)
+        if err != nil {
+            return false, err
+        }
+        if fi.Size() == 0 {
+                return true
+        }
+        return false
+}
+
+# check if dir is empty
+func dirIsEmpty(name string) (bool, error) {
+	fd, err := os.Open(name)
+	if err != nil {
+		return false, err
+	}
+	defer fd.Close()
+	_, err = fd.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err
 }
 
 # check if a file is a symbolic link
@@ -183,3 +216,51 @@ func filesEqual(file1, file2 string) bool {
 	errExit(err, "can'r read file:\n  "+file2)
 	return bytes.Equal(f1, f2)
 }
+
+# get current working directory
+pwd, err := os.Getwd()
+
+# disable system umask for program execution
+syscall.Umask(0)
+
+# truncate (clear) an open file
+fd.Truncate(0)
+fd.Seek(0,0)
+
+# read stdout of a command line by line
+cmd := exec.Command("zstdcat", "file1.log.zst")
+out, err := cmd.StdoutPipe()
+err = cmd.Start()
+scanner := bufio.NewScanner(out)
+for scanner.Scan() {
+	line := scanner.Text()
+}
+err = scanner.Err()
+err = cmd.Wait()
+
+# list files in an embedded filesystem
+import io/fs
+fmt.Println(fs.WalkDir(FS, ".",
+                func(path string, d fs.DirEntry, err error) error {
+                        errExit(err)
+                        if d.IsDir() {
+                                return nil
+                        }
+                        fmt.Printf("%s\n", d.Name())
+                        return nil
+}))
+
+# touch command
+func touch(filename string) error {
+        fd, err := os.OpenFile(filename, os.O_CREATE|os.O_RDWR, 0644)
+        if err != nil {
+                return err
+        }
+        defer fd.Close()
+        err = os.Chtimes(filename, time.Now(), time.Now())
+        if err != nil {
+                return err
+        }
+        return nil
+}
+

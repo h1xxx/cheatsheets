@@ -1,0 +1,18 @@
+misc
+====
+
+# show program process memory stats
+func printMemStats() {
+        var memStats runtime.MemStats
+        runtime.ReadMemStats(&memStats)
+        fmt.Printf("allocated mem: %v MB\n", memStats.Alloc/1024/1024)
+        fmt.Printf("total allocated mem: %v MB\n", memStats.TotalAlloc/1024/1024)
+        fmt.Printf("heap mem: %v MB\n", memStats.HeapAlloc/1024/1024)
+        fmt.Printf("heap system mem: %v MB\n", memStats.HeapSys/1024/1024)
+        fmt.Printf("garbage collector mem: %v MB\n", memStats.GCSys/1024/1024)
+}
+
+# disable garbage collection and trigger it manually
+debug.SetGCPercent(-1)
+runtime.GC()
+

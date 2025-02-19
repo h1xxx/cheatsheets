@@ -18,6 +18,7 @@ print
 %#v		struct with field names and struct type
 %+v		struct with field names
 %h		all error info
+%w		to wrap an error
 
 # print to standard error (stderr)
 l := log.New(os.Stderr, "", 0)
@@ -28,6 +29,9 @@ os.Stderr.WriteString("Message")
 fmt.Fprintf(os.Stderr, "%s", "error msg")
 ---
 fmt.Fprintln(os.Stderr, "error msg")
+
+# print a very long string consisting of one char
+strings.Repeat("=", 79)
 
 
 
@@ -71,6 +75,31 @@ func squeeze(s string) string {
 	return string(res)
 }
 
+# replace a string between two other strings
+var re = regexp.MustCompile(`(str1).*(str2)`)
+reqXml = re.ReplaceAllString(reqXml, `${1}new_string${2}`)
+
+# remove trailing and leading punctuation from string
+word = str.Trim(word, "!\"#$%&'()*+,-./:;?@[\\]^_`{|}~")
+
+# check if regex matches the string
+re := regexp.MustCompile(`^XBT[0-9]{3}[-d]{1,2}`)
+isMatching := re.MatchString(fullString)
+
+# extract a matching string from  regex
+re := regexp.MustCompile(`^XBT[0-9]{3}[-d]{1,2}`)
+partString := re.FindString(fullString)
+
+# replace a character at a specific index in a string
+func replaceAtIndex(s string, newChar rune, idx int) string {
+	return s[:idx] + string(newChar) + s[idx+1:]
+}
+
+# fast string concatenation
+var sb strings.Builder
+sb.WriteString("aaa")
+sb.WriteRune('b')
+
 
 
 convert
@@ -112,11 +141,17 @@ i :=strconv.FormatInt(int64(123), 10)
 # convert bytes from a file to a string
 string(data_from_file1)
 
+# convert string to a byte array
+[]byte(stringVar)
+
 # convert string to integer
 i, err := strconv.Atoi("1")
 
 # convert string to float64
 f, err := strconv.ParseFloat(s, 64)
+
+# convert integer to string
+s := strconv.Itoa(123)
 
 # parse a space separated string with elements inside quotes
 import encoding/csv
@@ -124,6 +159,26 @@ s := `"CC=musl-gcc -static" CLFAGS=-O2`
 r := csv.NewReader(strings.NewReader(s))
 r.Comma = ' '
 fields, err := r.Read()
+
+# read and parse integer from a string line (/proc/meminfo example)
+var val int
+i, err := fmt.Sscanf(scanner.Text(), "MemAvailable: %d kB", &val)
+
+# convert bytes to hex string
+hex.EncodeToString(bytesArr)
+
+# convert hex string to bytes slice
+hex.DencodeString(hexString)
+
+# convert integer to hex
+func intToStr(i int64) (string, error) {
+        buf := new(bytes.Buffer)
+        err := binary.Write(buf, binary.BigEndian, i)
+        if err != nil {
+                return "", err
+        }
+        return hex.EncodeToString(buf.Bytes()), nil
+}
 
 
 
@@ -167,6 +222,9 @@ func hasOnlyDigits(s string) bool {
 # check if string starts with a letter
 unicode.IsLetter(rune(stringVar[0]))
 
+# check if string is a symbol or punctuation
+unicode.IsSymbol(r) || unicode.IsPunct(r)
+
 # check if byte array is a valid string
 import "unicode/utf8"
 str := []byte("Hello, world!")
@@ -175,5 +233,36 @@ utf8.Valid(str)
 # check if byte array contains only printable chars
 for _, b := range buff {
 	fmt.Printf("%v", unicode.IsPrint(rune(b)))
+}
+
+# drop non-printable characters from a string
+stringClean := strings.Map(func(r rune) rune {
+	if unicode.IsGraphic(r) {
+		return r
+	}
+	return -1
+}, stringRaw)
+
+# replace non-printable characters from a string with a space
+stringClean := strings.Map(func(r rune) rune {
+	if unicode.IsGraphic(r) {
+		return r
+	}
+	return ' '
+}, stringRaw)
+
+
+
+misc
+====
+
+# check if char is ascii
+func isASCII(s string) bool {
+    for i := 0; i < len(s); i++ {
+        if s[i] > unicode.MaxASCII {
+            return false
+        }
+    }
+    return true
 }
 

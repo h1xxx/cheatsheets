@@ -14,13 +14,35 @@ ds, _ := _elf.DynString(elf.DT_NEEDED)
 convert
 =======
 
+# convert bytes to uint
+import "encoding/binary"
+var slice1 = []byte{244, 244, 244, 244, 244, 244, 244, 244}
+int_var := binary.BigEndian.Uint64(slice1)
+
 # convert bytes to int
 import "encoding/binary"
-var mySlice = []byte{244, 244, 244, 244, 244, 244, 244, 244}
-int_var := binary.BigEndian.Uint64(mySlice)
+var slice1 = []byte{244, 244, 244, 244, 244, 244, 244, 244}
+var i int32
+buf := bytes.NewBuffer(slice1)
+err = binary.Read(buf, binary.BigEndian, &i)
 
-# convert int to bytes
+# convert uint to bytes
 import "encoding/binary"
 bs := make([]byte, 20)
 binary.BigEndian.PutUint64(bs, int_var)
+
+
+
+misc
+====
+
+# decompress base64 message
+import "encoding/base64"
+message := "dZa3rutYDEV7fcXr=="
+decodedBytes := make([]byte, base64.StdEncoding.DecodedLen(len(message)))
+base64.StdEncoding.Decode(decodedBytes, []byte(message))
+
+# count 1 bits in a byte
+import math/bits
+n := bits.OnesCount8(uint8(byteVar))
 

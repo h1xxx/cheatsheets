@@ -1,5 +1,5 @@
-arrays
-======
+arrays/slices
+=============
 
 # create and initialize a slice
 slice1 = []string{"1.el", "2.el"}
@@ -12,10 +12,36 @@ slice3 = append(slice1,slice2...)
 # empty/clear a slice
 slice = nil
 
+# convert slice to array
+var hashArray [20]byte
+copy(hashArray[:], hashSlice)
+
+# get min/max value from integers
+min(2, -5, 8, 1.2)
+max(2, -5, 8, 1.2)
+
+# get min/max value from floats
+x := []float64{2, -5, 8, 1.2}
+slices.Min(x)
+slices.Max(x)
+
 
 
 maps
 ====
+
+# initialize a map
+map1 = map[string]string{}
+---
+map1 = make(map[string]string)
+
+# initialize a map with size pre-allocated
+map1 = make(map[string]string, 32768)
+
+# initialize nested map
+var x = map[string]map[string]string{}
+x["map1"] = map[string]string{}
+x["map2"] = map[string]string{}
 
 # create and initialize a map
 counts := map[string]int {
@@ -28,6 +54,18 @@ val, keyExists := map1["key1"]
 
 # remove a key from map
 delete(map1, "key1")
+
+# create a map of empty structs
+map1 := make(map[string]struct{})
+map1["key"] = struct{}{}
+
+# clear a map or a slice
+clear(map1)
+
+# update a key only if it doesn't exist
+if _,exists := m[key]; !exists {
+    m[key]="new val"
+}
 
 
 
@@ -116,6 +154,13 @@ if err == nil {
 	fmt.Println(result.Filesystems[0].Source)
 }
 
+# encode string to json with pretty printing
+j, err := json.MarshalIndent(ti, "", "\t")
+jStr := string(j)
+
+# ignore a field in struct
+	Category string         `json:"-"`
+
 
 
 toml
@@ -141,4 +186,82 @@ misc
 ====
 # find variable type
 reflect.TypeOf(var1)
+
+# read compressed csv
+import (
+	"compress/gzip"
+	"encoding/csv"
+)
+fd, err := os.Open("file1.csv.gz")
+errExit(err)
+defer fd.Close()
+gr, err := gzip.NewReader(fd)
+errExit(err)
+defer gr.Close()
+cr := csv.NewReader(gr)
+for {
+	fields, err := cr.Read()
+	if err == io.EOF {
+		break
+	}
+	errExit(err)
+	fmt.Println(fields)
+}
+
+# read json
+type Data struct {
+	Name string `json:"name"`
+}
+content, err := ioutil.ReadFile("./config.json")
+var payload Data
+err = json.Unmarshal(content, &payload)
+
+
+
+postgres
+========
+
+# bulk insert (fastest)
+import (
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+ctx := context.Background()
+conn, err := pgxpool.New(ctx, cfg.String())
+errExit(err)
+defer conn.Close()
+rows := [][]interface{}{}
+for scanner.Scan() {
+	rows = append(rows, []interface{}{val1, val2})
+	if len(rows) > 1048576 {
+		copyCount, err := conn.CopyFrom(ctx,
+			pgx.Identifier{"table_1"},
+			[]string{"col1", "col2"},
+			pgx.CopyFromRows(rows),
+		)
+		errExit(err)
+		rows = [][]interface{}{}
+	}
+}
+
+# bulk insert (2x slow as CopyFrom)
+import (
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+ctx := context.Background()
+conn, err := pgxpool.New(ctx, cfg.String())
+errExit(err)
+defer conn.Close()
+batch := &pgx.Batch{}
+for scanner.Scan() {
+	q := `INSERT INTO hashes (col1, col2) VALUES ($1, $2);`
+	batch.Queue(q, val1, val2)
+	if batch.Len() > 1048576 {
+		br := conn.SendBatch(ctx, batch)
+		err = br.Close()
+		errExit(err)
+		batch = &pgx.Batch{}
+	}
+}
 

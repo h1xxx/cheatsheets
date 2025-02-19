@@ -33,6 +33,51 @@ if exitNot0 {
 	fmt.Println("exit code: ", exitErr.ExitCode())
 }
 
+# start a command and then kill it with stdout and stderr in separate vars
+cmd := exec.Command("unzip")
+var outb, errb bytes.Buffer
+cmd.Stdout = &outb
+cmd.Stderr = &errb
+err := cmd.Start()
+err = cmd.Process.Kill() ||  err := cmd.Wait()
+
+# send a signal to a process
+err = cmd.Process.Signal(syscall.SIGINT)
+
+# get a running process residual memory (RSS)
+func getProcessMem() int {
+        file := fmt.Sprintf("/proc/%d/smaps", syscall.Getpid())
+        b, _ := os.ReadFile(file)
+        lines := str.Split(string(b), "\n")
+        var mem int
+        for _, line := range lines {
+                if str.HasPrefix(line, "Rss:") {
+                        fields := str.Fields(line)
+                        rss, _ := strconv.Atoi(fields[1])
+                        mem += rss
+                }
+        }
+        return mem
+}
+
+# get a running process memory (verify if faster)
+getMemUsed(pid int) float64 {
+        f, _ := os.Open(fmt.Sprintf("/proc/%d/smaps", pid))
+        defer f.Close()
+        res := uint64(0)
+        pfx := []byte("Pss:")
+        r := bufio.NewScanner(f)
+        for r.Scan() {
+                line := r.Bytes()
+                if bytes.HasPrefix(line, pfx) {
+                        var size uint64
+                        _, _ = fmt.Sscanf(string(line[4:]), "%d", &size)
+                        res += size
+                }
+        }
+        return float64(res) / 1024.0
+}
+
 
 
 system

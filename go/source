@@ -4,8 +4,10 @@ compile
 # compile and build a binary
 go build file1.go
 
-# compile and build a binary with vendor directory
-go build file1.go
+# download deps and build with vendor directory
+go mod tidy -go=1.18
+go mod vendor
+go build -mod=vendor
 
 # check for race conditions
 go run -race <go file>
@@ -24,6 +26,9 @@ gofmt file1.go
 
 # remove unnencessary import and add missing ones
 goimports file1.go
+
+# linters
+go vet/go lint/staticcheck
 
 
 

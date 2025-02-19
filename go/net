@@ -1,6 +1,9 @@
 ip
 ==
 
+# parse an IP address from string
+ip := net.ParseIP("192.0.2.2")
+
 # get hostname from IP addresss
 host, err := net.LookupAddr("50.62.227.1")
 
@@ -15,26 +18,36 @@ for packet := range pcap.Packets() {
 # print info on layers found in a packet
 fmt.Printf("\n%#v\n\n", packet.Layers())
 
-# convert dottet IP address to decimal
+# convert dotted IP address to decimal (3x faster than bit shifting from string)
+binary.BigEndian.Uint32(net.ParseIP("98.138.253.109")[12:16])
+
+# convert decimal IP address to dotted IP address string
+func ipIntToString(ip uint32) string {
+        b := make([]byte, 4)
+        binary.BigEndian.PutUint32(b, ip)
+        return net.IP(b).String()
+}
+
+# convert dotted IP address to decimal
+func ipv4ToInt(IPv4Addr string) int32 {
+        bits := strings.Split(IPv4Addr, ".")
+        b0, _ := strconv.Atoi(bits[0])
+        b1, _ := strconv.Atoi(bits[1])
+        b2, _ := strconv.Atoi(bits[2])
+        b3, _ := strconv.Atoi(bits[3])
+        var sum int32
+        sum += int32(b0) << 24
+        sum += int32(b1) << 16
+        sum += int32(b2) << 8
+        sum += int32(b3)
+        return sum
+}
+---
 ip := net.ParseIP(start)
 func ipv4ToInt(IPv4Addr net.IP) *big.Int {
         IPv4Int := big.NewInt(0)
         IPv4Int.SetBytes(IPv4Addr)
         return IPv4Int
-}
----
-func ipv4ToInt(IPv4Addr net.IP) int64 {
-	bits := strings.Split(IPv4Addr.String(), ".")
-	b0, _ := strconv.Atoi(bits[0])
-	b1, _ := strconv.Atoi(bits[1])
-	b2, _ := strconv.Atoi(bits[2])
-	b3, _ := strconv.Atoi(bits[3])
-	var sum int64
-	sum += int64(b0) << 24
-	sum += int64(b1) << 16
-	sum += int64(b2) << 8
-	sum += int64(b3)
-	return sum
 }
 
 # convert IP in decimal to dotted notation
@@ -43,6 +56,23 @@ func IntToIpv4(intipv4 *big.Int) net.IP {
 	var a net.IP = ip[2:6]
 	return a
 }
+
+# create a map with ip addresses
+import net/netip
+blacklistIPs = make(map[netip.Addr]bool)
+ip, err := netip.ParseAddr("10.0.0.1")
+blacklistIPs[ip] = true
+
+# convert ip adrress from net.ip to netip.addr
+ip, ok := netip.AddrFromSlice(ip)
+
+# convert netip.addr to net.IP
+addr, err := netip.ParseAddr("10.0.0.1")
+s := addr.AsSlice()
+ip := net.IP(s)
+
+# split ip and port from network address
+host, port, err = net.SplitHostPort("[2607:f8b0:4006:800::200e]:443")
 
 
 
