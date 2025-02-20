@@ -1,0 +1,8 @@
+misc
+====
+
+# case insensitive string
+(?i)str1
+---
+(?i)str1(?-i).*
+

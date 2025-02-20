@@ -36,6 +36,11 @@ timeout -s 9 0.1 nc <host> <port>
 # kill all jobs
 kill -9 $(jobs -ps)
 
+# kill a process on port 80
+fuser -k 80/tcp
+---
+kill $(lsof -t -i:80 -sTCP:LISTEN)
+
 
 
 priority
@@ -73,6 +78,9 @@ filecap <path>
 # show system limits
 prlimit
 ulimit -a
+
+# change limit of opened files (file descriptors)
+ulimit -n 10000
 
 # set limits
 ulimit -Hr unlimited

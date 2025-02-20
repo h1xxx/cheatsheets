@@ -9,3 +9,11 @@ vnc localhost::5900
 # connect to vnc on virtual desktop number 1
 vncviewer 10.64.64.1:1
 
+
+
+rdp
+===
+
+# connect to rdp server
+xfreerdp /v:10.129.67.70 /u:administrator
+

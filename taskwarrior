@@ -41,6 +41,21 @@ task add do a recurring task due:28th recur:monthly until:now+1yr
 # show tasks with no project
 task project: list
 
+# date and time abbreviations
+now		current date and time
+today		current date
+tom-1		today at 23:59:59
+eod		Current date with time 23:59:59
+sod		start of the next day, same as tomorrow
+tomorrow	tomorrow, same as sod
+yesterday	yesterday
+mon, tue	day of the week after today
+jan, feb	the specified month, 1st day
+soy		the next year, january 1st
+eoy		this year, december 31st
+eom		the last day of the current month, with time 23:59:59
+1st, 2nd	the next nth day of the month
+ 
 
 
 calendar

@@ -1,0 +1,99 @@
+misc
+====
+
+# block traffic on interface
+ip route add blackhole default dev <interface>
+
+# show ip range for a subnet
+sipcalc 89.72.100.0/18
+
+# show all ip ranges for asn
+whois -h whois.radb.net -- '-i origin AS208521'
+
+# mass scan ip ranges
+masscan -oL mass.log -Pn -p 22 --max-rate 1000 193.47.158.0/24 194.187.40.0/22
+
+# show rpcbind info
+rpcinfo -p
+
+# create nfs exports based on /etc/exports
+exportfs -a
+
+# show nfs exported directories
+exportfs -s
+
+# view really exported directories
+cat /proc/fs/nfsd/versions
+
+# find mdns hosts
+avahi-browse -art
+
+# send email via smtp
+swaks --to recipient@example.com --from your-email@gmail.com --server smtp.gmail.com --port 587 --auth LOGIN --auth-user your-email@gmail.com --auth-password your-app-password --tls --data "Subject: Test Email\n\nThis is a test email from the command line."
+
+
+
+openvpn
+=======
+
+# disable ipv6 in openvpn config
+pull-filter ignore "ifconfig-ipv6"
+pull-filter ignore "route-ipv6"
+
+
+
+nftables
+========
+
+# list all rules
+nft list ruleset
+
+# list all tables
+nft list tables
+
+# read rules from file
+nft -f filename
+
+# nftables and iptables comparison
+nftables family  iptables utility
+ip               iptables
+ip6              ip6tables
+inet             iptables and ip6tables
+arp              arptables
+bridge           ebtables
+
+# create a table
+nft add table family_type table_name
+
+# list rules in a table
+nft list table family_type table_name
+
+# delete table
+nft delete table family_type table_name
+
+# remove all rules
+nft flush ruleset
+
+# remove all rules in a table
+nft flush table family_type table_name
+
+# remove all rules in a chain
+nft flush chain family_type table_name chain_name
+
+# list blacklisted IPs
+nft list set inet main_table blackhole_ipv4
+
+# add elements to a static blacklist set
+nft add element inet main_table blacklist_ipv4 { 5.6.7.8/32 }
+
+# add a rule at the top of the chain
+nft insert rule inet main_table input ct state invalid drop
+
+
+
+haproxy
+=======
+
+# check haproxy config and exit
+haproxy -c -f /etc/haproxy/haproxy.cfg
+

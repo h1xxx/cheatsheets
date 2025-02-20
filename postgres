@@ -1,0 +1,369 @@
+postgres
+========
+
+# start a newly created database
+pg_ctl -D /var/lib/postgres/data -l logfile start
+
+# login as root user
+psql -U postgres
+
+# login as regular user
+psql -U user1 -d db1
+
+# change the database
+postgres=# \connect db1
+
+# change the owner of the database
+postgres=# ALTER DATABASE name OWNER TO new_owner;
+
+# create a role
+postgres=# CREATE ROLE role_name WITH LOGIN;
+
+# add login attribute
+postgres=# ALTER ROLE role_name WITH LOGIN CREATEDB;
+
+# create a role with login permissions already included
+postgres=# CREATE USER role_name;
+
+# list roles
+postgres=# SELECT rolname FROM pg_roles;
+
+# list users and role attributes
+postgres=# \du
+
+# list databases
+postgres=# \l
+
+# list database extensions
+postgres=# \dx
+
+# show current and session user
+db1=# SELECT SESSION_USER, CURRENT_USER;
+
+# create a database and grant privilges
+postgres=# CREATE DATABASE db1;
+postgres=# GRANT ALL PRIVILEGES ON DATABASE db1 TO role_name;
+
+# enable an extension in db1
+db1=# CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+# add and remove user from a group
+postgres=# GRANT user1 to dba;
+postgres=# ALTER GROUP user1 DROP USER dba;
+
+# allow creating functions in untrusted language
+db1=# UPDATE pg_language SET lanpltrusted = true WHERE lanname LIKE 'c';
+
+# show row count
+postgres=# SELECT count(*) AS exact_count FROM myschema.table1;
+---
+postgres=# EXPLAIN SELECT * FROM table1;
+
+# clean pg_wal dir
+su postgres -c "pg_archivecleanup -d /var/lib/postgresql/16/main/pg_wal/ $(basename $(find /var/lib/postgresql/16/main/pg_wal/ -type f -exec ls -t1 {} + | head -1))"
+
+# get a table size
+select pg_size_pretty(pg_relation_size('table1'));
+select pg_size_pretty(pg_total_relation_size('table1'));
+
+# view currently running queries
+SELECT pid, query_start, query FROM pg_stat_activity WHERE state = 'active';
+
+# show all activity stats
+select * from pg_stat_activity where datname = 'torrent';
+
+# interrupt (kill) a query gracefully based on its pid
+SELECT pg_cancel_backend(666);
+
+# list databases
+\l
+
+# connect to a database
+\c db1
+
+# list tables in current database
+\dt
+
+# list indexes and relations
+\di
+
+# change current working dir (pwd)
+\cd /home/user1
+
+# run a script with queries from a file
+\i aggregate_ip_logs.sql
+
+# measure query execution time
+\timing on
+
+# show current output format
+\pset format
+
+# list output formats
+\pset format help
+
+# change output format to wrap each cell
+\pset format wrapped
+
+# toggle detailed output format - one field per line
+\x
+
+# disable output pager for chosen format
+\pset pager off
+
+# write query output to a file and close the file
+\o out.txt
+SELECT ...;
+\o
+
+# change pager
+export PSQL_PAGER="pspg -X -b"
+
+# print timestampz in utc timezone
+SELECT timezone('utc', now());
+
+
+
+queries
+=======
+
+# upsert (col2 must have UNIQUE constraint)
+INSERT INTO info (col1, col2) VALUES ('col1_val', 'col2_val') ON CONFLICT (col2) DO UPDATE SET col2 = 'col3_val';
+
+# create an index on 2 columns
+CREATE INDEX idx_col1_col2 ON tbl1 (col1, col2);
+
+# delete a databse
+DROP DATABASE db1;
+
+# replace null with default value
+SELECT id, coalesce(field1, 'n/a') AS field1 FROM table1;
+
+# remove a row
+DELETE FROM table_name WHERE condition;
+
+# aggregate table and filter on calculated column (HAVING instead of WHERE)
+SELECT
+  productCategory
+  AVG(UnitPrice) as AvgUnitPrice
+FROM transactions
+WHERE productCategory in ('Kitchen', 'Toys')
+GROUP BY productCategory
+HAVING AVG(UnitPrice) > 3;
+
+# insert into multiple tables simultaneously
+WITH
+  asn_key AS
+    (INSERT INTO asn (asn) VALUES (666) RETURNING id),
+  country_key AS
+    (INSERT INTO countries (country_code, country, continent_code, continent)
+      VALUES ('PL', 'Poland', 'EU', 'Europe') RETURNING id)
+INSERT INTO ip_info (start_ip, end_ip, country_id, asn_id, version)
+SELECT 111, 222, country_key.id, asn_key.id, 1
+FROM asn_key, country_key;
+
+# create a table with select statement and cast a type for a column
+CREATE MATERIALIZED VIEW view1 AS
+SELECT   col1,
+	 count(*)::INTEGER AS count_rows
+FROM tbl1
+GROUP BY col1;
+
+# create a function to generate random integers and use it to populate a table
+CREATE TABLE tbl1(a INT, b INT, c INT);
+CREATE OR REPLACE FUNCTION random_in_range(INTEGER, INTEGER) RETURNS INTEGER AS
+SELECT floor(($1 + ($2 - $1 + 1) * random()))::INTEGER;
+INSERT INTO tbl1(a, b, c)
+SELECT random_in_range(1, 100),
+       random_in_range(1, 100),
+       random_in_range(1, 100)
+FROM generate_series(1, 1000000);
+
+# show details of query execution
+EXPLAIN ANALYZE SELECT * FROM tbl1 WHERE a < 3;
+
+# show unique combination of column values
+SELECT DISTINCT col1, col2 FROM tbl1 limit 10;
+
+# count unique values of col2 for each value in col1
+SELECT col1, COUNT(DISTINCT col2)::INTEGER as col2_count
+FROM tbl1
+GROUP BY col1 ORDER BY col2_count DESC;
+---
+SELECT col1, COUNT(*)
+FROM (SELECT  col1, col2 FROM tbl1 GROUP BY col1, col2)
+GROUP BY col1; --slower
+---
+SELECT col1, COUNT(*)
+FROM (SELECT DISTINCT col1, col2 FROM tbl1)
+GROUP BY col1; --slowest
+
+# check if value exists in a table
+SELECT EXISTS(SELECT 1 FROM contact WHERE id=12)
+
+# check if value exists in multiple tables
+SELECT EXISTS(
+        SELECT 1 FROM (
+                SELECT id FROM tbl1 UNION ALL
+                SELECT id FROM tbl2 UNION ALL
+                SELECT id FROM tbl3
+        )
+        WHERE id = 1075 LIMIT 1
+);
+
+# put table name into select query as row
+SELECT id, tableoid::regclass AS table_name FROM tbl1;
+
+# get a substring from row value
+SELECT id, SUBSTRING(col1, 1, 4) AS sub_col1 FROM tbl1;
+
+# convert int32 to an ip address
+SELECT '0.0.0.0'::inet + 2147483648 + a.ip as ip_address FROM ...
+
+# convert ip address to a bigint
+select cast(source_ip as bigint) FROM ...
+
+# select random rows (slow)
+SELECT * FROM table1 ORDER BY RANDOM() LIMIT 10;
+
+# get rows sorted by last physical location
+SELECT * FROM USERS ORDER BY CTID DESC;
+---
+SELECT * FROM USERS WHERE CTID = (SELECT MAX(CTID) FROM USERS);
+
+# select distinct only on one column
+SELECT DISTINCT ON (a.hash_id) a.hash_id, a.date_time as last_seen,
+                    b.name, b.file_count, b.size
+FROM dht_logs_2024_12 a
+LEFT JOIN torrents b ON a.hash_id = b.hash_id
+WHERE a.ip = 195215083
+ORDER BY a.hash_id, last_seen
+LIMIT 100;
+
+# calculate a percentage of a total
+SELECT col1, SUM(count) AS count, (COUNT(*) / (SUM(COUNT(*)) OVER() )) * 100 AS team_pct FROM tbl1 GROUP BY col1;
+---
+SELECT col1, sum(count) AS count, (SUM(count) / (SUM(SUM(count)) OVER() )*100) AS team_pct FROM tbl1 GROUP BY col1;
+
+# calculate a float number from two integers and round to 2 decimal places
+SELECT ROUND(a.pieces::NUMERIC * 100 / h.pieces, 2) AS perc_complete ...;
+
+# convert integer to hex
+SELECT to_hex(666);
+
+# convert integer to hex with leading 0
+SELECT LPAD(TO_HEX(10), 16, '0')
+
+# add strings together
+SELECT concat(first_name, ' ', last_name) AS full_name ... 
+
+# add a string for empty cell values
+COALESCE(NULLIF(col,''), 'blank')
+
+# use another column if value is empty / replace string with another
+COALESCE(NULLIF(col1,''), col2)
+
+# convert byte array (bytea) to hex
+SELECT encode(my_column::bytea, 'hex') FROM my_table;
+
+# calculate days since
+SELECT  hash_id,
+        ip,
+        max(extract('day' FROM date_trunc('day',date_time - '2000-01-01'::date)))::SMALLINT AS last_days
+FROM dht_logs_2024_12
+GROUP BY hash_id, ip;
+
+# create a parametrized query in psql
+PREPARE query1 (int) AS
+SELECT id FROM a WHERE col1 > $1;
+EXECUTE query1(10);
+
+# create a table with an integer range
+CREATE TABLE IF NOT EXISTS ip_info (
+        id              INT       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+        start_ip        INET      NOT NULL,
+        end_ip          INET      NOT NULL,
+        ip_int_range    INT4RANGE NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ip_info_ip_int_range ON ip_info USING GIST (ip_int_range);
+SELECT * FROM ip_info WHERE ip_int_range @> 1000204;
+
+# insert multiple values
+insert into table_name (user_id, subservice_id) values
+  (1, 1),
+  (1, 2),
+  (1, 3),
+  (2, 1)
+returning id;
+
+# update one table from another (each update is an insert)
+UPDATE torrents b
+SET first_seen = a.first_seen,
+last_seen = a.last_seen,
+hits = a.hits
+FROM tmp_hits a
+WHERE a.hash_id = b.hash_id;
+
+# select multiple integers
+... WHERE asn =  ANY(ARRAY[208692,100]);
+
+# select multiple strings
+... WHERE LOWER(as_name) SIMILAR TO '%(com|net|tel|host|sat|box|tv)';
+
+# delete/remove all tables
+DO $$ 
+DECLARE r RECORD;
+BEGIN
+  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+  END LOOP;
+END $$;
+
+
+
+config
+======
+
+# show configuration value
+SHOW work_mem;
+
+# show config errors
+SELECT sourcefile, name, sourceline, error FROM pg_file_settings WHERE error IS NOT NULL;
+
+
+
+misc
+====
+
+# show current number connections
+SELECT sum(numbackends) FROM pg_stat_database;
+
+# show column types
+\d table1
+
+# use variable in a query
+\set var1 value1
+SELECT * FROM table1 WHERE column1 = :'var1';
+---
+\set var1 value1
+SELECT * FROM :var1.table1;
+
+# show column type
+SELECT pg_typeof("col1"), pg_typeof(100) from table1 limit 1;
+
+# better serial replacement - identity column
+id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY
+
+# create an index on a timestamp field
+CREATE INDEX IF NOT EXISTS idx_peer_logs_tbl_date_time ON peer_logs USING brin (date_time);
+
+# postgres numerical types
+smallint   	2 bytes 	small-range integer	-32768 to +32767
+integer    	4 bytes 	integer		 	-2147483648 to +2147483647
+bigint     	8 bytes 	large-range integer	-9223372036854775808 to +9223372036854775807
+real       	4 bytes 	variable-precision	6 decimal digits precision
+double     	8 bytes 	variable-precision	15 decimal digits precision
+smallserial	2 bytes 	autoincrementing   	1 to 32767
+serial     	4 bytes 	autoincrementing   	1 to 2147483647
+bigserial  	8 bytes 	autoincrementing   	1 to 9223372036854775807
+

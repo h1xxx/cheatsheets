@@ -1,6 +1,15 @@
 misc
 ====
 
+# run container as a user
+docker run -u "$(id -u user1):$(id -g user1)" -it debian:bookworm bash
+
+# connect to a running container
+docker container exec -it container_name bash
+
+# remove unsused images
+docker system prune -f
+
 # docker commands
 pull busybox		download an image from docker hub
 images			list all images
@@ -9,13 +18,14 @@ ps -a			list all containers
 run -it busybox sh	run interactive shell
 rm d3a0f8b42ecc		delete container/image with specific hashes
 rmi			delete image
-container prune		delete all stopped containers
-system prune		delete also dangling images
 volume prune		delete all dangling volumes
 system prune -a		delete all images
 
 # list image hashes with status exited
 docker ps -a -q -f status=exited
+
+# remove stopped (exited) containers
+docker container prune
 
 # list dangling images and dangling volumes
 docker images -f dangling=true

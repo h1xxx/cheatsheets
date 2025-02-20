@@ -13,10 +13,13 @@ xrandr --auto
 # show supported resolutions
 xrandr --query
 
-# set a resolution
+# set resolution
 xrandr --output LVDS1 --scale-from 1920x1080
 ---
 xrandr -s 1280x800
+
+# set resolution and refresh rate
+xrandr -s 1920x1080 -r 144
 
 # list monitors
 xrandr --listmonitors
@@ -62,4 +65,15 @@ rxvt-unicode
 
 # reload config
 xrdb ~/.Xresources
+
+
+
+misc
+====
+
+# gui file manager
+pcmanfm
+
+# color picker
+gpick
 

@@ -18,3 +18,23 @@ press alt + shift + [n] to configure buttons/axis
 each key needs to be pressed twice
 'rapid <key>' is just a key to be configured again for rapid pressing
 
+# full screen
+alt + Enter
+
+
+quake 3
+=======
+
+# run with cheats
+quake3 +sv_cheats 1 +devmap q3dm7 +sv_maxclients 20 +set g_spskill 4 +bot_minplayers 10 +bind q 'give all; give quad damage'
+
+# add bots
+/g_spskill 4
+/bot_minplayers 10
+
+# quad damage
+/give quad damage
+
+# weapons, ammo and armour
+/give all
+

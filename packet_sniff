@@ -23,6 +23,9 @@ tshark –i eth0 – R "tcp"
 # merge 2 pcap files
 mergecap file1.pcap file2.pcap -F pcap -w out.pcap
 
+# show traffic w/o ssh
+tcpdump -i eth0 -n 'not port 22'
+
 # show traffic on port 53 with packet payloads
 tcpdump -vv -x -X -s 1500 -i tun0 'port 53'
 
@@ -92,6 +95,15 @@ tcpdump -A -r <pcap file>
 
 # print bpf bytecode instructions
 tcpdump -p -ni <iface> -d  "ip and udp"
+
+
+
+udp
+===
+
+# view udp dns traffic
+tfields='-T fields -e frame.interface_name -e _ws.col.Protocol -e ip.src -e udp.srcport -e ip.dst -e udp.dstport -e _ws.col.Info'
+tshark ${tfields} -i lo -Y "not tcp and dns"
 
 
 

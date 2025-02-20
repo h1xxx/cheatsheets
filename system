@@ -23,6 +23,25 @@ echo 1 > /sys/devices/pci0000\:00/0000\:00\:14.0/i2c-13/13-002f/pwm2_enable
 echo 170 >  /sys/devices/pci0000\:00/0000\:00\:14.0/i2c-13/13-002f/pwm1
 echo 200 >  /sys/devices/pci0000\:00/0000\:00\:14.0/i2c-13/13-002f/pwm2
 
+# find pci address of network interfaces
+lshw -c network -businfo
+---
+grep PCI_SLOT_NAME /sys/class/net/*/device/uevent
+
+# find pci slot for devices in /sys/bus/pci/slot/
+dmidecode –t slot
+---
+lspci -s <slot id>
+
+# power off a pci device in slot 1
+echo 0 > /sys/bus/pci/slot/1/power
+
+# remove a pci device
+echo 1 > /sys/bus/pci/devices/0000\:01\:00.1/remove
+
+# rescan pci bus and add previously removed devices
+echo 1 > /sys/bus/pci/rescan
+
 
 
 memory
@@ -50,6 +69,49 @@ sysctl vm.nr_hugepages=4096
 # mount the hugepages
 mount -t hugetlbfs hugetlbfs /dev/hugepages
 
+# see hugepages allocated size
+cat /proc/meminfo | grep -i huge
+---
+hugeadm --pool-list
+
+# show per process memory
+ps -eo user,pid,ppid,cmd,pmem,rss --no-headers --sort=-rss
+---
+ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem
+
+# show ecc errors count (correctable and not)
+grep . /sys/devices/system/edac/mc/mc*/rank*/dimm_ce_count
+grep . /sys/devices/system/edac/mc/mc*/rank*/dimm_ue_count
+
+# show dimm location
+grep . /sys/devices/system/edac/mc/mc*/rank*/dimm_location
+
+# show ecc memory errors from rasdaemon
+ras-mc-ctl --errors
+
+# show a process memory
+ps -eo rss -q $PID
+---
+cat /proc/$PID/smaps | grep Rss | awk '{sum+=$2;} END{print sum/1024;}'
+
+# show virtual memory statistics
+vmstat -s
+
+# see cached files using memory
+slabtop
+
+# Check kernel memory usage
+slabtop -o
+
+# check process memory maps
+cat /proc/meminfo
+
+# see what memory each process is using
+ps aux --sort=-%mem
+
+# detailed memory usage analysis
+smem -k
+
 
 
 time
@@ -61,6 +123,9 @@ online		bring all sources online
 activity	show status of sources
 tracking	show detailed info on time
 
+# set system time
+date -s "2024-02-28 12:57:05"
+
 # show current hardware clock
 hwclock --show
 
@@ -71,6 +136,9 @@ hwclock -w
 hwclock --set --date="2012-04-19 16:45:05" --localtime
 ---
 hwclock --set --date="2011-04-19 20:45:05"  --utc
+
+# test ntp servers (should show IPs in refid field and some drift)
+ntpq -p
 
 
 
@@ -99,6 +167,9 @@ cat /proc/version
 # show pci vendor and device codes as both numbers and names, and module info
 lspci -nnk
 
+# show module options
+systool -vm i915
+
 
 
 cpu
@@ -115,30 +186,89 @@ done
 # show load per cpu
 mpstat -P ALL 3
 
+# show cpu assignment to physical cores
+lscpu -e
+
+# show cpu power usage
+turbostat --quiet --num_iterations 1 --interval 1 --show PkgWatt --Summary
+
 
 
 gpu
 ===
 
+# list gpu cards
+nvidia-smi -L
+
 # limit power draw on all nvidia gpus
 nvidia-smi -pm 1
 nvidia-smi -pl 125 [-i 0]
+
+# show power limits
 nvidia-smi -q -d power
 
 # set brightness example
 cat /sys/class/backlight/intel_backlight/max_brightness
 tee /sys/class/backlight/intel_backlight/brightness <<< 250
 
+# power off nvidia card
+id=0000:xx:00.0
+nvidia-smi --id ${id} --persistence-mode 0
+nvidia-smi drain --pciid ${id} --modify 1
+nvidia-smi --persistence-mode 1
+
+# enable powered off nvidia card
+id=0000:xx:00.0
+nvidia-smi drain --pciid ${id} --modify 0
+
+# view supported clocks
+nvidia-smi -q -d SUPPORTED_CLOCKS
+
+# set memory and graphics
+nvidia-smi -ac <MEM clock,Graphics clock>
+
+# enable boosting of gpu
+nvidia-smi --auto-boost-default=ENABLED -i 0
+
+# show info on drm resolutions and settings
+modetest
+
+# test resolution with mode ID 1 and connector ID 75
+modetest -s 75:#1 -v
+---
+modetest -s 75:#1 -C
+
+# show gpu utilization
+nvtop
+
 
 
 systemd
 =======
 
+# show all logs for a service
+journalctl -u nginx | less
+
+# show all logs since last reboot
+journalctl -b
+
+# show all logs on specific time and date
+journalctl --since '2015-01-10 17:15:00' --until '2015-01-11 03:00'
+---
+journalctl --since yesterday
+---
+journalctl --since 09:00 --until '1 hour ago'
+
 # clean journal in journald
 journalctl --rotate
 journalctl --vacuum-time=1s
 
+# show kernel logs from 5 last boots
+journalctl -k -b -5
+
 # boot systemd into a debug shell, add to kernel parameters
+systemd.unit=rescue.target
+---
 systemd.debug-shell=1
 
 
@@ -212,6 +342,13 @@ cat /proc/swaps
 # reload sysctl.conf
 sysctl -p
 
+# restart networking service on debian remotely
+/etc/init.d/networking restart && ifup eth0
+
+# benchmark system
+sysbench cpu --cpu-max-prime=1000000 --threads=32 --time=3 run
+sysbench memory --memory-block-size=1M --memory-total-size=1024G --threads=32 --time=3 run
+sysbench threads --thread-yields=10000 --thread-locks=32 --threads=32 --time=3 run
 
 
 modules
@@ -233,6 +370,13 @@ modinfo module_name
 # find which modules are used
 hwinfo | grep Modules
 
+# load vfio for gpu cards during boot
+echo vfio-pci >> /etc/modules-load.d/vfio-pci.conf
+echo "options vfio-pci ids=10de:2531,10de:228e" >> /etc/modprobe.d/vfio-pci.conf
+update-initramfs
+
+# reload modules-load.d
+systemctl restart systemd-modules-load.service
 
 
 uefi
@@ -242,7 +386,11 @@ uefi
 efibootmgr -v
 
 # add boot entry
-efibootmgr -v -c -d /dev/sda -p 1 -l \\EFI\\SYSLINUX\\syslinux.efi -L SYSLINUX
+efibootmgr -v -c -d /dev/nvme0n1 -p 1 -l '\EFI\debian\shimx64.efi' -L debian_nvme0n1 --unicode
+---
+efibootmgr -v -c -d /dev/nvme0n1 -p 1 -l '\EFI\debian\shimx64.efi' -L debian_nvme0n1 --unicode --full-dev-path
+---
+efibootmgr -v -c -d /dev/sda -p 1 -l '\EFI\SYSLINUX\syslinux.efi' -L SYSLINUX --unicode
 
 # show boot order
 efibootmgr -o
@@ -257,6 +405,9 @@ efibootmgr -b 0014 -B
 efibootmgr -b 0014 -a
 efibootmgr -b 0014 -A
 
+# boot a specific entry one time - change BootNext entry
+efibootmgr -n 0002
+
 # check if system is running in UEFI mode
 [ -e /sys/firmware/efi/efivars ] && echo yes
 
@@ -269,3 +420,15 @@ shared libs
 cat /proc/*/maps | awk '{print $6;}' | grep '\.so' | sort | uniq
 ---
 lsof -p <pid> | grep '\.so'
+
+
+
+processes
+=========
+
+# send a signal to a process by name
+pkill -f --signal SIGHUP /usr/sbin/haveged
+
+# send a signal to a process by name and print killed PID
+pkill -ef --signal SIGHUP /usr/sbin/haveged
+

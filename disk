@@ -51,6 +51,9 @@ ro	read-only
 rw	read-write
 user	when in fstab, regular users can mount this filesystem
 
+# check info on disk partition table
+gdisk -l /dev/sda
+
 # create a partition table (mbr or gpt)
 echo 'label: gpt' | sfdisk /dev/sda
 
@@ -83,6 +86,42 @@ sgdisk --new 1:+1M:+12M -u 1:00000000-0000-0000-0000-f88e684033e /dev/sda
 # create a filesystem on partition 1 with a specific UUID
 mkfs.ext4 -U 00000000-0000-0000-0000-f88e684033f /dev/sda1
 
+# disabled reserved blocks
+tune2fs -m 0 /dev/sda1
+
+# create a filesystem with increased inode count (first check default count)
+mkfs.ext4 -v -n /dev/sdb
+mkfs.ext4 -v -N 468844544 /dev/sdb
+
+# list all filesystem parameters
+tune2fs -l /dev/sdb1
+
+# run fsck every reboot
+tune2fs -c 1 /dev/sdb1
+
+# run fsck every 5 reboots
+tune2fs -c 5 /dev/sdb1
+
+# disable fsck
+tune2fs -c 0 /dev/sdb1
+---
+tune2fs -c -1 /dev/sdb1
+
+# regenerate uuid of the filesystem
+tune2fs -U random /dev/sdb2
+
+# change disk label
+e2label /dev/sda1 ROOT_DISK
+
+# backup partition table
+sfdisk -d /dev/sda > sdb_part_table.backup
+
+# partition the disk from backup
+sfdisk /dev/sdb < sdb_part_table.backup
+
+# delete the filesystem
+wipefs -a /dev/sdxY
+
 
 
 info
@@ -94,6 +133,12 @@ blkid -s PARTUUID -o value /dev/sda2
 
 # show detailed info on PARTUUID
 blkid -p /dev/sda2 | sed 's| |\n|'g
+
+# show all info on a disk with fields names
+lsblk -d -O -J /dev/sda
+
+# show parent disk name of a partition
+lsblk -o pkname -d -n /dev/sda1
 
 # detailed information on a disk
 hdparm -I /dev/sdb
@@ -113,6 +158,12 @@ tune2fs -l /dev/sda1 | grep "Inode size:"
 
 # show disk read/writes performance
 iostat -d 30 -m
+
+# show reserved blocks
+tune2fs -l /dev/sda1 | grep "Reserved:"
+
+# dis
+tune2fs -l /dev/sda1 | grep "Reserved:"
 
 # find bad sectors on a disk and write their id to a file
 badblocks -v -o badblocks.log /dev/sda1
@@ -134,12 +185,23 @@ load cycle count
 power cycle count
 Total_LBAs_Written
 
+# get free unpartitioned disk size in bytes
+parted /dev/sda unit B print free | grep 'Free Space' | tail -n1 | awk '{print $3}' | tr -d B
+---
+sfdisk --list-free /dev/sdb | tail -n1 | awk '{print $4}' | numfmt --from=iec
+
+# get logical and physical sector size (also shows disk model)
+fdisk -l /dev/sda
+
 
 
 raid
 ====
 
-# mount one disk from raid array
+# create an array
+mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sda1 /dev/sdc1
+
+# mount one disk from inactive raid array
 mdadm --assemble /dev/md0 /dev/sdb
 mdadm --run /dev/md0
 mount /dev/md0 /mnt
@@ -147,8 +209,106 @@ mount /dev/md0 /mnt
 # view inforamtion on mounted raid arrays
 cat /proc/mdstat
 
+# start raid array
+mdadm --run /dev/md0
+
 # stop raid array
 mdadm --stop /dev/md0
+
+# scan for raid partitions and create md disks based on mdadm.conf
+mdadm --assemble --scan
+
+# show info on raid array, incl. state
+mdadm --detail /dev/md0
+
+# show info on raid array with one variable per line
+mdadm --detail -Y /dev/md0
+
+# change homehost for the array
+mdadm --stop /dev/md0
+mdadm --assemble /dev/md0 --homehost=srv --update=homehost /dev/sda1
+mdadm --assemble /dev/md0 --homehost=srv --update=homehost /dev/sdb1
+
+# create raid array out of existing sda1 uefi partition (sda1) and disk sdb
+mount /dev/sda1 /boot/
+sfdisk -d /dev/sda > sda_part_table.backup
+sfdisk /dev/sdb < sda_part_table.backup
+mdadm --create /dev/md/efi --level 1 --raid-disks 2 --metadata 1.0 /dev/sdb1 missing
+mkfs.fat -F32 /dev/md/efi
+mkdir /mnt/tmp_efi && mount /dev/md/efi /mnt/tmp_efi
+rsync -avP /boot/ /mnt/tmp_efi/
+umount /boot
+mdadm --manage /dev/md/efi --add /dev/sda1
+umount /mnt/tmp_efi/
+mount /dev/md/efi /boot
+mdadm --detail --scan /dev/md/efi >> /etc/mdadm/mdadm.conf
+echo '/dev/md/efi /boot vfat umask=0077 0 1' >> /etc/fstab
+update-initramfs -u
+efibootmgr -v -c -d /dev/nvme0n1 -p 1 -l '\EFI\debian\shimx64.efi' -L debian_nvme0n1 --unicode --full-dev-path
+efibootmgr -v -c -d /dev/nvme1n1 -p 1 -l '\EFI\debian\shimx64.efi' -L debian_nvme1n1 --unicode --full-dev-path
+grub-install --no-nvram --efi-directory=/boot --target=x86_64-efi --locales=
+update-grub
+
+# initiate a data scrub to check for and fix errors
+echo check > /sys/block/md0/md/sync_action
+cat /proc/mdstat
+
+# stop a currently running data scrub safely
+echo idle > /sys/block/md0/md/sync_action
+
+# check how many blocks (if any) have been flagged as bad after a scrub
+cat /sys/block/md0/md/mismatch_cnt
+
+# replace disk failing sda1 disk from md0 array with sda1 and sdb2
+sfdisk -d /dev/sdb > sdb_part_table.backup
+mdadm --fail /dev/md0 /dev/sda1
+mdadm --remove /dev/md0 /dev/sda1
+'<< replace sda disk with sdc >>'
+sfdisk /dev/sdc < sdb_part_table.backup
+mdadm /dev/md0 --add /dev/sdc1
+mdadm /dev/md0 --replace /dev/sda1 --with /dev/sdc1
+mdadm --zero-superblock /dev/sda1
+
+
+
+zfs
+===
+
+# create a pool and mount it
+zpool create -o ashift=9 -m /mnt/pg_data -O compression=zstd-1 pg_data /dev/vdd
+
+# delete a pool and remove filesystems
+zpool destroy pg_data
+wipefs -a /dev/vdd
+
+# show pool status
+zpool status
+
+# show filesystem properties
+zfs get all pg_data
+
+# show details about i/o in 10 5-second intervals
+zpool iostat -vy 5 10
+
+# show real size of directory on a compressed zfs filesystem
+du --apparent-size /mnt/pg_data/
+
+# ashift values for physical sector size
+ashift=9   => sector size 512B
+ashift=12  => sector size 4KB
+ashift=13  => sector size 8KB
+
+# show cache memory utilization in ARC
+arc_summary
+
+# set max arc (cache) size to 512MB in kernel parameters
+zfs.zfs_arc_max=536870912
+
+# set max arc (cache) size to 512MB in /etc/modprobe.d/zfs.conf
+options zfs zfs_arc_max=536870912
+
+# show compressions stats
+zfs get all pg_data | grep -E 'refcomp|written|logical'
 
 
 
@@ -178,7 +338,9 @@ dm-crypt
 ========
 
 # encrypt a disk
-cryptsetup -v -q --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha256 --iter-time 5000 --use-random luksFormat /dev/sdb
+cryptsetup -v -q --type luks2 --cipher aes-xts-plain64 --key-size 512 --hash sha256 --iter-time 5000 --use-random luksFormat /dev/sdz
+---
+cryptsetup -v --type luks2 --hash sha512 --cipher aes-xts-plain64 --key-size 512 --pbkdf argon2id --iter-time 5000 --batch-mode --uuid="$(uuidgen)" luksFormat /dev/sdz
 
 # decrypt a disk via ssh
 cat some.key | cryptsetup open /dev/sdb sdb_root --key-file=-
@@ -197,22 +359,33 @@ dmsetup mknodes
 lvm
 ===
 
-# resize a partition
-unmount
-resize2fs /dev/mapper/myvg-mylv 10G
-lvreduce -L 10G /dev/mapper/myvg-mylv
+# create physical volume (partition type 8e00 Linux LVM)
+pvcreate /dev/sda2
+
+# show info on physical volumes
+pvs
+---
+pvdisplay -v -m
+
+# expand the physical volume after enlarging the partition
+pvresize /dev/sda1
+
+# create a volume group on physical volume /dev/sda2 and /dev/sda3
+vgcreate vg1 /dev/sda2 /dev/sda3
+
+# show info on volume groups
+vgs
+---
+vgdisplay
+
+# add another disk to the volume group
+pvcreate /dev/sdc
+vgextend vg1 /dev/sdc
+
+# rename a volume group
+vgrename vg1 vg_vm
 
 # example commands
-pvcreate /dev/sda2
-pvdisplay
-vgcreate <volume_group> <physical_volume>
-vgcreate VolGroup00 /dev/sda2
-vgextend <volume_group> <physical_volume>
-vgextend <volume_group> <another_physical_volume>
-vgextend VolGroup00 /dev/sdb1
-vgextend VolGroup00 /dev/sdc
-vgdisplay
-vgcreate VolGroup00 /dev/sda2 /dev/sdb1 /dev/sdc
 lvcreate -L <size> <volume_group> -n <logical_volume>
 lvcreate -L 10G VolGroup00 -n lvolhome
 lvcreate -L 10G VolGroup00 -n lvolhome /dev/sdc1
@@ -234,6 +407,25 @@ mount /dev/VolGroup00/LogVol00 /mnt/
 # deactivate group after unmounting
 vgchange -an VolGroup00
 
+# resize (enlarge) a partition
+umount
+lvextend -l +100%FREE /dev/mapper/myvg-mylv
+resize2fs /dev/mapper/myvg-mylv
+---
+umount
+lvextend -L 128G /dev/mapper/myvg-mylv
+resize2fs /dev/mapper/myvg-mylv
+
+# resize (shirnk) a partition
+unmount
+resize2fs /dev/mapper/myvg-mylv 10G
+lvreduce -L 10G /dev/mapper/myvg-mylv
+
+# remove logical volume with device maps ("used by another device")
+dmsetup remove /dev/mapper/vg1-some_lv1
+dmsetup remove /dev/mapper/vg1-some_lv2
+lvremove /dev/vg1/some_lv
+
 
 
 misc
@@ -244,4 +436,12 @@ dd if=/dev/sda of=mbr.bin bs=512 count=1
 
 # generate a random uuid
 uuidgen
+
+# add a parition on hybrid iso usb drive
+fdisk --wipe=never -t dos /dev/sdX
+
+# disk benchnmark
+bonnie
+---
+dd if=/dev/zero of=test bs=16M count=100 conv=sync
 

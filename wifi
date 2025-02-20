@@ -46,7 +46,11 @@ iw wlp2s0 disconnect
 iw dev wlan0 station dump
 
 # list wifi access points
+iwlist wlan0 scan | egrep 'Cell |Encryption|Quality|Last beacon|ESSID'
+---
 iw wlan0 scan
+---
+iw wlan0 scan | grep -e ^BSS -e 'SSID: ' | paste - -
 
 
 
@@ -76,27 +80,93 @@ network={
 }
 
 
+iwd
+===
+
+# list devices
+device list
+
+# power on device
+device wlan0 set-property Powered on
+adapter phy0 set-property Powered on
+
+# scan for networks
+station wlan0 scan
+
+# list available networks
+station wlan0 get-networks
+
+# connect to wifi network
+station wlan0 connect SSID_TO_CONNECT
+---
+iwctl --passphrase passphrase station wlan0 connect SSID_TO_CONNECT
+
+# disconnect from wifi network
+station wlan0 disconnect
+
+# show info on device
+device wlan0 show
+
+# show info on device connection
+station wlan0 show
+
+# list known networks
+known-networks list
+
+# forget known network
+known-networks SSID_TO_CONNECT forget
+
+
 
 airmon
 ======
 
+# list wifi interfaces
+airmon-ng
+
+# put interface in monitor mode
+airmon-ng start wlan0
+
+# capture auth beacons
+airodump-ng wlan0
+
 # send deauth frame
 aireplay-ng --ignore-negative-one --deauth 100 -a 31:2e:21:16:aa:aa wlan0
 
+# test the wifi wlan0 card
+aireplay-ng --test -i wlan1 wlan0
 
 
-network manager
-===============
 
-# list wireless devices
-nmcli radio all
+hcxtools
+========
+
+# dump hashes
+hcxdumptool -i wlan0 -t 10 -F -w dump.pcapng
+
+# dump hashes with active monitor mode (mt76x0u and mt76x2u modules only)
+hcxdumptool -i wlan0 -t 10 -F -A -w dump.pcapng
+
+# prepare wpa 22000 hashes for hashcat
+hcxpcapngtool dump.pcapng -o hashes.hc22000 -E wordlist.lst
+
+# list devices from hcxdumptool dump
+hcxpcapngtool dump.pcapng -D devices.lst
+
+# convert cap file to hccapx format (from hashcat-utils)
+cap2hccapx.bin in.cap out.hccapx
+hashcat -m 2500 --deprecated-check-disable out.hccapx word.lst
+
+# convert cap file to PMKID file format (from hcxtools git history)
+hcxpcaptool in.cap -z out.hash
+hashcat -m 16800 --deprecated-check-disable out.hccapx word.lst
 
 
 
 misc
 ====
 
-# iw output fields interpretation
+# iw list output fields interpretation
 capability: ESS				AP mode
 capability: IBSS			ad-hoc mode
 capability: Privacy			network is protected

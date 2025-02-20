@@ -54,3 +54,24 @@ aria
 --bt-max-peers=1
 --bt-load-saved-metadata=true
 --allow-overwrite=true
+
+
+# github.com/anacrolix/torrent
+# ============================
+
+# download a torrent
+./cmd/torrent/torrent download --ipv6=false --addr=10.21.1.2:27613 magnet:?xt=urn:btih:xxx
+
+
+
+misc
+====
+
+# show information on a torrent file
+aria2c -S file.torrent
+---
+transmission-show file.torrent
+
+# decode a base64 encoded infohash
+echo -n 2t1gj00Fzwl81N888u0O5d8GvcU= | base64 -d | xxd -l 32 -p
+

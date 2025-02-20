@@ -89,6 +89,9 @@ git tag -l --format='%(refname)   %(taggerdate)'
 # show code lines and commit authors
 git blame
 
+# show hash of only last commit
+git log -1 --pretty='format:%H'
+
 
 
 branching
@@ -286,15 +289,25 @@ git push --delete origin 1.0.0
 # delete a tag in remote repo by pushing an empty reference to the remote tag
 git push origin :1.0.0
 
+# delete origin server
+git remote remove origin
+
+# clone a repo via ssh from github
+git clone git@github.com:user1/repo1.git
+
 
 
 patch
 =====
 
-# create an patch
-git format-patch
+# create a patch
+git format-patch HEAD~1
+---
+git diff > 0001.some.patch
+---
+git diff --cached > 0001.some.patch
 
-# create an patch and send via email
+# create a patch and send via email
 git send-email
 
 # apply a patch
@@ -370,6 +383,8 @@ git remote set-url origin new.git.url/here
 git remote add origin git@github.com:user/repo.git
 ---
 git remote add origin git@linuxconsole.net:/git/repo.git
+---
+git remote add origin git@git.lan:/git/repo.git
 
 # use two remote locations
 git remote add origin git@linuxconsole.net:/git/repo.git
@@ -410,12 +425,22 @@ misc
 
 # delete files from history
 git filter-branch --force --index-filter "git rm --cached --ignore-unmatch hash-*.tsv" --tag-name-filter cat -- --all
+git update-ref -d refs/original/refs/heads/master
+git reflog expire --expire=now --all
+git gc --prune=now
 
 # delete files from history and delete empty commits
-git filter-branch --force --index-filter "git rm --cached --ignore-unmatch hash-*.tsv" --prune-empty --tag-name-filter c at -- --all
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch hash-*.tsv" --prune-empty --tag-name-filter cat -- --all
+git update-ref -d refs/original/refs/heads/master
+git reflog expire --expire=now --all
+git gc --prune=now
 
 # initialize repo on a server
 git init --bare
 
 # set modtime of a file from git repo
 touch -d "$(git log -1 --format="%aD" -- faq.txt)" faq.txt
+
+# define files as binary in .gitattributes to avoid compression on diffs
+*.zst binary
+

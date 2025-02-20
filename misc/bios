@@ -1,0 +1,13 @@
+energy saving
+=============
+
+# settings
+ASPM L0s	low resume latency, power saving standby state
+ASPM L1		higher resume latency, more power saving standby state
+ASPM L0sL1	both L0s and L1 enabled
+
+# going from PCI-E 3.0 Gen 3 to Gen 1 (saves ca. 2W idle power)
+DMI Max Link Speed
+PEG Port Configuration
+PCH Configuration -> PCI Express Configuration
+

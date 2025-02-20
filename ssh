@@ -31,7 +31,7 @@ ssh user@host 'bash -s' < /path/script.sh
 cat /path/script.sh | ssh user@host 'bash -s'
 
 # run multiple commands via ssh
-ssh host1 << EOF
+ssh host1 bash << EOF
 ls some_folder;
 ./someaction.sh 'some params'
 pwd
@@ -49,6 +49,31 @@ ssh -o BatchMode=yes -o ConnectTimeout=5 -o PubkeyAuthentication=no -o PasswordA
 
 # run a command with colored output
 ssh -t ls --color=auto
+
+# get a host public key
+ssh-keyscan -t ed25519 host
+
+# get a host fingerprint
+ssh-keyscan -t ed25519 host | ssh-keygen -lf -
+
+# see client ip address
+ssh host1 'cut -d" " -f1 <<< ${SSH_CLIENT}'
+---
+ssh host1 'echo ${SSH_CONNECTION} | awk "{print $1}"'
+
+# remote port forwarded to host1 ('GatewayPorts yes' and modified Host header)
+ssh -v -p 22 -N -R 8080:192.168.1.1:80 host1
+
+# local port forward
+ssh -N -L local_port:destination_server_ip:remote_port user@ssh_server
+
+# connect to a remote router (exposed on localhost:8080, access via proxy)
+ssh -v -N -L 8080:192.168.1.1:80 host1
+mitmproxy -p 8081 -H '/Host/192.168.1.1'
+
+# store typed passwords for keys within a new shell session
+ssh-agent bash -l
+ssh-add ~/.ssh/id_ed25519
 
 
 
@@ -74,4 +99,13 @@ rsync -rvz -e 'ssh -p 2222' --progress
 
 # copy multiple files from a remote host
 rsync 'host://root/file1 file2' ./dir1
+
+
+issues
+======
+
+# run command when ssh command hangs indefinitely
+ssh -T root@host1 uptime
+---
+ssh -n -t root@host1 uptime
 

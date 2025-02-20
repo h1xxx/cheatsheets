@@ -31,6 +31,9 @@ ip link set dev tun0 mtu 1350
 # change mac address of a device
 ip link set dev eth0 address AA:BB:CC:DD:EE:FF
 
+# show information on the interface incl. negotiated speed
+ethtool -I eth0
+
 # lower the speed of ethernet iface
 ethtool -s eth0 speed 100 duplex full autoneg off
 
@@ -58,6 +61,10 @@ brctl addif br0 eth0 eth1
 # check what bonding mode is enabled and what interfaces are used in a bond
 cat /proc/net/bonding/bond0
 
+# disable ipv6
+echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/70-disable-ipv6.conf
+sysctl -p -f /etc/sysctl.d/70-disable-ipv6.conf
+
 
 
 route setup
@@ -77,6 +84,15 @@ ip route show table all
 
 # list all rules
 ip rule show
+
+# list all routing tables
+ip route show table all
+
+# show a route for specific ip address
+ip route get 10.16.0.2
+
+# modify existing route
+ip r replace 10.16.0.0/24 dev wg0 metric 0 table local
 
 
 
@@ -112,6 +128,9 @@ iptables
 # show rules together with line numbers
 iptables -nvL --line-numbers
 
+# insert a rule on line 1
+iptables -I INPUT 1 -i eth0 -j ACCEPT
+
 # delete a rule on a specific line
 sudo iptables -D INPUT ${line_id}
 
@@ -128,6 +147,20 @@ iptables -F INPUT
 iptables-save > /etc/iptables/iptables.rules
 iptables-restore < /etc/iptables/iptables.rules
 
+# redirect locally originating outgoing traffic to a local port
+iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination 127.0.0.1:53
+iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination 127.0.0.1:53
+
+# redirect locally originating outgoing traffic to a local port with vpn;
+# requires testing, the reply is not SNATed
+iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination 127.0.0.1:53
+iptables -t nat -A POSTROUTING -p udp --dport 53 -j SNAT --to-source 127.0.0.1
+iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination 127.0.0.1:53
+iptables -t nat -A POSTROUTING -p tcp --dport 53 -j SNAT --to-source 127.0.0.1
+
+# drop outgoing non-local traffic on a port
+iptables -A OUTPUT ! -o lo -p udp --dport 53 -j DROP
+
 
 
 sys connections
@@ -143,6 +176,12 @@ sys connections
 -e      extended information
 -a      show all
 -4 / -6 only ipv4 or ipv6
+
+# list tcp connections
+grep tcp /proc/net/nf_conntrack
+
+# list udp connections
+grep udp /proc/net/nf_conntrack
 
 # get a number of opened connections
 cat /proc/sys/net/netfilter/nf_conntrack_count
@@ -185,9 +224,13 @@ misc
 # deamon that starts programs appropriate for a request from network
 xinetd
 
-# benchmark the connection speed - server/client
+# benchmark the connection speed - server/client in MB
 iperf3 -s  -f M
 iperf3 -c 192.168.1.1 -i 1 -f M -t 60
+
+# benchmark the connection speed - server/client revers parallel stress test
+iperf3 -s -p 65000 -i 10
+iperf3 -R -P 128 -i 10 -p 65000 -c 192.168.1.1
 
 # check connection mtu
 ping -M do -s 1500 -c 1 www.example.com
@@ -205,10 +248,71 @@ wget -cqO- http://v6.ident.me
 
 # mullvad test commands
 wget -cqO- https://am.i.mullvad.net/json
+---
 wget -cqO- https://ipv4.am.i.mullvad.net/port/13079
+---
+curl https://ipv6.am.i.mullvad.net/json
+
+# show mullvad wireguard servers
+curl https://api.mullvad.net/app/v1/relays | jq .wireguard
+---
+curl https://api.mullvad.net/app/v1/relays | jq -r '[.wireguard.relays[] | {hostname,active,owned,ipv4_addr_in,public_key}]'
+
+# show all privateinternetaccess server region IDs
+curl https://serverlist.piaservers.net/vpninfo/servers/v6 | jq .regions[] | grep '"id"' | sort | less
+
+# show all privateinternetaccess servers with port_forwarding
+curl https://serverlist.piaservers.net/vpninfo/servers/v6 | jq '.regions[] | select(.auto_region==true) | select(.port_forward==true)' | less
 
 # show info on current host from shodan
 w3m -dump -T text/html https://me.shodan.io
+
+# list top ports
+sort -r -k3 /usr/share/nmap/nmap-services | grep -v '^#'
+
+# show ephemeral ports
+cat /proc/sys/net/ipv4/ip_local_port_range
+
+# convert ip address in dot notation to decimal
+echo 172.16.112.100 | awk -F '\\.' '{printf "%d\n", ($1 * 2^24) + ($2 * 2^16) + ($3 * 2^8) + $4}'
+---
+ip2dec () {
+  echo ${1} | awk -F '\\.' '{printf "%d\n", ($1 * 2^24) + ($2 * 2^16) + ($3 * 2^8) + $4}'
+}
+ip2dec 69.50.95.167
+
+# convert ip address in dot notation to decimal int32
+ip2dec () {
+  echo ${1} | awk -F '\\.' '{printf "%d\n", (($1 * 2^24) + ($2 * 2^16) + ($3 * 2^8) + $4) - 2147483648}'
+}
+ip2dec 69.50.95.167
+
+# convert ip address in decimal to dot notation
+dec2ip () {
+  local ip delim dec=$1
+  for e in {3..0}; do
+    ((octet = dec / (256 ** e) ))
+    ((dec -= octet * 256 ** e))
+    ip+=$delim$octet
+    delim=.
+  done
+  printf '%s\n' "$ip"
+}
+dec2ip 2886758500
+
+# convert ip address in decimal int32 to dot notation
+dec2ip () {
+  local ip delim dec=$1
+  dec="$((dec+2147483648))"
+  for e in {3..0}; do
+    ((octet = dec / (256 ** e) ))
+    ((dec -= octet * 256 ** e))
+    ip+=$delim$octet
+    delim=.
+  done
+  printf '%s\n' "$ip"
+}
+dec2ip -614855692
 
 
 
@@ -230,8 +334,15 @@ ncat -lkp 4444 | strings >> file1.txt
 # connect to a server and send a file there
 nc -nv 192.169.0.1 4444 < input.bin
 
-# check if port is opened
+# check if tcp port is opened
 nc -zv 127.0.0.1 22
+
+# check if udp port is opened
+nc -zvul 31337            # on server host
+nc -zvu 8.12.34.56 31337  # on client host
+---
+nc -zvul6 31337                # on server host
+nc -zvu 2a00:2470::43298 31337 # on client host
 
 # setup an encrypted server
 ncat -nvlp 4444 --ssl
@@ -271,6 +382,11 @@ tcptrack
 vnstat
 ---
 vnstat -l -i eth0
+---
+iftop -i eth0
+
+# show general traffic stats on bridge interface (promiscuous mode)
+iftop -p -i br0
 
 
 
@@ -290,14 +406,6 @@ dnsmasq -p 0 -d -G eth00,a1:12:f4:22:27:42,10.10.10.2 -O wlan0,option:router,10.
 
 # discover dhcp servers on network
 nmap --script broadcast-dhcp-discover -e eth0
-
-
-
-ssh
-===
-
-# local port forward
-ssh -N -L local_port:destination_server_ip:remote_port user@ssh_server
 
 
 
@@ -321,10 +429,33 @@ ip l add dev wg0 type wireguard
 ip a add "${Address}" dev wg0
 wg set wg0 private-key <(echo "${PrivateKey}")
 wg set wg0 peer "${PublicKey}" endpoint "${Endpoint}" allowed-ips "${AllowedIPs}"
+# if preshared key exists
+wg set wg0 peer "${PublicKey}" preshared-key <(echo "${PresharedKey}") endpoint "${Endpoint}" allowed-ips "${AllowedIPs}"
 ip r add 0.0.0.0/1 dev wg0
 ip r add 128.0.0.0/1 dev wg0
 ip r add "$(echo "${Endpoint}"|cut -d: -f1)"  via "${gw}" dev eth0
 ip l set wg0 up
+
+# generate wireguard keys
+wg genkey | tee private.key | wg pubkey > public.key
+
+
+
+bird
+====
+
+# show config
+bird> show protocols all
+
+
+
+frr
+===
+
+# vtysh commands
+show bgp summary
+show ip bgp neighbors 169.254.1.1
+show ip bgp neighbors 169.254.1.1 advertised-routes
 
 
 
@@ -349,4 +480,13 @@ man tcpdump
 # mac prefixes
 /usr/share/nmap/nmap-mac-prefixes
 /usr/share/arp-scan/ieee-oui.txt
+
+
+
+openvpn
+=======
+
+# in client config ignore ipv6
+pull-filter ignore "ifconfig-ipv6"
+pull-filter ignore "route-ipv6"
 

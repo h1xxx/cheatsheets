@@ -1,0 +1,16 @@
+cups
+====
+
+# search for printers on network using mdns (avahi)
+lpinfo --include-schemes dnssd -v
+---
+avahi-browse -rt _ipp._tcp
+
+
+
+hp
+==
+
+# configure hplip printer
+hp-setup
+

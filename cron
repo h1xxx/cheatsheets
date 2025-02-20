@@ -1,8 +1,13 @@
 rules
 =====
 
-#  run a script every hour with cron
+#  run a script every hour
 0 * * * * /root/script.sh
+
+#  run a script every 30 minutes
+0/30 * * * * /root/script.sh
+---
+*/30 * * * * /root/script.sh
 
 # run command after reboot
 @reboot /bin/touch /home/x

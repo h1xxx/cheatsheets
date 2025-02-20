@@ -26,6 +26,12 @@ chmod 4750 file1.txt
 # change permissions
 chmod u=rwx,g=rx,o=r file1
 
+# create a dir and set ownership and permissions
+install -o root -g root -m 0700 -d dir1
+
+# copy a file and set ownership and permissions
+install -o root -g root -m 0700 src.txt dest.txt
+
 
 
 file info
@@ -46,6 +52,9 @@ stat <file>
 
 # show file mime type
 file -i <file>
+
+# find and list only filenames w/o path
+find dir1 -type f -printf "%f\n"
 
 # show file signature (magic number)
 od -t x1 -N 8 <file>
@@ -79,6 +88,12 @@ find . -type f | perl -lne 'print if -B'
 
 # find only text files
 find . -type f | perl -lne 'print if -T'
+
+# get file size
+stat -c %s file1
+
+# get file size (without new line)
+stat --printf=%s file1
 
 
 
@@ -202,7 +217,7 @@ ln -s /home/dir/* .
 bin2iso <cue file> -c <bin file>
 
 # find duplicate files recursively, keep only the first instance of a file
-fdupes -r -d -N .
+fdupes -o name -r -d -N .
 
 # find duplicate files recursively
 fdupes -r .
@@ -214,6 +229,30 @@ find . -name *.exe -exec rm {} \;
 
 # create a temp directory
 mktemp -d
+
+# copy a file while showing status/statistics
+pv infile > outfile
+
+# copy a dir while showing status/statistics
+tar c source_dir | pv | tar x -C dest_dir
+
+# copy files preserving directory structure
+rsync -rv --include '*/' --include '*.zst' --exclude '*' source_dir/ target_dir/
+
+# move files preserving directory structure
+rsync -rv --remove-source-files --include '*/' --include '*.zst' --exclude '*' --prune-empty-dirs source_dir/ target_dir/
+
+# sync from a list of files preserving directory structure
+rsync -rv --files-from=file.lst . target_dir
+
+# create an empty file with a fixed size
+fallocate -l 5G file1
+
+# create an empty file with a fixed size (sparse file version)
+truncate -s 5G file1
+
+# securely remove a file
+shred file.txt
 
 
 
@@ -282,6 +321,9 @@ find /path/to/dir -newermt "yyyy-mm-dd"
 
 # list all files modified on a given date
 find /path/to/dir -newermt yyyy-mm-dd ! -newermt yyyy-mm-dd
+
+# list files newer than another file
+find -newer file1.log -type f
 
 # find suid binaries
 find /bin /sbin /usr -perm -4000

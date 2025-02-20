@@ -28,6 +28,9 @@ mpv af=loudnorm
 # list all cards and connectors
 mpv --drm-connector=help
 
+# limit youtube-dl resolution
+mpv -ytdl-format='bestvideo[height<=?1080]+bestaudio/best'
+
 # play a video on a specific card and connector
 mpv -vo drm --drm-connector=VGA-1 file.mkv
 ---
@@ -43,6 +46,9 @@ r/R	move subtitles up and down
 
 # skip display of tags like artist or description
 mpv --display-tags=none	file.mkv
+
+# list drm modes
+mpv --drm-mode=help
 
 
 
@@ -69,6 +75,12 @@ ffmpeg -ss 01:00:00 -to 01:32:00 -i in.mp4 -c copy out.mp4
 
 # convert git to avi
 convert in.gif tmp.png && ffmpeg -i tmp.png out.avi
+
+# extract video from a video file, last digit is a video stream
+ffmpeg -i video.mkv -map 0:v subs.srt
+
+# extract subtitles from a video file, last digit is a subtitle stream
+ffmpeg -i video.mkv -map 0:s:0 subs.srt
 
 
 
@@ -116,3 +128,7 @@ misc
 
 # play video under tty with mplayer
 mplayer -vo fbdev2 -fs -zoom -xy 1280 -quiet -msglevel all=-1 file.mkv
+
+# download subtitles
+subliminal download -l en movie.mkv
+

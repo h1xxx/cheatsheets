@@ -82,14 +82,27 @@ gpg --verify gcc-4.7.2.tar.gz.sig	# verify signature
 file encryption
 ===============
 
-# encrypt a file
-gpg -c filename
+# encrypt a file with symmetric encryption
+gpg -c file.tar
+
+# encrypt a file with aes
+gpg -c --cipher-algo AES256 file.tar
+
+# encrypt a file with aes, increase security
+gpg -c --s2k-mode 3 --s2k-count 65011712 --s2k-digest-algo SHA512 --s2k-cipher-algo AES256 file.tar
+
+# encrypt a file in a script
+echo pass1 > pass.txt
+cat pass.txt | gpg --passphrase-fd 0 --batch -c file1.tar
+---
+echo pass1 > pass.txt
+gpg --passphrase-fd 3 -c file1.tar 3<pass.txt
 
 # encrypt a dir
 gpgtar -c -o file.gpg dirname
 
 # decrypt a file
-gpg filename.gpg
+gpg -d file.txt.gpg > file.txt
 
 # decrypt a file with a passphrase without gpg-agent
 gpg  --pinentry-mode=loopback --passphrase 'pass123' file1.txt.gpg
@@ -118,10 +131,9 @@ openssl x509 -inform pem -in cerfile.cer -noout -text
 openssl x509 -inform der -in cerfile.cer -noout -text
 
 # view certificate information from a server
-openssl s_client -showcerts -connect linuxconsole.net:443 < /dev/null | openssl
-x509 -text
+openssl s_client -showcerts -connect linuxconsole.net:443 < /dev/null | openssl x509 -text
 
-# generate a public key file
+# create a public key file
 openssl x509 -in cert.pem -pubkey -noout > key.pub
 
 # create sha256 fingerprint of x509 public key
@@ -136,6 +148,20 @@ ssh-keygen -i -m PKCS8 -f key.pub
 
 # get a cert from let's encrypt
 acme.sh  --issue --alpn -d domain.com
+
+# enable legacy ssl algorithms, including md4 for ntlm hashing
+cat >> /etc/ssl/openssl.cnf << EOF
+# enable legacy ssl algorithms, including md4 for ntlm hashing
+[openssl_init]
+providers = provider_sect
+[provider_sect]
+default = default_sect
+legacy = legacy_sect
+[default_sect]
+activate = 1
+[legacy_sect]
+activate = 1
+EOF
 
 
 
@@ -168,4 +194,25 @@ cat /dev/random | head -c 256 | md5sum | cut -c1-12 | sed 's|\(..\)|\1:|g; s|:$|
 
 # 2fa/otp two factor authentication/one time password
 oathtool -b --totp <key>
+
+# convert encrypted key to unencrypted one
+openssl pkey -in servenc.key -out serv.key
+
+# convert a key to encrypted one
+openssl pkey -in serv.key -out servenc.key -des3
+
+# create a bcrypt password hash (used by prometheus)
+python -c 'import bcrypt; print(bcrypt.hashpw("pass1".encode("utf-8"), bcrypt.gensalt()).decode())'
+
+# encrypt xor cyphertext using pwntools
+python -c "from pwn import xor; print(xor(b'text_to_encrypt', b'pass1'))"
+
+# decrypt xor cyphertext using pwntools
+python -c "from pwn import xor; print(xor(b'\x04\x04\x0b\x07n\x04\x0e,\x16_\x13\x13\n\x03E', b'pass1'))"
+
+# generate NTLM hash
+python -c "import hashlib,binascii; print(binascii.hexlify(hashlib.new('md4', 'pass1'.encode('utf-16le')).digest()))"
+
+# create a md5 binary checksum
+echo 0123456 | openssl dgst -md5 -binary
 

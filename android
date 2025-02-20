@@ -31,6 +31,9 @@ adb shell pm list packages -d
 # backup data from an app (installed apk needs to have backup option enabled)
 adb backup -noapk com.whatsapp
 
+# show log with model version info
+adb catlog
+
 
 
 android shell
@@ -131,4 +134,33 @@ input tap 700 2000
 ---
 am start -a android.media.action.VIDEO_CAPTURE
 input tap 700 2000
+
+
+
+lineage
+=======
+
+# fix delayed notification issue
+adb shell dumpsys deviceidle whitelist +com.android.messaging
+adb shell dumpsys deviceidle force-idle
+... test with sms from another device ...
+
+
+
+graphene os
+===========
+
+# verify image
+signify -Cp factory.pub -x sargo-factory-2022021721.zip.sig
+
+
+misc
+====
+
+# add a number to blocked list
+adb shell content insert --uri content://contacts/blocked_numbers \
+  --bind data1:s:"+1234567890"
+---
+adb shell sqlite3 /data/data/com.android.providers.contacts/databases/contacts2.db
+INSERT INTO table_name (phone_number, is_blocked) VALUES ('+1234567890', 1);
 

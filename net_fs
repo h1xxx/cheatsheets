@@ -47,3 +47,11 @@ nfs-ls nfs://10.129.171.11/mnt/nfsshare/
 # print contents of a file (as root, no modules needed)
 nfs-cat nfs://10.129.171.11/var/nfs/flag.txt
 
+
+
+rsync
+=====
+
+# list only remote shares on rsync server
+rsync --list-only rsync://10.129.75.184/public/
+

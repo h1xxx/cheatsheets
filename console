@@ -83,6 +83,14 @@ convert -quality 100 fb.ppm fb.jpg
 # get tty1 virtual console output
 cat /dev/vcs1
 
+# reset terminal
+reset
+---
+stty sane
+
+# clear terminal
+ctrl+l
+
 
 
 misc

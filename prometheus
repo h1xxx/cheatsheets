@@ -1,0 +1,19 @@
+promtool
+========
+
+# syntax for promtool commands
+promtool check healthy --http.config.file=promtool.yml --url=https://local:9090
+cat promtool.yml
+basic_auth:
+  username: "user"
+  password: "password"
+
+# check prometheus config
+promtool check config /etc/prometheus/prometheus.yml
+
+# check monitored host services
+promtool check service-discovery /etc/prometheus/prometheus.yml node_exporter
+
+# check target health status
+promtool query instant --http.config.file=.promtool.yml https://mon.lan:9090 up
+

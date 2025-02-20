@@ -45,6 +45,9 @@ convert <src file> -crop 640x250+0+0 <dest file>
 # crop an image - leave only the bottom
 convert <src file> -crop 640x250+0+230 <dest file>
 
+# crop an image - remove the bottom
+convert <src file> -crop 640x250+0-230 <dest file>
+
 # add a caption to an image
 convert <src file> -pointsize 14 -font helvetica -fill yellow -draw 'text 270,160 "example" ' <dest file>
 
@@ -77,4 +80,7 @@ exiftran --help
 
 # view autoresized image on fb0
 fbi -a -d /dev/fb0
+
+# delete any exif data from a file, create backup
+exiftool -all= file.txt
 

@@ -1,0 +1,6 @@
+misc
+====
+
+# don't preserve top output on exit
+tput smcup; top; tput rmcup
+

@@ -43,6 +43,9 @@ irssi
 /set irc.server.freenode.command "/join #linux; /join ##security"
 /set irc.server.freenode.autojoin "#linux, ##security"
 
+# ircnet config
+/SERVER ADD -tls -notls_verify -network ircnet -port 6697 ssl.ircnet.io
+
 # sasl register (liber, oftc)
 /msg NickServ REGISTER pass123 mail@example.com
 

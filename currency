@@ -14,7 +14,7 @@ electrum stop
 
 # wallet commands' list
 load_wallet			load the default wallet
-load_wallet -w wallet_file	load wallet from a specific file
+load_wallet -w ./wallet_file	load wallet from a specific file
 list_wallets			list wallets loaded
 close_wallet			unload the wallet
 
@@ -32,7 +32,7 @@ electrum listunspent | jq 'map(.value)'
 electrum getbalance
 
 # show addresses with money
-electrum listaddresses --funded
+electrum listaddresses -b --funded
 electrum listunspent
 
 # show status of a transaction (number of confirmations)

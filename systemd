@@ -1,0 +1,51 @@
+systemd
+=======
+
+# list services
+systemctl --type=service
+---
+systemctl list-units --type=service
+
+# list running services
+systemctl --type=service --state=running
+
+
+
+service unit file [Service]
+===========================
+
+# wait for a service to start to see errors
+ExecStartPost=sleep 1
+
+# allow start of the service on privileged ports (1st line just limits the caps)
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+# write logs to a file (doesn't truncate, writes to the start of file)
+StandardOutput=file:/var/log1.log
+StandardError=file:/var/log2.log
+
+# write logs to a file by appending new lines
+StandardOutput=append:/var/log1.log
+StandardError=append:/var/log2.log
+
+
+
+journalctl
+==========
+
+# view kernel messages
+journalctl -t kernel
+
+# show all messages from this boot
+journalctl -b
+
+# show only error messages since last boot
+journalctl -p 3 -xb
+
+# show last n logs
+journalctl -eu nginx --since -7d -n 100000
+
+# show last n logs since a week ago
+journalctl -eu nginx --since -1w -n 100000
+

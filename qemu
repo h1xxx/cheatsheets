@@ -11,6 +11,64 @@ qemu-img convert -c -p -O qcow2 vmname.vmdk vmname.qcow2
 
 
 
+libvirt
+=======
+
+# create a domain (VM)
+virt-install                    \
+  --name linux_testing          \
+  --os-variant debiantesting    \
+  --memory 1024                 \
+  --vcpus=2,maxvcpus=4          \
+  --cpu host                    \
+  --disk /dev/mapper/vg_vm-vm1_boot,format=raw \
+  --disk /dev/mapper/vg_vm-vm1_root,format=raw \
+  --network bridge=virbr0       \
+  --virt-type kvm               \
+  --audio none                  \
+  --graphics none               \
+  --console pty,target_type=serial \
+  --noautoconsole
+
+# connect to VM's serial console
+virsh console vm1
+
+# list all domains
+virsh list --all
+
+# list all containers
+virsh -c lxc:///system list
+
+# start a domain (VM)
+virsh start linux_testing
+
+# stop a domain (VM)
+virsh shutdown linux_testing
+
+# force shutdown a domain (VM)
+virsh destroy linux_testing
+
+# remove a domain (VM), must be in shutdown state
+virsh undefine linux_testing
+
+# autostart a domain (VM)
+virsh autostart linux_testing
+
+# disable autostart a domain (VM)
+virsh autostart linux_testing --disable
+
+# create a default network for communication between host and domains
+virsh net-start default
+
+# remove a network
+virsh net-destroy default
+virsh net-undefine default
+
+# list configured networks
+virsh net-list --all
+
+
+
 misc
 ====
 
@@ -50,7 +108,25 @@ isolcpus=4-7 nohz_full=4-7 rcu_nocbs=4-7
 # then, run qemu-system-x86_64 with taskset and chrt
 chrt -r 1 taskset -c 4-7 qemu-system-x86_64 [...]
 
-
+# qemu command example
+qemu-system-x86_64 \
+-smp sockets=1,cores=4,threads=1 \
+-m 8G \
+-cpu host,kvm=off \
+-machine q35,accel=kvm \
+-enable-kvm \
+-device amd-iommu \
+-drive file=/home/x/vm/debian.img,if=virtio,index=0,media=disk,format=raw \
+-device virtio-net,netdev=net0,mac=52:54:00:c6:7b:b7 \
+-netdev tap,id=net0,ifname=tap_debian,script=no,downscript=no \
+-virtfs \
+local,path=/mnt/shared,mount_tag=host0,security_model=mapped-xattr,id=host0 \
+-vga none \
+-device qxl-vga,vgamem_mb=64 \
+-vnc unix://mnt/shared/vnc/debian,lossy=off,non-adaptive=on \
+-display default,show-cursor=on \
+-usb \
+-device usb-tablet
 
 monitor
 =======
@@ -84,17 +160,6 @@ guests
 # instead of 'lts' type in 'syslinux'
 # add 'nomodeset' in extlinux
 /boot/vmlinuz-lts rw nomodeset modules=loop,squashfs,sd-mod,usb-storage initrd=/boot/initramfs-lts
-
-# debian install in txt mode
-# to boot into text mode without framebuffer:
-- press <Esc> a few times during seabios boot
-- type 'install vga=normal fb=none' or 'install gfxpayload=text fb=none'
-# disable drm in grub by adding GRUB_TERMINAL=console
-# disable kms by adding nomodeset to kernel parameters and by adding:
-'blacklist bochs_drm' to /etc/modprobe.d/blacklist.conf
-
-# arch linux install in txt mode
-# to boot in text mode press <Esc> and then type 'arch64 nomodeset'
 
 # run with a iso cdrom
 qemu-system-x86_64 -cdrom ~/debian-8.6.0-amd64-netinst.iso -boot menu=on -drive file=debian,format=raw -m 8G -enable-kvm

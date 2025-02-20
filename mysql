@@ -1,0 +1,114 @@
+info queries
+============
+
+# show databases
+SHOW DATABASES;
+
+# show all tables in a database
+SHOW TABLES;
+
+# show table structure with its fields
+DESCRIBE db1;
+
+
+
+modify queries
+==============
+
+# create table
+CREATE TABLE logins (
+  id INT NOT NULL AUTO_INCREMENT,
+  username VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(100),
+  date_of_joining DATETIME DEFAULT NOW(),
+  PRIMARY KEY (id)
+);
+
+# insert row with all columns declared
+INSERT INTO logins VALUES(1, 'admin', 'p@ssw0rd', '2020-07-02');
+
+# insert row with only required columns declared
+INSERT INTO logins(username, password) VALUES('administrator', 'adm1n_p@ss');
+
+# insert multiple rows with only required columns declared
+INSERT INTO logins(username, password) VALUES ('john', 'john123!'), ('tom', 'tom123!');
+
+# delete table
+DROP TABLE logins;
+
+# add a column to table
+ALTER TABLE logins ADD new_column INT;
+
+# rename a column
+ALTER TABLE logins RENAME COLUMN new_column TO old_column;
+
+# change column data type
+ALTER TABLE logins MODIFY old_column DATE;
+
+# delete column
+ALTER TABLE logins DROP old_column;
+
+# modify rows
+UPDATE logins SET password = 'change_password' WHERE id > 1;
+
+
+
+select queries
+==============
+
+# select database
+USE db1;
+
+# select and sort descending
+SELECT * FROM logins ORDER BY password DESC, id DESC LIMIT 10;
+
+# select rows with columns containing string prefix
+SELECT * FROM logins WHERE username LIKE 'admin%';
+
+# select rows with columns containing string of length 3
+SELECT * FROM logins WHERE username LIKE '___';
+
+# select rows with columns containing string of length other than 3 (negation)
+SELECT * FROM logins WHERE username NOT LIKE '___';
+
+# select data from another query
+SELECT count(*) FROM (SELECT last_name FROM employees UNION SELECT dept_no FROM departments) as tmp_table;
+
+
+
+mysql
+=====
+
+# commands' list
+systemctl start mariadb                 start the server
+mysql -p -u root                        log in to server
+create db1;                             create a database
+show databases;                         show databases
+select database();                      show current database
+use db1;                                select a database
+drop table tbl1;                        delete a table
+drop database db1;                      delete a database
+source file_commands.sql;               execute commands from a file
+select * from tbl limit 10;             show first ten rows from a table
+select * from tbl order by fld1 limit 10;       show top ten rows if sorted
+select * from tbl limit 10;             show first ten rows from a table
+SELECT Count(*) FROM tblName            count number of rows in a table
+
+# dump data into csv file
+SELECT *
+INTO OUTFILE '/tmp/products.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+ESCAPED BY '\\'
+LINES TERMINATED BY '\n'
+FROM products;
+
+# connect to a database
+mysql -p -u root -h 10.129.38.174 -P 3306 --protocol TCP
+
+# run the sql query from shell
+mysql -p -u root db1 < file.sql
+
+# add months to a date
+select dateadd(month, 2, '2007/01/31') as new_date;
+

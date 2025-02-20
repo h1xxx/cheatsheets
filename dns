@@ -7,6 +7,9 @@ dig ddg.co A
 # query dns A records and get only ip numbers
 dig +short ddg.co
 
+# get only one ip address from domain
+dig +short smtp.mydomain.net | tail -n1
+
 # query dns mail MX records
 dig ddg.co MX
 

@@ -86,6 +86,17 @@ SELECT col1, count(col1) AS count FROM t1 GROUP BY col1 ORDER BY count DESC;
 # make sure that null values are unique by creating an index
 CREATE UNIQUE INDEX ix ON table1 (col1, col2);
 
+# get last record
+SELECT id,value FROM my_table ORDER BY id DESC LIMIT 1;
+
+# pattern matching
+SELECT * FROM table1 WHERE imdb GLOB 'tt*[1-9][1-9][1-9][1-9][1-9][1-9]??';
+
+# write a binary blob to a file
+select writefile('blob.bin', blob_column) from table where key= '12345';
+---
+sqlite3 file.db "select hex(bmp) from reg where id=1" | xxd -r -p > 2.png
+
 
 
 sqlite3 sessions examples
@@ -125,99 +136,6 @@ sqlite3 db2.sqlite3 .dump | sqlite db3.sqlite3
 sqlite> create table foo(a, b);
 sqlite> .separator ,
 sqlite> .import test.csv foo
-
-
-
-postgres
-========
-
-# start a newly created database
-pg_ctl -D /var/lib/postgres/data -l logfile start
-
-# login as root user
-psql -U postgres
-
-# login as regular user
-psql -U user1 -d db1
-
-# change the database
-postgres=# \connect db1
-
-# change the owner of the database
-postgres=# ALTER DATABASE name OWNER TO new_owner;
-
-# create a role
-postgres=# CREATE ROLE role_name WITH LOGIN;
-
-# add login attribute
-postgres=# ALTER ROLE role_name WITH LOGIN CREATEDB;
-
-# create a role with login permissions already included
-postgres=# CREATE USER role_name;
-
-# list roles
-postgres=# SELECT rolname FROM pg_roles;
-
-# list role attributes
-postgres=# \du
-
-# list databases
-postgres=# \l
-
-# list database extensions
-postgres=# \dx
-
-# show current and session user
-db1=# SELECT SESSION_USER, CURRENT_USER;
-
-# create a database and grant privilges
-postgres=# CREATE DATABASE db1;
-postgres=# GRANT ALL PRIVILEGES ON DATABASE db1 TO role_name;
-
-# enable an extension in db1
-db1=# CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-# add and remove user from a group
-postgres=# GRANT user1 to dba;
-postgres=# ALTER GROUP user1 DROP USER dba;
-
-# allow creating functions in untrusted language
-db1=# UPDATE pg_language SET lanpltrusted = true WHERE lanname LIKE 'c';
-
-
-
-mysql
-=====
-
-# commands' list
-systemctl start mariadb			start the server
-mysql -p -u root			log in to server
-create db1;				create a database
-show databases;				show databases
-select database();			show current database
-use db1;				select a database
-drop table tbl1;			delete a table
-drop database db1;			delete a database
-source file_commands.sql;		execute commands from a file
-select * from tbl limit 10;		show first ten rows from a table
-select * from tbl order by fld1 limit 10;	show top ten rows if sorted
-select * from tbl limit 10;		show first ten rows from a table
-SELECT Count(*) FROM tblName		count number of rows in a table
-
-# dump data into csv file
-SELECT *
-INTO OUTFILE '/tmp/products.csv'
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-ESCAPED BY '\\'
-LINES TERMINATED BY '\n'
-FROM products;
-
-# run the sql query from shell
-mysql -p -u root db1 < file.sql
-
-# add months to a date
-select dateadd(month, 2, '2007/01/31') as new_date;
 
 
 
@@ -267,14 +185,37 @@ inpsql3.close()
 
 
 
+mongo
+=====
+
+# example mongo cli session
+mongo --port 27117 ||  mongosh 10.129.81.210
+show dbs
+db.version()
+use users
+show collections
+db.coll_123.find().pretty()
+
+
+# change a value (password in this case)
+mkpasswd -m sha-512 Password1234
+...
+use ace
+db.admin.find().pretty()
+db.admin.update({"_id": ObjectId("61ce278f46e0fb0012d47ee4")},{$set:{"x_shadow":"GENERATED SHA_512 HASH"}})
+db.admin.update({"_id": ObjectId("61ce278f46e0fb0012d47ee4")},{$set:{"x_shadow":"$6$ddLG.x4jlRs5ws12$cAYHPcvVnlJ3O0TQPCf0IbUNH2Spd6idNWNCkfM/sSuek23tqIpAEgFdnfn6EbIsPqqXDwhPDqSX1e5N8NmLO."}})
+
 redis
 =====
 
 # example redis-cli session
 redis-cli -s /run/redis.sock
 keys *
-SELECT 1
+select 1
 keys *
-INFO memory
-INFO
+get temp
+info memory
+info
+select 0
+keys *
 

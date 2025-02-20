@@ -67,6 +67,9 @@ wget
 # a popular user-agent to use in requests
 ua="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
 
+# google bot user agent
+ua='Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+
 # mirror/download the website with all the subdomains
 wget -mHpEk -U "${ua}" -e robots=off -T 10 -t 3 --retry-connrefused --restrict-file-names=unix --no-check-certificate --no-show-progres -o wget.log -D example.com http://example.com
 
@@ -89,13 +92,14 @@ wget -mpEk -U "${ua}" -e robots=off -T 10 -t 3 --retry-connrefused --restrict-fi
 --no-show-progres		disable progress bar
 -o wget.log			write stdout to wget.log file
 -D, --domains example.com	don't follow links outside of named domain
+--spider                        don't download, only list urls
 
 # misc wget parameters
 -r, --recursive			also download all the links
 -N, --timestamping		turn on time-stamping
 -l 0				no recursive limit
 --no-remove-listing		don't remove dir .listing files
--nc, --no-clobber		don't overwrite any existing files (not with -k)
+-nc, --no-clobber		don't download any existing files (not with -k)
 -np, --no-parent		don't follow links above the path
 -w 0.1, --wait 0.1		wait 0.1s between requests
 --random-wait			wait 0.5-1.5s between requests
@@ -103,6 +107,9 @@ wget -mpEk -U "${ua}" -e robots=off -T 10 -t 3 --retry-connrefused --restrict-fi
 
 # download via proxy
 wget [...] -e use_proxy=yes -e http_proxy=127.0.0.1:80 http://example.com/f.txt
+
+# skip url based on regex
+--reject-regex '\?(action|diffoldid|limit|debug|printable|feed|offset|returntoquery)='
 
 
 
@@ -134,6 +141,11 @@ curl -i -X OPTIONS example.com
 -A	user-agent
 -e	referer
 -L	follow redirections
+-I	skip content, just print headers
+
+# convert http request from file to a curl command
+wget https://raw.githubusercontent.com/curl/h2c/master/h2c
+perl h2c < request.txt
 
 
 
@@ -188,5 +200,30 @@ extract_chmLib <chmfile> <outdir>
 # list of domain suffixes
 wget https://publicsuffix.org/list/public_suffix_list.dat
 
+# concurrent download of a file
+aria2c -x 16 -s 16 -k 1M https://file.tar
 
+# download from tor
+curl --retry-all-errors -x socks5h://127.0.0.1:9050 http://l4kn27qd.onion/ -o files.zip
+
+# find public ip address via http service
+curl icanhazip.com
+---
+curl https://api.ipify.org
+---
+curl https://api.ipify.org?format=json
+---
+curl https://ipinfo.io/json
+---
+curl ifconfig.me
+---
+curl ipecho.net/plain
+---
+wget -qO - http://checkip.dyndns.org
+
+# check ipv6 ip address
+curl https://api6.ipify.org
+
+# start a server with dir listing
+python3 -m http.server 80
 

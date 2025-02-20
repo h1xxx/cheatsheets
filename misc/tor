@@ -1,0 +1,77 @@
+tor
+===
+
+curl -H "Transfer-Encoding: chunked"
+
+# download a file through tor
+curl -o files.zip -v --retry 9999999 --retry-max-time 0 -x socks5h://127.0.0.1:9050 http://abc.onion/api/public/dl/1/
+---
+curl -O -v --retry 9999999 --retry-max-time 0 -x socks5h://127.0.0.1:9050 http://abc.onion/api/public/dl/1/
+
+# download multiple files via tor
+xargs -n 1 curl -x socks5h://127.0.0.1:9050 -L -O -k --retry 9999999 --retry-max-time 0 -C - < urls.txt
+
+# fast tor download
+cat > /etc/tor/torrc << EOF
+DNSPort 127.0.0.1:53
+AutomapHostsOnResolve 1
+RunAsDaemon 1
+NewCircuitPeriod 864000
+MaxCircuitDirtiness 1
+CircuitBuildTimeout 864000
+ExitRelay 0
+ClientOnly 1
+PathsNeededToBuildCircuits 0.25
+EOF
+for p in $(seq 20001 28192); do echo "SOCKSPort $p" >> /etc/tor/torrc ; done
+cat > /etc/haproxy/config << EOF
+global
+        daemon
+defaults
+        retries 32
+        maxconn 50000
+        timeout client 3600s
+        timeout connect 60s
+        timeout queue 10s
+        timeout server 3600s
+listen tor
+        bind    127.0.0.1:9050
+        mode    tcp
+        balance leastconn
+EOF
+for p in $(seq 20001 28192); do echo "\tserver tor$p 127.0.0.1:$p check" >> /etc/haproxy/config; done
+echo 'listen-address 127.0.0.1:8080\nforward-socks5 / localhost:9050 .\n' > /etc/privoxy/config
+ulimit -n 10000
+tor
+haproxy -f /etc/haproxy/config  -D
+privoxy /etc/privoxy/config
+export http_proxy=127.0.0.1:8080
+
+# fast tor download using aria
+gost -L=:1234 -F=socks5://4.3.2.1:1080  # from https://github.com/ginuerzh/gost
+export https_proxy=http://127.0.0.1:1234
+aria2c -x 10 -s 10 -k 1M <URL>
+-
+/etc/tor/torrc:
+SOCKSPort 40000
+...
+SOCKSPort 41023
+-
+/etc/haproxy/haproxy.cfg:
+# This configuration will robin round 1024 TOR circuits.
+listen tor
+    bind    127.0.0.1:9050
+    mode    tcp
+    option  tcplog
+    #balance roundrobin
+    balance leastconn
+
+    server  tor40000    127.0.0.1:40000 check
+    ... 
+    server  tor41023    127.0.0.1:41023 check
+-
+proxychains config:
+socks4 127.0.0.1 9050
+http 212.80.30.2 8080
+proxychains aria2c --bt-max-peers=1 file.torrent
+

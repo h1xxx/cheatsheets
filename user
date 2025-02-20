@@ -23,6 +23,9 @@ w -i		# users logged in and their ip address
 last -x		# user log history
 whoami		# who am I?
 
+# generate a password hash for /etc/passwd file (from whois package)
+mkpasswd -m sha-512 -R 1048576 pass123
+
 # change users uid and gid (permissions need to be verified separately)
 usermod -u <uid> <user>
 groupmod -g <gid> <user>

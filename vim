@@ -206,8 +206,17 @@ g&		repeat last substitution on all lines
 macros
 ======
 
-# keys
-@@		repeat last macro
+# record macro at register 'a'
+qa<commands>q
+
+# run macro at register 'a'
+@a
+
+# run macro at register 'a' on five lines
+5@a
+
+# repeat last macro
+@@
 
 
 
@@ -224,6 +233,11 @@ C-V, C-@	write an ascii control character
 :set textwidth=80
 :set ruler	show cursor position
 :C-g		show cursor position
+ga              show hex and octal value of the character under the cursor
+
+# set syntax highlighting for html
+syntax on
+set syntax=html
 
 
 

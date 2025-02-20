@@ -18,6 +18,12 @@ flac -d input1.flac
 # compress a wave file
 ffmpeg -i file1.wav out.flac
 
+# convert flac to mp3 (LAME variable rate) w/o cover image
+ffmpeg -i file1.flac -q:a 3 -vn out.mp3
+
+# convert flac to mp3 (LAME variable rate) w/o cover image in a batch script
+ffmpeg -i file1.flac -q:a 3 -vn -loglevel 24 -nostdin out.mp3
+
 
 
 alsa

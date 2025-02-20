@@ -1,0 +1,105 @@
+hashcat
+=======
+
+# crack with rules
+hashcat -m 1000 -O -w 4 --potfile-path hc.pot -o hc.out -r all.rule list.hash word.lst
+
+# crack hashes using dictionary attack (wifi hcxdumptool example)
+hashcat -O -w 4 -m 22000 --potfile-path hc.pot -o hc.out hash.hc22000 word.lst
+
+# combine all words from two word lists
+hashcat -a 1 -m 0 hash.lst word1.lst word2.lst
+
+# print generated passwords
+hashcat -a 1 --stdout file1 file2
+
+# rule based cracking of wifi
+hashcat -S -d1,2 -O -w 4 -m 22000 --potfile-path wifi.pot -o wifi_out.pot -r top.rule wifi.hc22000 words.lst
+
+# generate passwords with cpu (dev 3) and crack with gpu (dev 1+2)
+hashcat -d 3 -a 1 --stdout word1.lst word2.lst | hashcat -O -d 1,2 -w 4 -m 22000 hash.hc22000
+
+# mask attack
+hashcat -a 3 -1 02 -O -w 4 -m 0 md5.hash 'HASHCAT?l?l?l?l?l20?1?d'
+
+# hybrid attack - append suffix to words based on a mask
+hashcat -a 6 -m 0 md5.hash word.lst '?d?s'
+
+# hybrid attack - append prefix to words based on a mask
+hashcat -a 7 -m 0 md5.hash '?d?s' word.lst
+
+# show example hashes
+hashcat --example-hashes | less
+
+# list devices
+hashcat -I
+
+# use only devices 1 and 2
+hashcat -b -d 1,2
+
+# select potfile location
+hashcat -b --potfile-path hc.pot -o hc_out.pot
+
+# hashcat mask list
+?l     	   lower-case ASCII letters (a-z)
+?u     	   upper-case ASCII letters (A-Z)
+?d     	   digits (0-9)
+?h     	   0123456789abcdef
+?H     	   0123456789ABCDEF
+?s     	   special characters: «space»!"#$%&'()*+,-./:;<=>?@[]^_`{}
+?a     	   ?l?u?d?s
+?b     	   0x00 - 0xff
+[A-Z0-9]   custom range of characters
+?1         custom charset (?1 to ?4) defined on command line (e.g. -1 '.,-')
+20[0-1]?d  range with all years from 2000 to 2019
+
+# tools to extract hashes from various files
+keepass2john            keepass
+office2john             microsoft office (word, excel)
+zip2john                pkzip, winzip, securezip
+7z2john                 7-zip
+pdf2john                pdf files
+
+# slow down canditate generation for slow hashes to avoid '[Copying]' status
+hashcat -S [...]
+
+
+
+password generation
+===================
+
+# generate passwords from length 4 to 8
+crunch 4 8 -o wordlist
+
+# generate passwords from length 4 to 8 based on a pattern
+crunch 8 8 -t pass%@@@@ -o wordlist
+
+# crunch patterns (-t arg)
+@       lower case characters
+,       upper case characters
+%       numbers
+^       symbols
+
+# generate passwords based on keyboard walk (kwprocessor)
+kwp -s 1 basechars/full.base keymaps/en-us.keymap routes/2-to-10-max-3-direction-changes.route
+
+# generate password by multiplying single wordlist
+princeprocessor -o words.out --pw-min=4 --pw-max=8 < word.lst
+
+# generate passwords from a webpage
+cewl -m 5 -d 8 --lowercase -w wordlist.txt https://nature.com
+
+# generate emails from a webpage
+cewl -e -m 5 -d 8 --lowercase -w wordlist.txt https://nature.com
+
+# generate password words from a potfile
+cut -d: -f 2- ~/hashcat.potfile | sed 's|[^[:alpha:]]|\n|g' | awk 'length($0)>=3' | sort -u
+
+
+
+misc
+====
+
+# identify hash type (cross-check with hashcat --example-hashes)
+hashid -m '99754106633f94d350db34d548d6091a'
+

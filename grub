@@ -1,0 +1,6 @@
+misc
+====
+
+# view grub resolutions available in bios mode
+hwinfo --framebuffer
+

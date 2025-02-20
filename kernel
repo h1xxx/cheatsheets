@@ -58,6 +58,15 @@ sysctl -p
 # change a setting until next boot
 sysctl net.ipv4.ip_forward=1
 
+# enable arp filtering
+echo 0 > /proc/sys/net/ipv4/conf/all/arp_filter
+echo 2 > /proc/sys/net/ipv4/conf/all/arp_ignore
+echo 2 > /proc/sys/net/ipv4/conf/all/arp_announce
+---
+sysctl net.ipv4.conf.all.arp_filter=0
+sysctl net.ipv4.conf.all.arp_ignore=2
+sysctl net.ipv4.conf.all.arp_announce=2
+
 
 
 virtual filesystems

@@ -7,7 +7,23 @@ lxc-execute -n lnx -P /tmp/ -- /bin/bash
 lxc-execute -n lnx -P /tmp/ -- /bin/bash -c /bin/ls
 
 # start a container
-lxc-start -n lnx -F -P /tmp/ /bin/ksh
+lxc-start -n lnx -F -P /tmp/ /bin/bash
+
+# start an unprivilaged container in foreground as a regular user
+systemd-run --user --scope -p "Delegate=yes" lxc-start -F -n cont_1
+---
+systemd-run --user --scope -p "Delegate=yes" lxc-start -n cont_1
+
+# start an unprivilaged container in background as a regular user
+systemd-run --user -r -p "Delegate=yes" lxc-start -F -n cont_1
+
+# create a container from a template
+lxc-create -n cont_1 -t debian -- -r bookworm
+
+# download a container from linuxcontainers.org
+lxc-create --name cont_1 --template download -- --dist debian --release bookworm --arch amd64
+---
+lxc-create --name cont_1 --template download -- --dist alpine --release 3.19 --arch amd64
 
 
 

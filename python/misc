@@ -1,0 +1,17 @@
+venv
+====
+
+# create a python virtual environment
+python3 -m venv venv_name
+. venv_name/bin/activate
+
+
+pip
+===
+
+# install pacakges
+python -m pip install ansible ansible-lint
+
+# list packages
+python -m pip list
+
