@@ -19,6 +19,13 @@ apt-cache showpkg <package>
 
 # list installed packages
 apt list --installed
+---
+dpkg -l
+
+# list user installed packages
+apt list --manual-installed=true
+---
+apt-mark showmanual
 
 # upgrage backports
 apt-get -t buster-backports upgrade
@@ -28,6 +35,11 @@ apt-cache search linux-image
 
 # install a package from backports
 apt-get -t buster-backports install wireguard
+
+# install a package from a file
+apt-get install -f pkg.deb
+---
+dpkg -i pkg.deb
 
 # remove not needed packages
 apt-get autoremove
@@ -46,6 +58,59 @@ sudo apt-get install apt-file
 sudo apt-file update
 apt-file list <package_name>
 
+# remove pkg with all dependencies
+apt-get --purge autoremove pkg1
+
+# list dependencies of a package
+apt-cache depends package1
+
+# download .deb package
+apt download package1
+
+# extract .deb package
+dpkg -x package1.deb target_dir1
+
+# search for sid/unstable packages
+apt -t sid search prometheus-node-exporter
+
+# install only minimal set of dependencies
+apt-get --no-install-recommends install debian-goodies
+
+# fix broken packages
+apt --fix-broken install
+
+# reinstall all packages
+aptitude reinstall '~i'
+
+# find fastest pacakge server mirror
+netselect-apt -c poland -t 15 -a amd64 -n testing
+
+# treat warnings as errors in apt
+apt -o 'APT::Update::Error-Mode=any' update
+
+# show info on a apt pkg file
+dpkg-deb --info pkg.deb
+---
+lesspipe pkg.deb
+
+# list files in apt pkg file
+dpkg-deb --contents pkg.deb
+---
+lesspipe pkg.deb
+
+# find package in all package suites (e.g. stable, testing etc.)
+rmadison coreutils --architecture amd64
+
+# backport a package from testing
+echo 'deb-src http://deb.debian.org/debian testing main contrib' > /etc/apt/sources.list
+apt update
+rmadison coreutils --architecture amd64
+apt source coreutils/testing
+cd coreutils-*/
+mk-build-deps --install --remove
+dch --bpo
+dpkg-buildpackage --build=binary --unsigned-changes
+apt install ../coreutils_*_*.deb
 
 
 misc
@@ -83,10 +148,22 @@ sudo apt-get install broadcom-sta-source
 sudo apt-get install broadcom-sta-dkms
 sudo apt-get install broadcom-sta-common
 
+# create a tmpfs mount
+echo 'd /tmp 0777 root root - -' > /etc/tmpfiles.d/tmp.conf 
+systemd-tmpfiles --create
+
+# install from snapstore
+apt install snapd
+snap install core
+snap install winbox
+
 
 
 config
 ======
+
+# show config
+debconf-show locales tzdata keyboard-configuration
 
 # create symlinks to python
 update-alternatives --install /usr/bin/python python /usr/bin/python3 1
@@ -98,4 +175,19 @@ update-alternatives --config python
 # update keyboard layout
 vim /etc/default/keyboard
 udevadm trigger --subsystem-match=input --action=change
+---
+dpkg-reconfigure keyboard-configuration
+service keyboard-setup restart
+udevadm trigger --subsystem-match=input --action=change
+
+# show apt configuration
+apt-config dump | less
+
+
+
+network
+=======
+
+# enable wireguard
+systemctl enable wg-quick@wg0
 
