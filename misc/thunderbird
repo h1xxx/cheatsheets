@@ -1,0 +1,17 @@
+# place menu bar on top
+Settings > Config editor
+toolkit.legacyUserProfileCustomizations.stylesheets = true
+
+cd <profile_dir>.default
+mkdir chrome
+cd chrome
+cat > userChrome.css << EOF
+@import
+url("chrome://messenger/content/unifiedtoolbar/unifiedToolbarWebextensions.css");
+
+/* Position Menu Bar above Unified Toolbar */
+#toolbar-menubar {
+order: -1 !important;
+}
+EOF
+
