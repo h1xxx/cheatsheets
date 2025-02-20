@@ -1,0 +1,28 @@
+dates
+=====
+
+# create a date object
+var date1 = new Date(2010, 1, 1);
+---
+var date1 = new Date("2022-03-25");
+
+# create a date object with time 
+var dateTime1 = new Date(2010, 1, 1, 16, 30, 59);
+
+# add days to a date
+function addDays(date, days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+var newDate = addDays(Date(2010, 1, 1), 31)
+
+# print only year, month and day from date object
+var s = date1.toISOString().slice(0, 10);
+
+# parse date and time in iso format
+var dt = new Date('2016-12-15T08:20:30Z');
+
+# format date object to format YYYY-MM-DD HH:MM
+var datestring = dt.getFullYear() + "-" + ("0"+(dt.getMonth()+1)).slice(-2) + "-" + ("0" + dt.getDate()).slice(-2) + " " + ("0" + dt.getHours()).slice(-2) + ":" + ("0" + dt.getMinutes()).slice(-2);
+

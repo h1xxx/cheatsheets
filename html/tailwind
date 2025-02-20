@@ -1,0 +1,49 @@
+aligning
+========
+
+# center the whole webpage and limit width
+mx-auto max-w-screen-lg
+
+# center the element
+flex justify-center
+
+# hide element on screen sizes smaller than md
+max-md:hidden
+
+# set space between flex elements
+space-x-3
+
+# sizes
+sm                640px         @media (min-width: 640px) { ... }
+md                768px         @media (min-width: 768px) { ... }
+lg                1024px        @media (min-width: 1024px) { ... }
+xl                1280px        @media (min-width: 1280px) { ... }
+2xl               1536px        @media (min-width: 1536px) { ... }
+
+# table with granular column with adjustment
+<div class="inline-grid grid-cols-10 text-white bg-[#263C11]">
+  <span class="contents">
+    <span class="col-span-6 px-6 py-3">COL1</span>
+    <span class="col-span-4 px-6 py-3 text-right">COL2</span>
+  </span>
+</div> 
+
+# reduce letter spacing in the font
+tracking-tight
+
+
+
+shapes
+======
+
+# border around element
+border-solid border-2 border-black
+
+
+
+colors
+======
+
+# change the color of the link in ht emiddle
+<a href="/" class="text-[#547424] font-bold text-xl">Torrent<span class="text-[#547424]">Analytics</span></a>
+

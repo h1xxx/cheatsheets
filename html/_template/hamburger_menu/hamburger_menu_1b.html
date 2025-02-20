@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+  <nav class="topNav">
+    <button class="ham">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+	<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </nav>
+  <div class="overlay"></div>
+  <nav class="sideNav">
+    <button class="menuX">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+	<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <ul>
+      <li><a class="menuLink" href="#home">Home</a></li>
+      <li><a class="menuLink" href="#profile">Profile</a></li>
+      <li><a class="menuLink" href="#about">About</a></li>
+      <li><a class="menuLink" href="#contacts">Contacts</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section id="home">Home</section>
+    <section id="profile">Profile</section>
+    <section id="about">About</section>
+    <section id="contacts">Contacts</section>
+  </main>
+
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .topNav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 3rem;
+      display: flex;
+      align-items: center;
+      background-color: #000000;
+    }
+
+    .ham {
+      position: relative;
+      width: 2rem;
+      height: 2rem;
+      margin-left: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+    }
+
+    .menuX {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      width: 2rem;
+      height: 2rem;
+      margin-left: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+    }
+
+    .sideNav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 101;
+      background: black;
+      width: 300px;
+      height: 100vh;
+      overflow: hidden;
+      color: white;
+      /* hide the menu above the screen by default */
+      transform: translateX(-100%);
+      transition: transform 0.2s ease;
+    }
+
+    .showNav {
+      transform: translateX(0);
+    }
+
+    .sideNav ul {
+      width: 100%;
+      height: 100%;
+      list-style: none;
+      display: flex;
+      flex-flow: column nowrap;
+      align-items: center;
+      padding-top: 5rem;
+    }
+
+    .sideNav ul li a {
+      display: block;
+      color: white;
+      padding-bottom: 10px;
+      margin-top: 1rem;
+      border-bottom: 2px solid black;
+      text-decoration: none;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.2rem;
+    }
+
+    .sideNav ul li a:hover, .sideNav ul li a:focus {
+      border-bottom: 2px solid white;
+    }
+
+    .overlay {
+      position: fixed;
+      display: none;
+      z-index: 100;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      width: 100%;
+      height: 100vh;
+    }
+
+    .showOverlay {
+      display: block;
+    }
+
+    section {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      font-size: xx-large;
+      justify-content: center;
+      align-items: center;
+    }
+
+    section:nth-child(even) {
+      background-color: rgb(245, 245, 245);
+    }
+  </style>
+
+  <script>
+    const sideNav = document.querySelector(".sideNav")
+    const overlay = document.querySelector(".overlay")
+    const ham = document.querySelector(".ham")
+    const menuX = document.querySelector(".menuX")
+    const menuItems = document.querySelectorAll(".menuLink")
+
+    menuItems.forEach(menuItem => {
+      menuItem.addEventListener("click", toggleHamburger)
+    })
+
+    ham.addEventListener("click", toggleHamburger)
+    menuX.addEventListener("click", toggleHamburger)
+    overlay.addEventListener("click", toggleHamburger)
+
+    function toggleHamburger() {
+      overlay.classList.toggle("showOverlay")
+      sideNav.classList.toggle("showNav")
+    }
+  </script>
+
+</body>
+</html>
+ 
+

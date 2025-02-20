@@ -1,0 +1,12 @@
+arrays
+======
+
+# iterate over json array
+for (var item of json_arr1) {
+  document.write(item.key1 + "<br />");
+}
+---
+for (var i = 0; i < json_arr1.length; i++) {
+  document.write(json_arr1[i].key1 + "<br />");
+}
+

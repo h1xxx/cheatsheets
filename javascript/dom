@@ -1,0 +1,14 @@
+dom
+===
+
+# create html element
+<body>
+  <div id="root"></div>
+  <script type="module>
+    const rootElement = document.getElementByID("root");
+    const div = document.createElement("div");
+    div.textContent = "Hello World!";
+    rootElement.append(div);
+  </script>
+</body>
+

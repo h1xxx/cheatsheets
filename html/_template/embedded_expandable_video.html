@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <style>
+      th {
+        padding: 5px;
+        border-bottom: 1px solid white;
+      }
+
+      table {
+        width: 100%;
+        border-left: none;
+        border-right: none;
+        border-collapse: collapse;
+       }
+
+      .accordion input[name="collapse"] {
+        display:none;
+      }
+      .accordion .content {
+        background: rgba(105, 45, 118, 0.9);
+
+      }
+       .accordion .wrappervideo {
+       display: none;
+       }
+      .accordion label {
+        color: #fff;
+        cursor: pointer;
+        font-weight: normal;
+        padding: 5px;
+        width:auto;
+        display:block;
+      }
+      .accordion label:hover,
+      .accordion label:focus {
+        background: #FFFFFF;
+        color: #000000;
+      }
+      .accordion input[name="collapse"]:checked ~ .wrappervideo {
+        display: initial;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="accordion">
+      <table style="text-align:center">
+        <tr style="background-color:rgba(105, 45, 118, 1)">
+          <th>Place</th>
+          <th>Player</th>
+          <th>Platform</th>
+          <th>Time</th>
+          <th>Video</th>
+        </tr>
+
+        <tr style="background-color:rgba(105, 45, 118, 1)">
+          <td>1</td>
+          <td>Me</td>
+          <td>EMU</td>
+          <td>8:50</td>
+          <td class="handle"><label for="handle1">Video</label></td>
+        </tr>
+
+        <tr>
+          <td colspan="5" class="content">
+            <input type="checkbox" name="collapse" id="handle1" />
+            <div class="wrappervideo">
+              <iframe width="560" height="315" src="https://www.youtube.com/embed/Yx21y2jcB9Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+          </td>
+        </tr>
+      </table>
+    </section>
+  </body>
+</html>
