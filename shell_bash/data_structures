@@ -18,6 +18,20 @@ let "var=var+1"
 let "var+=1"
 let "var++"
 
+# produce a random number between 0 and 32767
+echo ${RANDOM}
+
+# produce a random number between 1 and 100
+echo $(( $RANDOM % 100 + 1 ))
+---
+shuf -i 0-100 -n 1
+
+# produce 5 random numbers between 1 and 100
+shuf -i 0-100 -n 5
+
+# produce a random float number between 0 and 1
+awk 'BEGIN{x=rand(); print x}'
+
 
 
 arrays
@@ -25,6 +39,9 @@ arrays
 
 # create an array
 array=(zero one two three four [5]=five)
+
+# append a string to array
+array+=(six)
 
 # get array size
 echo "array size: ${#array[*]}"
@@ -38,3 +55,32 @@ done
 for index in ${!array[*]}; do
 	printf "%4d: %s\n" "${index}" "${array[$index]}"
 done
+
+# randomize (shuffle) array
+array=( 1 2 3 4 5)
+array=( $(shuf -e "${array[@]}") )
+
+# get a random number from array
+i=$(( ${RANDOM} % 3 ))
+echo ${array[$i]}
+
+# return array results from a function
+update_array() {
+  local -n arr=$1
+  arr+=("two three" four)
+}
+
+# get array length
+echo ${#array[@]}
+
+# read file to array
+readarray -t arr1 < /path/to/filename
+
+
+
+variables
+=========
+
+# split tab separated line into variables
+IFS=$'\t' read -r id name year lang <<< "${arr1[0]}"
+

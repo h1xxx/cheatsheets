@@ -41,6 +41,18 @@ ${string_var^^}
 # make the string lowercase
 ${string_var,,}
 
+# make the string lowercase with utf-8/unicode support
+sed -e 's/./\L\0/g' file1
+
+# insert character inside a string
+uuid_boot="${uuid_boot:0:4}-${uuid_boot:4:8}"
+
+# replace first occurence of a character in a string
+echo "${str1/a/z}"
+
+# replace all occurences of a character in a string
+echo "${str1//a/z}"
+
 
 
 misc
@@ -48,6 +60,9 @@ misc
 
 # store a newline in a variable
 var1=$'\n'
+
+# add a line in the middle of the pipe
+echo xxx | cat - <(echo yyy) | cat - <(echo zzz)
 
 # escape each special shell character in a string
 sed -e 's|[^a-zA-Z0-9,._+@%/-]|\\&|g' -e '1{$s|^$|""|}' -e '1!s|^|"|' -e '$!s|$|"|'
@@ -68,4 +83,19 @@ sed -e 's|[^a-zA-Z0-9,._+@%/-]|\\&|g' -e '1{$s|^$|""|}' -e '1!s|^|"|' -e '$!s|$|
 while IFS= read -r -d $'\0' file; do
 	echo $"{file}"
 done < <(find /home -type f -print0)
+
+# convert integer to human readable format
+numfmt --to=iec-i --suffix=B --format="%.2f" 13749273560
+
+# convert human readable format to bytes
+numfmt --from=iec 15G
+
+# change item separator to new lines
+IFS=$'\n'
+
+# read multiple arguments from one line
+read -r a b c <<<$(echo 1 2 3) ; echo "$a $b $c"
+
+# get string length
+echo ${#string_var1}
 

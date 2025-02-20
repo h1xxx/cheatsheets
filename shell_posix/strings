@@ -17,3 +17,11 @@ for i in `seq 0 15`; do printf "%x\n" $i; done
 ||
 for i in `seq 0 15`; do printf "%#x\n" $i; done
 
+
+date & time
+===========
+
+# get a time from previous hour
+date_epoch_hour_ago=$(date -d '-1 hour' +%s)
+prev_date="$(date -d "@${date_epoch_hour_ago}" +%Y-%m-%d\ %H:%M:%S)"
+

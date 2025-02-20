@@ -1,0 +1,6 @@
+misc
+====
+
+# turn off history
+set +o history
+

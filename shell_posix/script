@@ -67,3 +67,9 @@ ls .[^.]*
 # list mostly all dot files and dirs
 ls .??*
 
+# show running time of the script
+seconds="$((SECONDS % 60 % 60))"
+mins="$((SECONDS / 60 % 60))"
+hours="$((SECONDS / 60 / 60))"
+echo "done. running time: ${hours}h ${mins}m ${seconds}s"
+

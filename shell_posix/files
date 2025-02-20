@@ -1,0 +1,6 @@
+files
+=====
+
+# check if file was modified more than 60 minutes ago
+find file.txt -mmin +60 | grep -q . && echo yes
+
