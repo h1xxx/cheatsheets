@@ -1,0 +1,6 @@
+range_start,range_end,value
+-10,0,first_val
+1,100,second_val
+101,1000,third_val
+5000,8000,fourth_val
+

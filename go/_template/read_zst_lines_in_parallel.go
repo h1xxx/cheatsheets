@@ -40,6 +40,8 @@ func main() {
 	out, err := cmd.StdoutPipe()
 	errExit(err)
 
+	cmd.Stderr = os.Stderr
+
 	err = cmd.Start()
 	errExit(err)
 
@@ -47,6 +49,16 @@ func main() {
 	for scanner.Scan() {
 		queue <- scanner.Text()
 	}
+
+	err = scanner.Err()
+        if err != nil {
+                return fmt.Errorf("scanner: %w", err)
+        }
+
+        err = cmd.Wait()
+        if err != nil {
+                return fmt.Errorf("command wait: %w", err)
+        }
 
 	close(queue)
 	WG.Wait()

@@ -5,36 +5,44 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
+	str "strings"
 )
 
 func main() {
-	f, err := os.Open("test/test")
+	lines := readLines("file1.txt")
+	fmt.Println(lines)
+}
+
+func readLines(file string) []string {
+	fd, err := os.Open(file)
 	errExit(err, "can't open file")
-	scanner := bufio.NewScanner(f)
+	scanner := bufio.NewScanner(fd)
 
 	//buf := make([]byte, 0, 64*1024)
 	//scanner.Buffer(buf, 512*1024*1024)
 
+	var lines []string
 	for scanner.Scan() {
-		line := scanner.Text()
-		line = strings.Join(strings.Fields(line), "\t")
-		switch {
-		case strings.HasPrefix(line, "name"):
-			line = convName(line)
-		}
-		fmt.Println(line)
-	}
-}
+		line := str.TrimSpace(scanner.Text())
 
-func convName(line string) string {
-	l := strings.Replace(line, "name\t", "N:", -1)
-	return l
+		switch {
+		case line == "":
+			continue
+		case str.HasPrefix(line, "#"):
+			continue
+		}
+
+		lines = append(lines, line)
+	}
+	err = scanner.Err()
+	errExit(err)
+
+	return lines
 }
 
 func errExit(err error, msg string) {
 	if err != nil {
 		log.Println("\n * " + msg)
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }

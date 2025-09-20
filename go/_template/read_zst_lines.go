@@ -25,6 +25,8 @@ func main() {
 	out, err := cmd.StdoutPipe()
 	errExit(err)
 
+	cmd.Stderr = os.Stderr
+
 	err = cmd.Start()
 	errExit(err)
 
@@ -36,6 +38,16 @@ func main() {
 		_ = line
 		i++
 	}
+
+	err = scanner.Err()
+        if err != nil {
+                return fmt.Errorf("scanner: %w", err)
+        }
+
+        err = cmd.Wait()
+        if err != nil {
+                return fmt.Errorf("command wait: %w", err)
+        }
 
 	fmt.Println(i)
 }
