@@ -118,7 +118,7 @@ set nonu
 set showmatch
 
 " limit number of characters in one line
-set textwidth=79
+set textwidth=1024
 
 " always use 16 colors because linux console is the best
 set t_Co=16
@@ -223,9 +223,20 @@ au FileType yaml set expandtab ts=2 shiftwidth=2
 
 " ---- html file settings
 
-" set html syntax in gohtml files
-au BufRead *.gohtml set syntax=html
+" set html default
 au FileType html set expandtab ts=2 shiftwidth=2
+
+" set html syntax in gohtml files
+au BufRead *.gohtml set syntax=html expandtab ts=2 shiftwidth=2
+
+" set javascript default
+au FileType javascript set expandtab ts=2 shiftwidth=2
+
+
+" ---- sql file settings
+
+" set sql default
+au FileType sql set expandtab ts=4 shiftwidth=4
 
 
 " ---- mutt file settings
