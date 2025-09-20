@@ -1,0 +1,58 @@
+misc
+====
+
+# define logger with custom output format
+package main
+import (
+	"fmt"
+	"log"
+	"os"
+	"time"
+)
+type logWriter struct {
+}
+func init() {
+	log.SetFlags(0)
+	log.SetOutput(new(logWriter))
+}
+func (writer logWriter) Write(bytes []byte) (int, error) {
+	return fmt.Fprint(os.Stdout,
+		time.Now().UTC().Format("2006-01-02 15:04:05"),
+		"\t", string(bytes))
+}
+
+# define logger package with structured loging
+package logger
+import (
+	"log/slog"
+	"os"
+)
+var (
+	InfoLogger  *slog.Logger
+	ErrorLogger *slog.Logger
+)
+func init() {
+	InfoLogger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	ErrorLogger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelError,
+	}))
+}
+// Usage:
+logger.InfoLogger.Info("informational message", "key", "value")
+logger.ErrorLogger.Error("error message", "err", someError)
+
+# custom log format with a custom date
+type logWriter struct {
+}
+func (writer logWriter) Write(bytes []byte) (int, error) {
+	dt := time.Now().UTC().Format("2006-01-02T15:04:05.999Z")
+	return fmt.Print(dt + " [DEBUG] " + string(bytes))
+}
+func main() {
+	log.SetFlags(0)
+	log.SetOutput(new(logWriter))
+	log.Println("This is something being logged!")
+}
+

@@ -44,3 +44,32 @@ scanner := bufio.NewScanner(strings.NewReader(s))
 get a url parameter from the request
 param1 := r.URL.Query().Get("param1")
 
+
+
+url
+===
+
+# decode magnet link url
+u, err := url.Parse(magnet)
+if err != nil {
+	return "", fmt.Errorf("invalid magnet URI: %v", err)
+}
+if u.Scheme != "magnet" {
+	return "", fmt.Errorf("not a magnet link")
+}
+values := u.Query()
+xt := values.Get("xt")
+if xt == "" {
+	return "", fmt.Errorf("missing xt parameter")
+}
+if !strings.HasPrefix(xt, "urn:btih:") {
+	return "", fmt.Errorf("invalid xt parameter format")
+}
+
+# replace infohash in magnet link url
+func rebuildMagnet(u *url.URL, values url.Values, newHash string) string {
+        values.Set("xt", "urn:btih:"+newHash)
+        u.RawQuery = values.Encode()
+        return u.String()
+}
+

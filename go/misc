@@ -30,3 +30,25 @@ func permutations(arr []int)[][]int{
     return res
 }
 
+# check if email is valid
+func emailIsValid(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
+
+# check if a program prints to tty or a file (isatty system call)
+import "golang.org/x/term"
+if term.IsTerminal(int(os.Stdout.Fd())) {
+    fmt.Println("\033[1;34mHello World!\033[0m")
+} else {
+    fmt.Println("Hello World")
+}
+---
+import "golang.org/x/sys/unix"
+_, err := unix.IoctlGetWinsize(int(os.Stdout.Fd()), unix.TIOCGWINSZ)
+if err != nil {
+    fmt.Println("Hello World")
+} else {
+    fmt.Println("\033[1;34mHello World!\033[0m")
+}
+

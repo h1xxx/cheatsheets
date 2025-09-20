@@ -16,6 +16,11 @@ slice = nil
 var hashArray [20]byte
 copy(hashArray[:], hashSlice)
 
+# copy a slice
+src := []int{1, 2, 3, 4, 5}
+dst := make([]int, len(src))
+copy(dst, src)
+
 # get min/max value from integers
 min(2, -5, 8, 1.2)
 max(2, -5, 8, 1.2)

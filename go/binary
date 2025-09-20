@@ -31,6 +31,14 @@ import "encoding/binary"
 bs := make([]byte, 20)
 binary.BigEndian.PutUint64(bs, int_var)
 
+# convert base32 to hex
+decoder := base32.StdEncoding.WithPadding(base32.NoPadding)
+hashBytes, err := decoder.DecodeString(strBase32)
+if err != nil {
+	return "", fmt.Errorf("base32 decoding failed: %v", err)
+}
+hexStr := hex.EncodeToString(hashBytes)
+
 
 
 misc

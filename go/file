@@ -51,6 +51,11 @@ filepath.Clean("/foo//bar//baz.c")
 files, err := os.ReadDir(".")
 name := files[0].Name()
 
+# get a list of files base on glob expression
+files, err := filepath.Glob("/var/log/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log")
+---
+files, err := filepath.Glob("/home/user/*.txt")
+
 # get a path for the home dir
 homeDir, err := os.UserHomeDir()
 

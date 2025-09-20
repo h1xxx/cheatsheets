@@ -36,3 +36,11 @@ go install golang.org/x/tools/cmd/deadcode@latest
 # install modd for dynamic reloading of developed programs
 go install github.com/cortesi/modd/cmd/modd@latest
 
+# show all dependencies
+go list -m all
+---
+go mod graph
+
+# explain the need for a dependency
+go mod why github.com/spf13/cobra
+

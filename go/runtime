@@ -15,4 +15,9 @@ func printMemStats() {
 # disable garbage collection and trigger it manually
 debug.SetGCPercent(-1)
 runtime.GC()
+debug.FreeOSMemory()
+
+# manually trigger garbage collection and free os memory
+runtime.GC()
+debug.FreeOSMemory()
 

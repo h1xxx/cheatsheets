@@ -24,6 +24,9 @@ fmt.Println(d.Round(time.Second))
 # convert int to time
 t := time.Unix(i, 0)
 
+# check if time is an empty struct
+t.IsZero()
+
 # measure user and system time
 cmd := exec.Command("ls", "-l", "-R")
 err := cmd.Run()
@@ -107,6 +110,10 @@ i := 5
 td := time.Duration(i) * time.Second
 ---
 td := 5 * time.Second
+
+# wait random amount of seconds
+randomWait := time.Duration(rand.Intn(30)) * time.Second
+time.Sleep(randomWait)
 
 
 
