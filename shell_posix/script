@@ -73,3 +73,10 @@ mins="$((SECONDS / 60 % 60))"
 hours="$((SECONDS / 60 / 60))"
 echo "done. running time: ${hours}h ${mins}m ${seconds}s"
 
+# measure execution time of a command in milliseconds
+start=$(date +%s.%N)
+ls -l > /dev/null
+end=$(date +%s.%N)
+diff=$(echo "${end} - ${start}" | bc)
+echo ${diff}
+

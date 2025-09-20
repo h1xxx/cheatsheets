@@ -216,3 +216,29 @@ python -c "import hashlib,binascii; print(binascii.hexlify(hashlib.new('md4', 'p
 # create a md5 binary checksum
 echo 0123456 | openssl dgst -md5 -binary
 
+
+
+keepassxc
+=========
+
+# create a new database
+keepassxc-cli db-create -p passwords.kdbx
+
+# show info on the database
+keepassxc-cli db-info passwords.kdbx
+
+# open and connect to the the database
+keepassxc-cli open passwords.kdbx
+
+# list all passwords recursively
+> ls -Rf
+
+# show entry with a password
+> show -s mail.example.com
+
+# change a password
+> edit -p mail.example.com
+
+# add a password
+> add passwords.kdbx -p -u bob --url https://mail.example.com --notes 'note 1' mail.example.com
+

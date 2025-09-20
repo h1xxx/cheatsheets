@@ -26,6 +26,14 @@ tar --sort=name -I'zstd -17 -T16 --long=31 --ultra' -cf dir1.tar.zst dir1/
 
 
 
+zstd
+====
+
+# show info on a compressed file
+zstd -l file1.zst
+
+
+
 7z
 ==
 

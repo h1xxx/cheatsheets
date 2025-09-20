@@ -116,11 +116,56 @@ SELECT pg_cancel_backend(666);
 SELECT ...;
 \o
 
+# write query output to a csv file and close the file
+\pset format csv
+\o out.csv
+SELECT ...;
+\o
+
+# disable info messages in psql script
+\set QUIET on
+
+# write query output to a tab delimited file (query must be single line)
+\COPY (SELECT id, name FROM tbl1) TO 'file1.tsv' WITH (FORMAT 'text', DELIMITER E'\t', HEADER true);
+
+# write query output to a tab delimited file (multi line query)
+CREATE TEMP VIEW tmp_query AS SELECT column1, column2 FROM table1;
+\copy (SELECT * FROM tmp_query) TO 'out.tsv' WITH (FORMAT 'text', DELIMITER E'\t', HEADER true);
+DROP VIEW tmp_query;
+
 # change pager
 export PSQL_PAGER="pspg -X -b"
 
 # print timestampz in utc timezone
 SELECT timezone('utc', now());
+
+# set current timezone in psql session
+SET timezone TO 'UTC';
+---
+SET TIME ZONE 'UTC';
+
+# list time zones
+SELECT * FROM pg_timezone_names;
+
+# set the timezone for the whole database
+ALTER DATABASE db1 SET timezone TO 'Europe/Berlin';
+
+# view permissions on a table
+\z table1
+
+# list all schemas including postgres system schemas
+\dnS
+
+# list all schemas
+\dn
+
+
+
+tables
+======
+
+# rename a table
+ALTER TABLE table_name RENAME TO new_table_name;
 
 
 
@@ -132,6 +177,10 @@ INSERT INTO info (col1, col2) VALUES ('col1_val', 'col2_val') ON CONFLICT (col2)
 
 # create an index on 2 columns
 CREATE INDEX idx_col1_col2 ON tbl1 (col1, col2);
+
+# create index to optimze queries for regex with a prefix
+CREATE INDEX idx_info_key_value_text_pattern ON info (key, value text_pattern_ops);
+SELECT * FROM info WHERE key = 'key1' AND value ~ 'prefix_2025_02_*';
 
 # delete a databse
 DROP DATABASE db1;
@@ -220,8 +269,14 @@ SELECT id, SUBSTRING(col1, 1, 4) AS sub_col1 FROM tbl1;
 # convert int32 to an ip address
 SELECT '0.0.0.0'::inet + 2147483648 + a.ip as ip_address FROM ...
 
+convert ip address string to int32
+SELECT ((ip::inet - '0.0.0.0'::inet) - 2147483648)::INTEGER as ip_int;
+
 # convert ip address to a bigint
 select cast(source_ip as bigint) FROM ...
+
+# select only rows with values from one column existing in another table
+SELECT * FROM users WHERE user IN (SELECT DISTINCT user from table2);
 
 # select random rows (slow)
 SELECT * FROM table1 ORDER BY RANDOM() LIMIT 10;
@@ -255,7 +310,7 @@ SELECT to_hex(666);
 SELECT LPAD(TO_HEX(10), 16, '0')
 
 # add strings together
-SELECT concat(first_name, ' ', last_name) AS full_name ... 
+SELECT concat(first_name, ' ', last_name) AS full_name ...
 
 # add a string for empty cell values
 COALESCE(NULLIF(col,''), 'blank')
@@ -273,6 +328,18 @@ SELECT  hash_id,
 FROM dht_logs_2024_12
 GROUP BY hash_id, ip;
 
+# group by date only in timestamp column
+SELECT date_trunc('day', date_time) AS date, count(*) FROM logs GROUP BY date_trunc('day', date_time) ORDER BY date;
+
+# variables for date_trunc
+SELECT date_trunc('day', date_time) FROM logs;
+SELECT date_trunc('week', date_time) FROM logs;
+SELECT date_trunc('month', date_time) FROM logs;
+SELECT date_trunc('year', date_time) FROM logs;
+
+# get yeat and month from date_time
+SELECT to_char(pub_date_time, 'YYYY-MM') AS publish_year_month;
+
 # create a parametrized query in psql
 PREPARE query1 (int) AS
 SELECT id FROM a WHERE col1 > $1;
@@ -287,6 +354,9 @@ CREATE TABLE IF NOT EXISTS ip_info (
 );
 CREATE INDEX IF NOT EXISTS idx_ip_info_ip_int_range ON ip_info USING GIST (ip_int_range);
 SELECT * FROM ip_info WHERE ip_int_range @> 1000204;
+
+# get upper and lower bounds of INT4RANGE
+select lower(ip_int_range), upper(ip_int_range) from tbl1;
 
 # insert multiple values
 insert into table_name (user_id, subservice_id) values
@@ -311,13 +381,164 @@ WHERE a.hash_id = b.hash_id;
 ... WHERE LOWER(as_name) SIMILAR TO '%(com|net|tel|host|sat|box|tv)';
 
 # delete/remove all tables
-DO $$ 
+DO $$
 DECLARE r RECORD;
 BEGIN
   FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
     EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
   END LOOP;
 END $$;
+
+# create indexes for multiple tables - execute in loop
+DO $$
+DECLARE
+    table_rec RECORD;
+BEGIN
+    FOR table_rec IN
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name LIKE 'dht_daily_logs_%'
+    LOOP
+        EXECUTE format('CREATE INDEX IF NOT EXISTS idx_%s_tbl_ip_hash ON %s (ip, hash_id)',
+            table_rec.table_name, table_rec.table_name);
+        RAISE NOTICE 'Created index for table: %', table_rec.table_name;
+    END LOOP;
+END $$;
+
+# create indexes for multiple tables - generate sql queries
+SELECT 'CREATE INDEX CONCURRENTLY idx_' || table_name || '_tbl_ip_hash_id ON ' || table_name || ' (ip, hash_id);'
+FROM information_schema.tables
+WHERE table_schema = 'public'
+AND table_name LIKE 'dht_daily_logs_%'
+ORDER BY table_name;
+
+# list tables matching a regex
+SELECT table_name
+FROM information_schema.tables
+WHERE table_name ~ 'table_.*_2025_02.*'
+AND table_schema = 'public';
+
+# show only first rows in a group
+WITH ranked_data AS (
+    SELECT
+        ip,
+        hash_id,
+        ROW_NUMBER() OVER (PARTITION BY ip ORDER BY hash_id) AS row_num
+    FROM (
+        SELECT ip, hash_id
+        FROM logs_table
+        GROUP BY ip, hash_id
+    )
+)
+SELECT ip, hash_id
+FROM ranked_data
+WHERE row_num <= 3
+ORDER BY ip, hash_id;
+
+# copy table
+CREATE TABLE new_tbl1 AS TABLE tbl1;
+
+# group by with ANY keyword equivalent
+SELECT DISTINCT ON (ip) ip, asn_id, country_id
+FROM (
+    SELECT * FROM ip_geo_2025_02 UNION ALL
+    SELECT * FROM ip_geo_2025_03
+);
+
+# filter by timestamptz for specific timezone
+SELECT * FROM peer_logs_2025_03  WHERE date_time > timezone('utc', '2025-03-22');
+
+# drop all tables and views that start with a prefix
+DO $$
+DECLARE
+    obj_name TEXT;
+BEGIN
+    -- Drop materialized views first
+    FOR obj_name IN
+        SELECT matviewname
+        FROM pg_matviews
+        WHERE schemaname = 'public'
+        AND matviewname LIKE 'prefix_%'
+    LOOP
+        EXECUTE 'DROP MATERIALIZED VIEW IF EXISTS ' || quote_ident(obj_name);
+    END LOOP;
+    -- Then drop regular views
+    FOR obj_name IN
+        SELECT viewname
+        FROM pg_views
+        WHERE schemaname = 'public'
+        AND viewname LIKE 'prefix_%'
+    LOOP
+        EXECUTE 'DROP VIEW IF EXISTS ' || quote_ident(obj_name);
+    END LOOP;
+    -- Finally drop tables
+    FOR obj_name IN
+        SELECT tablename
+        FROM pg_tables
+        WHERE schemaname = 'public'
+        AND tablename LIKE 'prefix_%'
+    LOOP
+        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(obj_name);
+    END LOOP;
+END $$;
+
+# use regex in a where query
+SELECT *
+FROM your_main_table
+WHERE NOT (your_column ~* '2000|2025|avi|mp4|108p|x264|season');
+
+# use very long regex in a where query
+SELECT *
+FROM your_main_table
+WHERE NOT (your_column ~* (
+    '2000|2025|avi|mp4|108p|x264|season' ||
+    '|720p|1080p|mkv|divx|xvid|bluray' ||
+    '|yify|eztv|kickass|torrent'
+));
+
+
+
+text search
+===========
+
+# search text and order by result rank
+SELECT name, ts_rank(name_tsvector, websearch_to_tsquery('some query')) AS rank
+FROM torrents
+WHERE name_tsvector @@ websearch_to_tsquery('simple', 'some query')
+ORDER BY rank DESC;
+
+# get last element from a text separated by a dash
+reverse(split_part(reverse(some_name), '-', 1)) AS name_suffix
+---
+substring(some_name FROM '-([A-Za-z0-9]+)$') AS name_suffix
+
+# get first substring separated by the value from another column
+LEFT(col1, POSITION(col2 IN col1) - 1) AS substring_col
+
+
+
+permissions
+===========
+
+# grant read-only access to a table
+GRANT SELECT ON TABLE table1 TO user1;
+
+# grant read-only access to all tables in a specific schema
+GRANT SELECT ON ALL TABLES IN SCHEMA schema_name TO user1;
+
+# make future tables in a schema to automatically get read-only permissions
+ALTER DEFAULT PRIVILEGES IN SCHEMA schema_name GRANT SELECT ON TABLES TO user1;
+
+# copy permissions from one table to another
+SELECT 'GRANT ' ||
+  string_agg(privilege_type, ', ') ||
+  ' ON TABLE target_table TO ' ||
+  quote_ident(grantee) ||
+  CASE WHEN is_grantable = 'YES' THEN ' WITH GRANT OPTION;' ELSE ';' END AS grant_statement
+FROM information_schema.table_privileges
+WHERE table_name = 'source_table'
+GROUP BY grantee, is_grantable;
 
 
 
@@ -329,6 +550,43 @@ SHOW work_mem;
 
 # show config errors
 SELECT sourcefile, name, sourceline, error FROM pg_file_settings WHERE error IS NOT NULL;
+
+
+
+strings
+=======
+
+# replace a string in column values
+SELECT replace(column_name, 'string_to_remove', '') FROM tbl1;
+
+# replace prefix in a string in column values
+SELECT regexp_replace(column_name, '^prefix_to_remove', '') FROM tbl1;
+
+# replace all digits in a string
+SELECT regexp_replace('ABC12345xyz','[[:digit:]]','','g');
+
+# get a substring from column values
+SELECT substring(column_name FROM prefix_length + 1) FROM tbl1;
+
+# convert ip address from inet type to string
+select host(ip_address) from tbl1;
+
+# replace all values in a column for specific string
+UPDATE table_name
+SET column_name = REPLACE(column_name, 'old_value', 'new_value')
+WHERE condition;
+
+# split a string column into multiple rows
+SELECT regexp_split_to_table(name, '[._ ,;:|]+') AS word FROM tbl1;
+
+# concatenate strings when grouping
+SELECT movie, string_agg(actor, ', ' ORDER BY actor) AS actor_list
+FROM tbl1
+GROUP BY movie;
+
+# split a field in col1 into multiple rows
+SELECT col1_split, col1, col2
+FROM tbl1, string_to_table(col1, ' ') col1_split;
 
 
 

@@ -227,3 +227,14 @@ curl https://api6.ipify.org
 # start a server with dir listing
 python3 -m http.server 80
 
+
+firefox
+=======
+
+# add a custom search engine
+about:config
+browser.urlbar.update2.engineAliasRefresh = true
+https://leta.mullvad.net/search?q=%s&engine=google
+https://leta.mullvad.net/search?q=%s&engine=bing
+browser.urlbar.update2.engineAliasRefresh = false
+

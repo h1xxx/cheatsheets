@@ -38,6 +38,12 @@ task add do a recurring task due:2015-06-08T09:00 recur:weekly
 # make a task repeated every month, but only for a year
 task add do a recurring task due:28th recur:monthly until:now+1yr
 
+# list recurring tasks
+task recurring
+
+# delete a recurring task
+task 3 delete recurring
+
 # show tasks with no project
 task project: list
 

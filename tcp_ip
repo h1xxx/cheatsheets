@@ -395,6 +395,8 @@ dhcp
 
 # get info from dhcp server without changing any system settings (test)
 dhcpcd -T
+---
+dhclient wlan0 -n -v -d
 
 # get address with debug info and without forking into background
 /sbin/dhcpcd -b -4 -d -B eth0

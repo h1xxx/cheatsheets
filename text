@@ -127,6 +127,9 @@ sed 's|.|&a|16' file.txt
 # add a character to every character in first column
 awk '{gsub(//, "_", $1)}1' file.txt
 
+# replace newlines with null (zero) delimiter
+tr '\n' '\0'
+
 
 
 merge
@@ -191,9 +194,14 @@ date -d '-1 days' +%Y-%m-%d
 
 # keep only first line occurence of a column/field combination
 awk '!seen[$1,$2,$3]++' file.txt
+---
+awk -F'\t' '!seen[$1 FS $3 FS $4 FS $5 FS $6 FS $7]++' file.txt
 
 # check if file is sorted
 sort -c file1.txt
+
+# convert txt to pdf
+libreoffice --convert-to "pdf" file.txt
 
 
 

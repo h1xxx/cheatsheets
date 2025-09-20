@@ -1,5 +1,5 @@
-video
-=====
+drm / video
+===========
 
 # list all video connections with a stauts
 for p in /sys/class/drm/*/status; do
@@ -11,6 +11,27 @@ grep . /sys/class/drm/card*-*/modes | head -n 3
 
 # test hw video acceleration through va-api
 vainfo
+
+# list gpu options
+cat /sys/kernel/debug/dri/0/i915_capabilities
+
+# shoe display information
+cat /sys/kernel/debug/dri/0/i915_display_info
+
+# show supported resolutions
+hwinfo --framebuffer
+
+# show resolutions supported by monitor
+edid-decode /sys/class/drm/card0-eDP-1/edid
+
+
+
+font
+====
+
+# font config on debian
+vim /etc/default/console-setup
+setupcon -f
 
 
 

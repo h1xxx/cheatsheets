@@ -47,6 +47,9 @@ r/R	move subtitles up and down
 # skip display of tags like artist or description
 mpv --display-tags=none	file.mkv
 
+# play files from a list
+mpv --display-tags=none --playlist=list.lst
+
 # list drm modes
 mpv --drm-mode=help
 
@@ -131,4 +134,7 @@ mplayer -vo fbdev2 -fs -zoom -xy 1280 -quiet -msglevel all=-1 file.mkv
 
 # download subtitles
 subliminal download -l en movie.mkv
+
+# update (refresh) kodi library
+kodi-send --action="UpdateLibrary(video)"
 

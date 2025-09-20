@@ -84,3 +84,6 @@ whois ddg.co
 # query dns A records on a specific DNS server
 drill @208.67.222.222 ddg.co
 
+# get a domain ip address via http api
+curl -s "https://dns.google/resolve?name=example.com&type=A" | jq -r .Answer[0].data
+

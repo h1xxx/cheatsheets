@@ -80,8 +80,9 @@ network={
 }
 
 
-iwd
-===
+
+iwd/iwctl
+=========
 
 # list devices
 device list

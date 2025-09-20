@@ -42,6 +42,10 @@ echo 1 > /sys/bus/pci/devices/0000\:01\:00.1/remove
 # rescan pci bus and add previously removed devices
 echo 1 > /sys/bus/pci/rescan
 
+# give write access to usb devices
+echo 'SUBSYSTEM=="usb", MODE="0660", GROUP="plugdev"' > /etc/udev/rules.d/00-usb-permissions.rules
+udevadm control --reload-rules
+
 
 
 memory
@@ -169,6 +173,19 @@ lspci -nnk
 
 # show module options
 systool -vm i915
+
+# system/performance analysis commands
+uptime
+w
+dmesg | tail
+vmstat 1
+mpstat -P ALL 1
+pidstat 1
+iostat -xz 1
+free -m
+sar -n DEV 1
+sar -n TCP,ETCP 1
+top
 
 
 

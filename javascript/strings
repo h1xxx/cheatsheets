@@ -15,3 +15,6 @@ str.includes(substr);
 # check if a string starts with or ends with a substring
 'long_str1'.startsWith('_str1') or 'long_str1'.endsWith('_str1');
 
+# print a float with 2 decimal places
+number1.toFixed(2)
+

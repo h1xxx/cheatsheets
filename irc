@@ -30,6 +30,10 @@ irssi
 /script load <scriptname>
 /script unload <scriptname>
 
+# rizon config
+/network add -nick h1x -user h1x -realname h1x rizon
+/server add -tls -network rizon irc.rizon.net 6697
+
 # libera irssi config
 /server add libera irc.eu.libera.chat
 /set irc.server.libera.addresses "irc.eu.libera.chatt/6697"

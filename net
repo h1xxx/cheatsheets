@@ -22,6 +22,9 @@ exportfs -a
 # show nfs exported directories
 exportfs -s
 
+# fix 'stale file handle' error in nfs clients; run on the nfs server
+exportfs  -ra
+
 # view really exported directories
 cat /proc/fs/nfsd/versions
 

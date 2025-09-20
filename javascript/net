@@ -12,3 +12,11 @@ window.location.port: "4200"
 window.location.protocol: "http:"
 window.location.search: "?query=1"
 
+# get GET parameter from url (returns null string if parameter is not found)
+const urlParams = new URLSearchParams(window.location.search);
+const period = urlParams.get('period');
+
+# get GET parameter from url (returns empty string if parameter is not found)
+const urlParams = new URLSearchParams(window.location.search);
+const period = urlParams.get('period') ?? '';
+

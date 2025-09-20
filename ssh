@@ -43,6 +43,8 @@ ssh -o'StrictHostKeyChecking=no' -o'UserKnownHostsFile=/dev/null' root@1.1.0.4
 
 # test ssh connection
 ssh -q user@host exit && echo up || echo down
+---
+ssh -q ${host} exit || (echo ${host} down. exiting.; exit 1) || exit 1
 
 # check if ssh server port is open
 ssh -o BatchMode=yes -o ConnectTimeout=5 -o PubkeyAuthentication=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ChallengeResponseAuthentication=no -p 22 10.0.0.1 2>&1 | grep -c "Permission denied"

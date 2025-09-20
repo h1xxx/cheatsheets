@@ -12,6 +12,9 @@ diff
 # show whole functions for context
 git diff -W
 
+# show lines changed count
+git diff --stat
+
 
 
 history
@@ -391,6 +394,9 @@ git remote add origin git@linuxconsole.net:/git/repo.git
 git push --set-upstream origin master
 git push --mirror git@github.com:h1xxx/xx.git
 
+# set a one-time config option example
+git -c credential.helper=store pull
+
 
 
 alias
@@ -443,4 +449,7 @@ touch -d "$(git log -1 --format="%aD" -- faq.txt)" faq.txt
 
 # define files as binary in .gitattributes to avoid compression on diffs
 *.zst binary
+
+# disable interactive prompts
+GIT_TERMINAL_PROMPT=0 git pull
 
