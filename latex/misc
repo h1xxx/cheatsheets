@@ -1,0 +1,56 @@
+misc
+====
+
+# chapter structure example
+\chapter{Summary}
+\section{Overview}
+Some sentence.
+\section{Another section}
+Some another sentence.
+\paragraph{Paragraph Title}
+Some yet another sentence.
+
+# list of items
+\begin{itemize}
+  \item Bullet point 1
+  \item Bullet point 2
+\end{itemize}
+
+# code snippets - monospace font with grey background
+\begin{minted}[frame=single, framesep=10pt, fontsize=\small, rulecolor=light-gray, bgcolor=light-gray, breaklines=true]{text}
+fn(x) => y
+\end{minted}
+
+# url format
+\url{https://www.reddit.com}
+
+# bold text
+\textbf{2.3.5.8}
+
+# changelog package
+\begin{changelog}[author=Rebecca Turner, simple, sectioncmd=\section*]
+\begin{version}[v=1.0.0, date=2018-12-28]
+  \item Cool features
+  \item Bug fixes
+\end{version}
+\shortversion{v=0.1.0, date=2018-10-25, changes=Initial beta}
+\end{changelog}
+
+# example table
+\usepackage{tabularx}
+\usepackage{booktabs}
+\begin{table}[h]
+\centering
+\caption{Torrent Information Table}
+\label{tab:torrent_columns}
+\begin{tabularx}{\textwidth}{>{\bfseries}lX}
+\toprule
+\textbf{Column Name} & \textbf{Description} \\
+\midrule
+hash            & Torrent infohash - unique torrent identifier. \\
+name            & Torrent name. \\
+size\_mb        & Size of the torrent content in megabytes. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
