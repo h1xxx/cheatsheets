@@ -1,0 +1,605 @@
+import
+======
+
+# import os module
+import os
+
+# import path utilities
+from os import path
+from pathlib import Path
+
+# import subprocess for running commands
+import subprocess
+
+# import system utilities
+import sys
+import shutil
+import glob
+
+
+
+paths
+=====
+
+# get current working directory
+os.getcwd()
+---
+Path.cwd()
+
+# change directory
+os.chdir('/path/to/directory')
+
+# get home directory
+os.path.expanduser('~')
+---
+Path.home()
+
+# join path components
+os.path.join('folder', 'subfolder', 'file.txt')
+---
+Path('folder') / 'subfolder' / 'file.txt'
+
+# get absolute path
+os.path.abspath('relative/path')
+---
+Path('relative/path').absolute()
+
+# get relative path
+os.path.relpath('/absolute/path', '/base/path')
+
+# split path into directory and filename
+os.path.split('/path/to/file.txt')  # ('/path/to', 'file.txt')
+---
+path = Path('/path/to/file.txt')
+path.parent, path.name
+
+# split filename and extension
+os.path.splitext('file.txt')  # ('file', '.txt')
+---
+Path('file.txt').stem, Path('file.txt').suffix
+
+# get directory name
+os.path.dirname('/path/to/file.txt')
+---
+Path('/path/to/file.txt').parent
+
+# get filename
+os.path.basename('/path/to/file.txt')
+---
+Path('/path/to/file.txt').name
+
+# normalize path
+os.path.normpath('/path//to/../file.txt')
+---
+Path('/path//to/../file.txt').resolve()
+
+
+
+files
+=====
+
+# check if file exists
+os.path.exists('file.txt')
+---
+Path('file.txt').exists()
+
+# check if it's a file
+os.path.isfile('file.txt')
+---
+Path('file.txt').is_file()
+
+# check if it's a directory
+os.path.isdir('directory')
+---
+Path('directory').is_dir()
+
+# check if it's a symbolic link
+os.path.islink('link')
+---
+Path('link').is_symlink()
+
+# get file size
+os.path.getsize('file.txt')
+---
+Path('file.txt').stat().st_size
+
+# get file modification time
+os.path.getmtime('file.txt')
+---
+Path('file.txt').stat().st_mtime
+
+# get file access time
+os.path.getatime('file.txt')
+---
+Path('file.txt').stat().st_atime
+
+# get file creation time
+os.path.getctime('file.txt')
+---
+Path('file.txt').stat().st_ctime
+
+# create empty file
+open('file.txt', 'w').close()
+---
+Path('file.txt').touch()
+
+# copy file
+shutil.copy('source.txt', 'destination.txt')
+
+# copy file with metadata
+shutil.copy2('source.txt', 'destination.txt')
+
+# copy entire directory tree
+shutil.copytree('source_dir', 'dest_dir')
+
+
+
+rename
+======
+
+# rename file or directory
+os.rename('old_name.txt', 'new_name.txt')
+---
+Path('old_name.txt').rename('new_name.txt')
+
+# move file to different directory
+shutil.move('file.txt', '/new/path/file.txt')
+
+# rename with timestamp
+import datetime
+timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+os.rename('file.txt', f'file_{timestamp}.txt')
+
+# bulk rename files
+for i, filename in enumerate(os.listdir('.')):
+    if filename.endswith('.txt'):
+        os.rename(filename, f'file_{i:03d}.txt')
+
+# rename using regex
+import re
+for filename in os.listdir('.'):
+    new_name = re.sub(r'pattern', 'replacement', filename)
+    if new_name != filename:
+        os.rename(filename, new_name)
+
+# safe rename (don't overwrite)
+def safe_rename(old, new):
+    if not os.path.exists(new):
+        os.rename(old, new)
+    else:
+        print(f"File {new} already exists")
+
+
+
+delete
+======
+
+# delete file
+os.remove('file.txt')
+---
+os.unlink('file.txt')
+---
+Path('file.txt').unlink()
+
+# delete empty directory
+os.rmdir('empty_directory')
+---
+Path('empty_directory').rmdir()
+
+# delete directory and all contents
+shutil.rmtree('directory')
+
+# delete with error handling
+try:
+    os.remove('file.txt')
+except OSError as e:
+    print(f"Error: {e}")
+
+# delete if exists
+if os.path.exists('file.txt'):
+    os.remove('file.txt')
+---
+Path('file.txt').unlink(missing_ok=True)
+
+# delete files matching pattern
+import glob
+for file in glob.glob('*.tmp'):
+    os.remove(file)
+
+# delete old files
+import time
+cutoff = time.time() - (7 * 24 * 60 * 60)  # 7 days ago
+for file in os.listdir('.'):
+    if os.path.getmtime(file) < cutoff:
+        os.remove(file)
+
+
+
+directories
+===========
+
+# create directory
+os.mkdir('new_directory')
+---
+Path('new_directory').mkdir()
+
+# create directory with parents
+os.makedirs('path/to/new/directory')
+---
+Path('path/to/new/directory').mkdir(parents=True)
+
+# create directory if it doesn't exist
+os.makedirs('directory', exist_ok=True)
+---
+Path('directory').mkdir(exist_ok=True)
+
+# list directory contents
+os.listdir('.')
+---
+list(Path('.').iterdir())
+
+# list only files
+[f for f in os.listdir('.') if os.path.isfile(f)]
+---
+[f for f in Path('.').iterdir() if f.is_file()]
+
+# list only directories
+[d for d in os.listdir('.') if os.path.isdir(d)]
+---
+[d for d in Path('.').iterdir() if d.is_dir()]
+
+# recursive directory listing
+for root, dirs, files in os.walk('.'):
+    for file in files:
+        print(os.path.join(root, file))
+---
+for path in Path('.').rglob('*'):
+    if path.is_file():
+        print(path)
+
+# find files by pattern
+import glob
+glob.glob('*.txt')
+glob.glob('**/*.py', recursive=True)
+---
+list(Path('.').glob('*.txt'))
+list(Path('.').rglob('*.py'))
+
+
+
+execute
+=======
+
+# run simple command
+os.system('ls -l')
+
+# run command and capture output
+result = subprocess.run(['ls', '-l'], capture_output=True, text=True)
+print(result.stdout)
+
+# run command with shell
+result = subprocess.run('ls -l | grep txt', shell=True, capture_output=True, text=True)
+
+# run command and check return code
+result = subprocess.run(['python', 'script.py'])
+if result.returncode == 0:
+    print("Success")
+
+# run command with timeout
+try:
+    result = subprocess.run(['sleep', '10'], timeout=5)
+except subprocess.TimeoutExpired:
+    print("Command timed out")
+
+# run command with input
+result = subprocess.run(['python', '-c', 'print(input())'], 
+                       input='Hello\n', text=True, capture_output=True)
+
+# run command in background
+import subprocess
+process = subprocess.Popen(['python', 'long_script.py'])
+
+# wait for background process
+process.wait()
+
+# kill background process
+process.terminate()
+---
+process.kill()
+
+# run multiple commands
+commands = ['echo "Command 1"', 'echo "Command 2"', 'echo "Command 3"']
+for cmd in commands:
+    subprocess.run(cmd, shell=True)
+
+
+
+environment
+===========
+
+# get environment variable
+home = os.environ.get('HOME')
+---
+home = os.getenv('HOME')
+
+# get environment variable with default
+path = os.environ.get('CUSTOM_PATH', '/default/path')
+
+# set environment variable
+os.environ['CUSTOM_VAR'] = 'value'
+
+# get all environment variables
+env_vars = dict(os.environ)
+
+# run command with custom environment
+env = os.environ.copy()
+env['CUSTOM_VAR'] = 'value'
+subprocess.run(['python', 'script.py'], env=env)
+
+# get system information
+os.name          # 'posix' or 'nt'
+sys.platform     # 'linux', 'darwin', 'win32'
+os.uname()       # Unix only
+
+# get user information
+import getpass
+username = getpass.getuser()
+
+# get process ID
+os.getpid()
+
+# get parent process ID
+os.getppid()
+
+
+
+permissions
+===========
+
+# check file permissions
+os.access('file.txt', os.R_OK)  # readable
+os.access('file.txt', os.W_OK)  # writable
+os.access('file.txt', os.X_OK)  # executable
+
+# change file permissions (Unix)
+os.chmod('file.txt', 0o755)
+---
+Path('file.txt').chmod(0o755)
+
+# get file permissions
+stat = os.stat('file.txt')
+permissions = oct(stat.st_mode)[-3:]
+
+# change file owner (Unix)
+os.chown('file.txt', uid, gid)
+
+# get file stats
+stat = os.stat('file.txt')
+print(f"Size: {stat.st_size}")
+print(f"Mode: {stat.st_mode}")
+print(f"UID: {stat.st_uid}")
+print(f"GID: {stat.st_gid}")
+
+
+
+search
+======
+
+# find files by name
+def find_files(directory, pattern):
+    matches = []
+    for root, dirs, files in os.walk(directory):
+        for filename in files:
+            if pattern in filename:
+                matches.append(os.path.join(root, filename))
+    return matches
+
+# find files by extension
+def find_by_extension(directory, extension):
+    return [os.path.join(root, file)
+            for root, dirs, files in os.walk(directory)
+            for file in files if file.endswith(extension)]
+
+# find files larger than size
+def find_large_files(directory, min_size):
+    large_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            filepath = os.path.join(root, file)
+            if os.path.getsize(filepath) > min_size:
+                large_files.append(filepath)
+    return large_files
+
+# find empty files
+def find_empty_files(directory):
+    return [os.path.join(root, file)
+            for root, dirs, files in os.walk(directory)
+            for file in files
+            if os.path.getsize(os.path.join(root, file)) == 0]
+
+# find files modified within days
+import time
+def find_recent_files(directory, days):
+    cutoff = time.time() - (days * 24 * 60 * 60)
+    return [os.path.join(root, file)
+            for root, dirs, files in os.walk(directory)
+            for file in files
+            if os.path.getmtime(os.path.join(root, file)) > cutoff]
+
+
+
+scripts
+=======
+
+# run Python script
+subprocess.run([sys.executable, 'script.py'])
+
+# run Python script with arguments
+subprocess.run([sys.executable, 'script.py', 'arg1', 'arg2'])
+
+# run Python code directly
+subprocess.run([sys.executable, '-c', 'print("Hello World")'])
+
+# run shell script
+subprocess.run(['./script.sh'])
+---
+subprocess.run(['/bin/bash', 'script.sh'])
+
+# run batch file (Windows)
+subprocess.run(['script.bat'], shell=True)
+
+# make script executable (Unix)
+os.chmod('script.py', 0o755)
+
+# run script with different Python version
+subprocess.run(['python3.9', 'script.py'])
+
+# run script and capture both stdout and stderr
+result = subprocess.run(['python', 'script.py'], 
+                       capture_output=True, text=True)
+print("STDOUT:", result.stdout)
+print("STDERR:", result.stderr)
+
+# run script with stdin input
+with open('input.txt', 'r') as f:
+    result = subprocess.run(['python', 'script.py'], stdin=f)
+
+
+
+monitoring
+==========
+
+# monitor file changes
+import time
+def monitor_file(filepath):
+    last_mtime = os.path.getmtime(filepath)
+    while True:
+        current_mtime = os.path.getmtime(filepath)
+        if current_mtime != last_mtime:
+            print(f"File {filepath} was modified")
+            last_mtime = current_mtime
+        time.sleep(1)
+
+# get disk usage
+disk_usage = shutil.disk_usage('/')
+print(f"Total: {disk_usage.total}")
+print(f"Used: {disk_usage.used}")
+print(f"Free: {disk_usage.free}")
+
+# get process list (Unix)
+result = subprocess.run(['ps', 'aux'], capture_output=True, text=True)
+print(result.stdout)
+
+# check if process is running
+def is_process_running(process_name):
+    result = subprocess.run(['pgrep', process_name], 
+                           capture_output=True, text=True)
+    return result.returncode == 0
+
+# get system load (Unix)
+load1, load5, load15 = os.getloadavg()
+
+# get memory usage (requires psutil)
+# import psutil
+# memory = psutil.virtual_memory()
+# print(f"Memory usage: {memory.percent}%")
+
+
+
+temp
+====
+
+# create temporary file
+import tempfile
+with tempfile.NamedTemporaryFile() as tmp:
+    tmp.write(b'temporary data')
+    tmp.flush()
+    # file is automatically deleted
+
+# create temporary file that persists
+tmp = tempfile.NamedTemporaryFile(delete=False)
+try:
+    tmp.write(b'data')
+    tmp.close()
+    # use tmp.name
+finally:
+    os.unlink(tmp.name)
+
+# create temporary directory
+with tempfile.TemporaryDirectory() as tmp_dir:
+    # use tmp_dir
+    pass  # directory is automatically deleted
+
+# get temporary directory
+temp_dir = tempfile.gettempdir()
+
+# create temporary file with specific suffix
+tmp = tempfile.NamedTemporaryFile(suffix='.txt')
+
+# create secure temporary file
+tmp = tempfile.NamedTemporaryFile(mode='w+t')
+
+
+
+misc
+====
+
+# get file MD5 hash
+import hashlib
+def get_md5(filepath):
+    hash_md5 = hashlib.md5()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+# create symbolic link
+os.symlink('target', 'link_name')
+
+# create hard link
+os.link('target', 'link_name')
+
+# read symbolic link
+os.readlink('link_name')
+
+# archive directory
+shutil.make_archive('archive', 'zip', 'directory')
+
+# extract archive
+shutil.unpack_archive('archive.zip', 'extract_to')
+
+# get file type (Unix)
+result = subprocess.run(['file', 'filename'], capture_output=True, text=True)
+file_type = result.stdout.strip()
+
+# sync filesystem (Unix)
+os.sync()
+
+# set file timestamps
+os.utime('file.txt', (access_time, modification_time))
+
+# create file with specific content
+with open('file.txt', 'w') as f:
+    f.write('content')
+
+# atomic file write
+import tempfile
+def atomic_write(filepath, content):
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, 
+                                   dir=os.path.dirname(filepath)) as tmp:
+        tmp.write(content)
+        tmp.flush()
+        os.fsync(tmp.fileno())
+    os.replace(tmp.name, filepath)
+
+# lock file (simple approach)
+import fcntl
+def lock_file(f):
+    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+
+# watch for file system events (requires watchdog)
+# from watchdog.observers import Observer
+# from watchdog.events import FileSystemEventHandler
+# observer = Observer()
+# observer.schedule(handler, path, recursive=True)
+# observer.start()

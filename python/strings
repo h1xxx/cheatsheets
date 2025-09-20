@@ -1,0 +1,400 @@
+basic
+=====
+
+# convert to lowercase
+text.lower()
+
+# convert to uppercase
+text.upper()
+
+# capitalize first letter
+text.capitalize()
+
+# title case (first letter of each word)
+text.title()
+
+# swap case
+text.swapcase()
+
+# check if string starts with prefix
+text.startswith('prefix')
+
+# check if string ends with suffix
+text.endswith('suffix')
+
+# find substring position
+text.find('substring')
+
+# check if substring exists
+'substring' in text
+
+# replace substring
+text.replace('old', 'new')
+
+# strip whitespace from both ends
+text.strip()
+
+# strip from left/right only
+text.lstrip()
+---
+text.rstrip()
+
+
+
+split
+=====
+
+# split by whitespace
+text.split()
+
+# split by specific delimiter
+text.split(',')
+
+# split with max splits
+text.split(',', 2)
+
+# split by lines
+text.splitlines()
+
+# split from right
+text.rsplit(',', 1)
+
+# partition into 3 parts
+text.partition('delimiter')
+
+# join list of strings
+','.join(['a', 'b', 'c'])
+
+# join with different separator
+' | '.join(items)
+
+
+
+format
+======
+
+# f-string formatting (Python 3.6+)
+f"Hello {name}, you are {age} years old"
+
+# format method
+"Hello {}, you are {} years old".format(name, age)
+
+# format with named placeholders
+"Hello {name}, you are {age} years old".format(name="John", age=30)
+
+# old style formatting
+"Hello %s, you are %d years old" % (name, age)
+
+# format numbers
+f"{value:.2f}"  # 2 decimal places
+f"{value:,}"    # thousands separator
+f"{value:>10}"  # right align in 10 chars
+f"{value:<10}"  # left align in 10 chars
+f"{value:^10}"  # center align in 10 chars
+
+# format with zero padding
+f"{number:05d}"
+
+# format percentage
+f"{ratio:.1%}"
+
+
+
+check
+=====
+
+# check if all characters are alphanumeric
+text.isalnum()
+
+# check if all characters are alphabetic
+text.isalpha()
+
+# check if all characters are digits
+text.isdigit()
+
+# check if all characters are numeric
+text.isnumeric()
+
+# check if all characters are decimal
+text.isdecimal()
+
+# check if string is lowercase
+text.islower()
+
+# check if string is uppercase
+text.isupper()
+
+# check if string is title case
+text.istitle()
+
+# check if all characters are whitespace
+text.isspace()
+
+# check if string is printable
+text.isprintable()
+
+# check if string is valid identifier
+text.isidentifier()
+
+
+
+slice
+=====
+
+# get substring from index 2 to 5
+text[2:5]
+
+# get first 5 characters
+text[:5]
+
+# get last 5 characters
+text[-5:]
+
+# get every 2nd character
+text[::2]
+
+# reverse string
+text[::-1]
+
+# get substring excluding last 3 characters
+text[:-3]
+
+# get character at specific position
+text[0]  # first character
+text[-1] # last character
+
+# safe character access with get method (for dicts, not strings)
+# use try/except or check length for strings
+if len(text) > 5:
+    char = text[5]
+
+
+
+pad
+===
+
+# pad with zeros on left
+text.zfill(10)
+
+# pad with spaces on left
+text.rjust(10)
+
+# pad with spaces on right
+text.ljust(10)
+
+# pad with spaces on both sides (center)
+text.center(10)
+
+# pad with custom character
+text.rjust(10, '0')
+text.ljust(10, '-')
+text.center(10, '*')
+
+
+
+search
+======
+
+# find all occurrences of substring
+import re
+[m.start() for m in re.finditer('pattern', text)]
+
+# count occurrences
+text.count('substring')
+
+# find with regex
+import re
+re.search(r'pattern', text)
+
+# find all matches with regex
+import re
+re.findall(r'pattern', text)
+
+# case insensitive search
+import re
+re.search(r'pattern', text, re.IGNORECASE)
+
+# find last occurrence
+text.rfind('substring')
+
+# find with start position
+text.find('substring', 5)
+
+
+
+replace
+=======
+
+# replace first occurrence only
+text.replace('old', 'new', 1)
+
+# replace with regex
+import re
+re.sub(r'pattern', 'replacement', text)
+
+# replace with function
+import re
+re.sub(r'\d+', lambda m: str(int(m.group()) * 2), text)
+
+# replace multiple patterns
+import re
+replacements = {'old1': 'new1', 'old2': 'new2'}
+pattern = '|'.join(map(re.escape, replacements.keys()))
+re.sub(pattern, lambda m: replacements[m.group()], text)
+
+# translate characters
+text.translate(str.maketrans('abc', 'xyz'))
+
+# remove specific characters
+text.translate(str.maketrans('', '', 'abc'))
+
+
+
+clean
+=====
+
+# remove leading/trailing whitespace
+text.strip()
+
+# remove specific characters from ends
+text.strip('.,!?')
+
+# remove whitespace from left/right
+text.lstrip()
+text.rstrip()
+
+# remove all whitespace
+''.join(text.split())
+
+# remove extra spaces (normalize whitespace)
+import re
+re.sub(r'\s+', ' ', text).strip()
+
+# remove non-alphanumeric characters
+import re
+re.sub(r'[^a-zA-Z0-9]', '', text)
+
+# remove non-printable characters
+''.join(c for c in text if c.isprintable())
+
+# remove accents/diacritics
+import unicodedata
+unicodedata.normalize('NFD', text).encode('ascii', 'ignore').decode('ascii')
+
+
+
+extract
+=======
+
+# extract numbers from string
+import re
+numbers = re.findall(r'\d+', text)
+
+# extract floating point numbers
+import re
+floats = re.findall(r'\d+\.\d+', text)
+
+# extract words only
+import re
+words = re.findall(r'\b[a-zA-Z]+\b', text)
+
+# extract email addresses
+import re
+emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
+
+# extract URLs
+import re
+urls = re.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', text)
+
+# extract text between delimiters
+import re
+content = re.findall(r'\[(.*?)\]', text)  # between square brackets
+
+
+
+encode
+======
+
+# encode to bytes
+text.encode('utf-8')
+
+# decode from bytes
+bytes_obj.decode('utf-8')
+
+# handle encoding errors
+text.encode('utf-8', errors='ignore')
+text.encode('utf-8', errors='replace')
+
+# base64 encoding
+import base64
+base64.b64encode(text.encode()).decode()
+
+# base64 decoding
+import base64
+base64.b64decode(encoded).decode()
+
+# url encoding
+import urllib.parse
+urllib.parse.quote(text)
+
+# url decoding
+import urllib.parse
+urllib.parse.unquote(text)
+
+# html escape
+import html
+html.escape(text)
+
+# html unescape
+import html
+html.unescape(text)
+
+
+
+misc
+====
+
+# get string length
+len(text)
+
+# repeat string
+text * 3
+
+# concatenate strings
+text1 + text2
+
+# check if string is empty
+not text
+len(text) == 0
+
+# get unique characters
+''.join(set(text))
+
+# sort characters in string
+''.join(sorted(text))
+
+# reverse words in string
+' '.join(text.split()[::-1])
+
+# remove duplicate consecutive characters
+import re
+re.sub(r'(.)\1+', r'\1', text)
+
+# insert string at position
+text[:pos] + insert_text + text[pos:]
+
+# wrap text to specific width
+import textwrap
+textwrap.fill(text, width=70)
+
+# dedent text (remove common leading whitespace)
+import textwrap
+textwrap.dedent(text)
+
+# truncate string with ellipsis
+text[:50] + '...' if len(text) > 50 else text
+
+# generate random string
+import string
+import random
+''.join(random.choices(string.ascii_letters + string.digits, k=10))

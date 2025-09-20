@@ -1,0 +1,524 @@
+import
+======
+
+# import datetime module
+import datetime
+from datetime import datetime, date, time, timedelta
+
+# import specific classes
+from datetime import timezone, tzinfo
+
+# import time module
+import time
+
+# import calendar module
+import calendar
+
+
+
+create
+======
+
+# get current datetime
+now = datetime.now()
+
+# get current date
+today = date.today()
+
+# get current time
+current_time = time()
+
+# create specific datetime
+dt = datetime(2023, 12, 25, 14, 30, 45)
+
+# create specific date
+d = date(2023, 12, 25)
+
+# create specific time
+t = time(14, 30, 45)
+
+# create with microseconds
+dt = datetime(2023, 12, 25, 14, 30, 45, 123456)
+
+# create from timestamp
+dt = datetime.fromtimestamp(1703513445)
+
+# create UTC datetime
+dt = datetime.utcnow()
+---
+dt = datetime.now(timezone.utc)
+
+# create from ordinal day
+dt = datetime.fromordinal(738500)
+
+# create minimum/maximum datetime
+min_dt = datetime.min
+max_dt = datetime.max
+
+
+
+format
+======
+
+# format datetime to string
+dt.strftime('%Y-%m-%d %H:%M:%S')
+
+# common format patterns
+dt.strftime('%Y-%m-%d')           # 2023-12-25
+dt.strftime('%d/%m/%Y')           # 25/12/2023
+dt.strftime('%B %d, %Y')          # December 25, 2023
+dt.strftime('%A, %B %d, %Y')      # Monday, December 25, 2023
+dt.strftime('%H:%M:%S')           # 14:30:45
+dt.strftime('%I:%M %p')           # 02:30 PM
+
+# ISO format
+dt.isoformat()
+
+# default string representation
+str(dt)
+
+# format with custom separators
+dt.strftime('%Y-%m-%d_%H-%M-%S')
+
+# format with timezone
+dt.strftime('%Y-%m-%d %H:%M:%S %Z')
+
+# format date only
+d.strftime('%Y-%m-%d')
+
+# format time only
+t.strftime('%H:%M:%S')
+
+
+
+parse
+=====
+
+# parse string to datetime
+dt = datetime.strptime('2023-12-25 14:30:45', '%Y-%m-%d %H:%M:%S')
+
+# parse date string
+d = datetime.strptime('2023-12-25', '%Y-%m-%d').date()
+
+# parse time string
+t = datetime.strptime('14:30:45', '%H:%M:%S').time()
+
+# parse with different formats
+dt = datetime.strptime('25/12/2023', '%d/%m/%Y')
+dt = datetime.strptime('Dec 25, 2023', '%b %d, %Y')
+dt = datetime.strptime('December 25, 2023', '%B %d, %Y')
+
+# parse ISO format
+dt = datetime.fromisoformat('2023-12-25T14:30:45')
+
+# parse with timezone
+dt = datetime.strptime('2023-12-25 14:30:45 +0000', '%Y-%m-%d %H:%M:%S %z')
+
+# parse flexible format (requires dateutil)
+# from dateutil import parser
+# dt = parser.parse('2023-12-25 2:30 PM')
+
+
+
+components
+==========
+
+# extract date components
+year = dt.year
+month = dt.month
+day = dt.day
+
+# extract time components
+hour = dt.hour
+minute = dt.minute
+second = dt.second
+microsecond = dt.microsecond
+
+# get day of week (0=Monday, 6=Sunday)
+weekday = dt.weekday()
+
+# get day of week (1=Monday, 7=Sunday)
+isoweekday = dt.isoweekday()
+
+# get day name
+day_name = dt.strftime('%A')
+
+# get month name
+month_name = dt.strftime('%B')
+
+# get ordinal day of year
+ordinal = dt.toordinal()
+
+# get day of year
+day_of_year = dt.timetuple().tm_yday
+
+# get week number
+week_number = dt.isocalendar()[1]
+
+# get quarter
+quarter = (dt.month - 1) // 3 + 1
+
+# combine date and time
+dt = datetime.combine(d, t)
+
+# extract date from datetime
+d = dt.date()
+
+# extract time from datetime
+t = dt.time()
+
+
+
+arithmetic
+==========
+
+# create timedelta
+td = timedelta(days=7, hours=3, minutes=30)
+
+# add time
+future = dt + timedelta(days=7)
+future = dt + timedelta(hours=2)
+future = dt + timedelta(weeks=1)
+
+# subtract time
+past = dt - timedelta(days=7)
+
+# difference between datetimes
+diff = dt2 - dt1  # returns timedelta
+
+# timedelta components
+days = diff.days
+seconds = diff.seconds
+microseconds = diff.microseconds
+
+# total seconds in timedelta
+total_seconds = diff.total_seconds()
+
+# add months (approximate)
+from datetime import datetime
+import calendar
+def add_months(dt, months):
+    month = dt.month - 1 + months
+    year = dt.year + month // 12
+    month = month % 12 + 1
+    day = min(dt.day, calendar.monthrange(year, month)[1])
+    return dt.replace(year=year, month=month, day=day)
+
+# add years
+next_year = dt.replace(year=dt.year + 1)
+
+
+
+compare
+=======
+
+# compare datetimes
+dt1 < dt2
+dt1 > dt2
+dt1 == dt2
+dt1 != dt2
+
+# check if date is today
+d == date.today()
+
+# check if datetime is now (within tolerance)
+abs((dt - datetime.now()).total_seconds()) < 60  # within 1 minute
+
+# sort list of datetimes
+dates.sort()
+
+# min/max from list
+min_date = min(dates)
+max_date = max(dates)
+
+# check if year is leap year
+calendar.isleap(2024)
+
+# check if datetime is weekend
+dt.weekday() >= 5  # Saturday=5, Sunday=6
+
+# check if datetime is weekday
+dt.weekday() < 5
+
+
+
+timezone
+========
+
+# create timezone-aware datetime
+dt = datetime.now(timezone.utc)
+
+# create with specific timezone offset
+tz = timezone(timedelta(hours=5))
+dt = datetime.now(tz)
+
+# add timezone to naive datetime
+dt_naive = datetime.now()
+dt_aware = dt_naive.replace(tzinfo=timezone.utc)
+
+# convert timezone
+dt_utc = dt.astimezone(timezone.utc)
+
+# remove timezone info
+dt_naive = dt.replace(tzinfo=None)
+
+# check if datetime is timezone-aware
+dt.tzinfo is not None
+
+# get timezone offset
+offset = dt.utcoffset()
+
+# get timezone name
+tz_name = dt.tzname()
+
+# using pytz (third-party)
+# import pytz
+# utc = pytz.UTC
+# eastern = pytz.timezone('US/Eastern')
+# dt = eastern.localize(datetime.now())
+
+
+
+ranges
+======
+
+# generate date range
+start_date = date(2023, 1, 1)
+end_date = date(2023, 12, 31)
+dates = []
+current = start_date
+while current <= end_date:
+    dates.append(current)
+    current += timedelta(days=1)
+
+# generate monthly dates
+def monthly_range(start, end):
+    current = start.replace(day=1)
+    while current <= end:
+        yield current
+        if current.month == 12:
+            current = current.replace(year=current.year + 1, month=1)
+        else:
+            current = current.replace(month=current.month + 1)
+
+# get all mondays in range
+def get_weekdays(start, end, weekday=0):  # 0=Monday
+    current = start
+    while current <= end:
+        if current.weekday() == weekday:
+            yield current
+        current += timedelta(days=1)
+
+# get last day of month
+def last_day_of_month(dt):
+    next_month = dt.replace(day=28) + timedelta(days=4)
+    return next_month - timedelta(days=next_month.day)
+
+# get first day of month
+first_day = dt.replace(day=1)
+
+
+
+special
+=======
+
+# get Easter date (requires dateutil)
+# from dateutil.easter import easter
+# easter_date = easter(2023)
+
+# get business days
+def is_business_day(dt):
+    return dt.weekday() < 5
+
+# add business days
+def add_business_days(dt, days):
+    current = dt
+    while days > 0:
+        current += timedelta(days=1)
+        if is_business_day(current):
+            days -= 1
+    return current
+
+# get age in years
+def age(birth_date):
+    today = date.today()
+    return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
+# time until next occurrence
+def time_until_next(target_time):
+    now = datetime.now()
+    target = now.replace(hour=target_time.hour, minute=target_time.minute, second=0, microsecond=0)
+    if target <= now:
+        target += timedelta(days=1)
+    return target - now
+
+# round datetime
+def round_datetime(dt, delta):
+    return datetime.min + round((dt - datetime.min) / delta) * delta
+
+# truncate to day/hour/minute
+day_start = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+hour_start = dt.replace(minute=0, second=0, microsecond=0)
+minute_start = dt.replace(second=0, microsecond=0)
+
+
+
+calendar
+========
+
+# get calendar for month
+cal = calendar.month(2023, 12)
+
+# get day names
+day_names = calendar.day_name[:]
+
+# get abbreviated day names
+day_abbr = calendar.day_abbr[:]
+
+# get month names
+month_names = calendar.month_name[:]
+
+# get abbreviated month names
+month_abbr = calendar.month_abbr[:]
+
+# get number of days in month
+days_in_month = calendar.monthrange(2023, 12)[1]
+
+# get first weekday of month (0=Monday)
+first_weekday = calendar.monthrange(2023, 12)[0]
+
+# check if leap year
+is_leap = calendar.isleap(2024)
+
+# get leap years in range
+leap_years = [year for year in range(2020, 2030) if calendar.isleap(year)]
+
+# iterate through month dates
+for week in calendar.monthcalendar(2023, 12):
+    for day in week:
+        if day != 0:  # 0 means day from previous/next month
+            print(day)
+
+
+
+timestamp
+=========
+
+# get current timestamp
+ts = time.time()
+
+# convert datetime to timestamp
+ts = dt.timestamp()
+
+# convert timestamp to datetime
+dt = datetime.fromtimestamp(ts)
+
+# convert to UTC timestamp
+utc_ts = dt.replace(tzinfo=timezone.utc).timestamp()
+
+# millisecond timestamp
+ms_ts = int(ts * 1000)
+
+# convert millisecond timestamp
+dt = datetime.fromtimestamp(ms_ts / 1000)
+
+# epoch time
+epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+seconds_since_epoch = (dt - epoch).total_seconds()
+
+
+
+performance
+===========
+
+# measure execution time
+import time
+start = time.perf_counter()
+# code here
+end = time.perf_counter()
+duration = end - start
+
+# using timeit for small code snippets
+import timeit
+duration = timeit.timeit('datetime.now()', setup='from datetime import datetime', number=10000)
+
+# sleep for specific duration
+time.sleep(1)  # sleep for 1 second
+time.sleep(0.1)  # sleep for 100ms
+
+# high resolution time
+time.perf_counter()  # monotonic clock
+time.process_time()  # process time
+
+# time zones without pytz
+utc_offset = timedelta(hours=5)
+custom_tz = timezone(utc_offset, 'CUSTOM')
+
+
+
+patterns
+========
+
+# common format codes
+'%Y'  # 4-digit year (2023)
+'%y'  # 2-digit year (23)
+'%m'  # month as number (12)
+'%B'  # full month name (December)
+'%b'  # abbreviated month (Dec)
+'%d'  # day of month (25)
+'%A'  # full day name (Monday)
+'%a'  # abbreviated day (Mon)
+'%H'  # hour 24-hour (14)
+'%I'  # hour 12-hour (02)
+'%M'  # minute (30)
+'%S'  # second (45)
+'%f'  # microsecond (123456)
+'%p'  # AM/PM
+'%z'  # timezone offset (+0000)
+'%Z'  # timezone name (UTC)
+'%j'  # day of year (359)
+'%U'  # week number (52)
+'%W'  # week number (52)
+'%%'  # literal % character
+
+# common patterns
+'%Y-%m-%d'                    # 2023-12-25
+'%Y-%m-%d %H:%M:%S'          # 2023-12-25 14:30:45
+'%d/%m/%Y'                   # 25/12/2023
+'%B %d, %Y'                  # December 25, 2023
+'%A, %B %d, %Y at %I:%M %p'  # Monday, December 25, 2023 at 02:30 PM
+
+
+
+validation
+==========
+
+# validate date
+def is_valid_date(year, month, day):
+    try:
+        date(year, month, day)
+        return True
+    except ValueError:
+        return False
+
+# validate datetime string
+def is_valid_datetime(date_string, format_string):
+    try:
+        datetime.strptime(date_string, format_string)
+        return True
+    except ValueError:
+        return False
+
+# check date range
+def is_in_range(check_date, start_date, end_date):
+    return start_date <= check_date <= end_date
+
+# sanitize datetime input
+def safe_parse_date(date_string):
+    formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y-%m-%d %H:%M:%S']
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_string, fmt)
+        except ValueError:
+            continue
+    raise ValueError(f"Unable to parse date: {date_string}")

@@ -1,0 +1,616 @@
+magic
+=====
+
+# get help on magic commands
+%magic
+%lsmagic
+
+# run external shell command
+!ls -la
+!pwd
+
+# time execution of single line
+%time code_line
+
+# time execution with multiple runs
+%timeit code_line
+
+# time execution of cell/block
+%%time
+code_block
+
+# profile code execution
+%prun code_line
+
+# line profiler (requires line_profiler)
+%lprun -f function_name code_line
+
+# memory profiler (requires memory_profiler)
+%memit code_line
+
+# run Python script
+%run script.py
+
+# run script with arguments
+%run script.py arg1 arg2
+
+# run script in debugger
+%run -d script.py
+
+# edit file in editor
+%edit filename.py
+
+# edit function or object
+%edit function_name
+
+# reload module
+%reload_ext module_name
+
+# load extension
+%load_ext extension_name
+
+# unload extension
+%unload_ext extension_name
+
+# paste code from clipboard
+%paste
+
+# paste and execute code
+%cpaste
+
+# save session to file
+%save filename.py 1-10
+
+# save history to file
+%history -f filename.py
+
+
+
+system
+======
+
+# change directory
+%cd /path/to/directory
+%cd ..
+%cd ~
+
+# print working directory
+%pwd
+
+# list directory contents
+%ls
+%ls -la
+
+# create directory
+%mkdir new_directory
+
+# remove directory
+%rmdir directory_name
+
+# copy files
+%cp source destination
+
+# move files
+%mv source destination
+
+# remove files
+%rm filename
+
+# show environment variables
+%env
+
+# set environment variable
+%env VAR_NAME=value
+
+# bookmark directories
+%bookmark name /path/to/directory
+
+# list bookmarks
+%bookmark -l
+
+# go to bookmark
+%cd -b bookmark_name
+
+# system info
+%who
+%whos
+%who_ls
+
+
+
+variables
+=========
+
+# list all variables
+%who
+
+# detailed variable info
+%whos
+
+# list specific variable types
+%who int
+%who str
+
+# delete variables
+%reset
+%reset -f  # force without confirmation
+
+# delete specific variables
+del variable_name
+
+# reset selective variables
+%reset_selective pattern
+
+# store variables
+%store variable_name
+
+# restore stored variables
+%store -r
+
+# list stored variables
+%store
+
+# clear variable from storage
+%store -d variable_name
+
+# export variables to file
+%store variable_name > file.txt
+
+# namespace cleanup
+%xdel variable_name
+
+
+
+history
+=======
+
+# show command history
+%hist
+%history
+
+# show last n commands
+%hist -n 10
+
+# show history with line numbers
+%hist -n
+
+# show history for specific session
+%hist -s session_number
+
+# search history
+%hist -g pattern
+
+# show history as raw code
+%hist -r
+
+# show output history
+%hist -o
+
+# get previous input
+In[1]   # first input
+In[-1]  # last input
+
+# get previous output
+Out[1]  # first output
+Out[-1] # last output
+_       # last output
+__      # second to last output
+___     # third to last output
+
+# execute previous command
+%rerun
+%rerun 5  # rerun command 5
+
+# macro creation from history
+%macro name 1-5
+
+# execute macro
+%name
+
+# edit macro
+%edit name
+
+
+
+debug
+=====
+
+# enter debugger
+%debug
+
+# enable automatic debugger on exceptions
+%pdb on
+%pdb off
+
+# post-mortem debugging
+%debug
+
+# run with debugger
+%run -d script.py
+
+# set breakpoint in code
+import pdb; pdb.set_trace()
+
+# debugger commands (when in pdb)
+# h         - help
+# l         - list current location
+# n         - next line
+# s         - step into
+# c         - continue
+# u         - up stack frame
+# d         - down stack frame
+# p var     - print variable
+# pp var    - pretty print variable
+# w         - where (stack trace)
+# q         - quit debugger
+
+# enable/disable pdb automatically
+%pdb
+
+# exception handling
+%xmode Plain    # simple tracebacks
+%xmode Context  # default context
+%xmode Verbose  # detailed tracebacks
+
+
+
+shortcuts
+=========
+
+# command line navigation
+Ctrl+A          # beginning of line
+Ctrl+E          # end of line
+Ctrl+B          # backward one character
+Ctrl+F          # forward one character
+Alt+B           # backward one word
+Alt+F           # forward one word
+
+# editing shortcuts
+Ctrl+D          # delete character under cursor
+Ctrl+H          # delete character before cursor (backspace)
+Ctrl+K          # delete to end of line
+Ctrl+U          # delete to beginning of line
+Ctrl+W          # delete word before cursor
+Alt+D           # delete word after cursor
+Ctrl+Y          # paste from kill ring
+Ctrl+_          # undo
+
+# history shortcuts
+Ctrl+P          # previous command (up arrow)
+Ctrl+N          # next command (down arrow)
+Ctrl+R          # reverse search history
+Ctrl+S          # forward search history
+
+# completion and help
+Tab             # auto-complete
+?               # help on object
+??              # detailed help/source
+Shift+Tab       # help popup (in some terminals)
+
+# execution control
+Ctrl+C          # interrupt execution
+Ctrl+D          # exit IPython
+Ctrl+L          # clear screen
+Ctrl+Z          # suspend process (Unix)
+
+
+
+completion
+==========
+
+# basic tab completion
+variable_name<Tab>
+
+# attribute completion
+object.<Tab>
+
+# method completion
+string.<Tab>
+
+# import completion
+from module <Tab>
+import <Tab>
+
+# filename completion
+%run <Tab>
+
+# magic command completion
+%<Tab>
+
+# parameter completion
+function(<Tab>
+
+# help on completion
+object?
+object??
+
+# configure completion
+%config IPCompleter.greedy=True
+
+# wildcard search
+*pattern*?
+
+# search for objects containing pattern
+%psearch pattern
+
+# search for functions
+%psearch -a pattern
+
+# search docstrings
+%psearch -d pattern
+
+
+
+display
+=======
+
+# pretty printing
+%pprint
+%pprint on
+%pprint off
+
+# configure display
+%config InlineBackend.figure_format = 'retina'
+
+# display object
+display(object)
+
+# HTML display
+from IPython.display import HTML
+HTML('<h1>Title</h1>')
+
+# markdown display
+from IPython.display import Markdown
+Markdown('**bold text**')
+
+# image display
+from IPython.display import Image
+Image('image.png')
+
+# control output
+;  # suppress output
+print() # force output
+
+# page output
+%page object
+
+# less-style paging
+%more filename
+
+
+
+config
+======
+
+# show configuration
+%config
+
+# configure specific option
+%config IPCompleter.greedy=True
+
+# create configuration file
+ipython profile create
+
+# list profiles
+ipython profile list
+
+# use specific profile
+ipython --profile=myprofile
+
+# configuration locations
+%config IPython.profile_dir
+
+# startup directory
+~/.ipython/profile_default/startup/
+
+# reset configuration
+%reset_config
+
+# show aliases
+%alias
+
+# create alias
+%alias ll ls -la
+
+# remove alias
+%unalias ll
+
+# show colors
+%colors
+
+# change color scheme
+%colors Linux
+%colors NoColor
+%colors LightBG
+
+
+
+files
+=====
+
+# load Python file
+%load filename.py
+
+# load from URL
+%load http://example.com/script.py
+
+# load specific lines
+%load filename.py 10-20
+
+# write cell to file
+%%writefile filename.py
+code here
+
+# append to file
+%%writefile -a filename.py
+more code
+
+# run SQL (requires sql extension)
+%load_ext sql
+%sql SELECT * FROM table
+
+# write and run
+%%script python
+print("Hello World")
+
+# write and run bash
+%%bash
+echo "Hello from bash"
+
+# capture output
+%%capture output
+print("This will be captured")
+
+# HTML rendering
+%%html
+<h1>HTML content</h1>
+
+
+
+advanced
+========
+
+# create custom magic
+from IPython.core.magic import Magics, line_magic, cell_magic, magics_class
+
+@magics_class
+class MyMagics(Magics):
+    @line_magic
+    def mymagic(self, line):
+        return f"Magic result: {line}"
+
+# register magic
+get_ipython().register_magic_function(MyMagics)
+
+# timing utilities
+%time expression      # time single execution
+%timeit expression    # time with multiple runs
+%%timeit              # time cell execution
+
+# profiling
+%prun expression      # profile with cProfile
+%lprun expression     # line-by-line profiling
+
+# memory usage
+%memit expression     # memory usage
+%mprun expression     # line-by-line memory
+
+# parallel computing (with ipyparallel)
+%autopx               # auto-parallel execution
+%px                   # parallel execution
+
+# logging
+%logstart
+%logstop
+%logon
+%logoff
+
+# quickref
+%quickref
+
+# syntax highlighting
+%config TerminalInteractiveShell.highlighting_style = 'monokai'
+
+
+
+jupyter
+=======
+
+# convert notebook to script
+jupyter nbconvert --to script notebook.ipynb
+
+# convert to HTML
+jupyter nbconvert --to html notebook.ipynb
+
+# convert to PDF
+jupyter nbconvert --to pdf notebook.ipynb
+
+# execute notebook
+jupyter nbconvert --to notebook --execute notebook.ipynb
+
+# start notebook server
+jupyter notebook
+
+# start lab
+jupyter lab
+
+# list running servers
+jupyter notebook list
+
+# stop server
+jupyter notebook stop 8888
+
+# kernel management
+jupyter kernelspec list
+jupyter kernelspec install-self
+jupyter kernelspec remove kernel_name
+
+# extensions
+jupyter nbextension list
+jupyter nbextension enable extension_name
+jupyter nbextension disable extension_name
+
+# lab extensions
+jupyter labextension list
+jupyter labextension install extension_name
+jupyter labextension uninstall extension_name
+
+
+
+tips
+====
+
+# multi-line editing
+# Use \ at end of line for continuation
+variable = very_long_expression + \
+           another_part + \
+           final_part
+
+# suppress output with semicolon
+x = 5; y = 10;
+
+# multiple statements on one line
+x = 1; y = 2; print(x + y)
+
+# access shell variables
+files = !ls
+print(files)
+
+# string interpolation in shell commands
+name = "file.txt"
+!echo {name}
+
+# capture shell output
+files = !ls -la
+for file in files:
+    print(file)
+
+# directory stack
+%pushd /path/to/dir
+%popd
+%dirs
+
+# automatic calling
+# Functions can be called without parentheses
+len "hello"  # equivalent to len("hello")
+
+# input/output history
+In    # list of all inputs
+Out   # dictionary of outputs
+
+# session information
+%who_ls          # compact variable list
+%psinfo          # system information
+%logstate        # logging state
+
+# performance tips
+# Use %timeit for accurate timing
+# Use ?? to see source code
+# Use %prun for profiling
+# Use %debug after exceptions
+
+# workflow shortcuts
+%save filename 1-10    # save session
+%load filename         # load file
+%edit filename         # edit in external editor
+%rerun                 # rerun last command

@@ -1,0 +1,636 @@
+import
+======
+
+# import pandas
+import pandas as pd
+
+# import numpy (often used together)
+import numpy as np
+
+# display options
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.max_columns', 10)
+pd.set_option('display.width', 1000)
+
+# reset display options
+pd.reset_option('all')
+
+
+
+create
+======
+
+# create series
+s = pd.Series([1, 2, 3, 4])
+s = pd.Series([1, 2, 3], index=['a', 'b', 'c'])
+
+# create dataframe from dict
+df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+
+# create dataframe from list of lists
+df = pd.DataFrame([[1, 2], [3, 4]], columns=['A', 'B'])
+
+# create dataframe with index
+df = pd.DataFrame({'A': [1, 2, 3]}, index=['x', 'y', 'z'])
+
+# create empty dataframe
+df = pd.DataFrame()
+
+# create from numpy array
+df = pd.DataFrame(np.random.randn(3, 2), columns=['A', 'B'])
+
+# create date range
+dates = pd.date_range('2023-01-01', periods=10, freq='D')
+
+# create categorical data
+cat = pd.Categorical(['a', 'b', 'c', 'a'])
+
+
+
+read
+====
+
+# read CSV file
+df = pd.read_csv('file.csv')
+
+# read CSV with options
+df = pd.read_csv('file.csv', sep=';', header=0, index_col=0)
+
+# read CSV with specific columns
+df = pd.read_csv('file.csv', usecols=['col1', 'col2'])
+
+# read CSV with data types
+df = pd.read_csv('file.csv', dtype={'col1': str, 'col2': int})
+
+# read Excel file
+df = pd.read_excel('file.xlsx')
+---
+df = pd.read_excel('file.xlsx', sheet_name='Sheet1')
+
+# read JSON file
+df = pd.read_json('file.json')
+
+# read SQL query
+df = pd.read_sql('SELECT * FROM table', connection)
+
+# read from URL
+df = pd.read_csv('https://example.com/data.csv')
+
+# read with date parsing
+df = pd.read_csv('file.csv', parse_dates=['date_col'])
+
+# read large files in chunks
+for chunk in pd.read_csv('large_file.csv', chunksize=1000):
+    process(chunk)
+
+
+
+write
+=====
+
+# write to CSV
+df.to_csv('output.csv')
+
+# write CSV without index
+df.to_csv('output.csv', index=False)
+
+# write CSV with specific separator
+df.to_csv('output.csv', sep=';')
+
+# write to Excel
+df.to_excel('output.xlsx')
+---
+df.to_excel('output.xlsx', sheet_name='Data', index=False)
+
+# write to JSON
+df.to_json('output.json')
+
+# write to SQL
+df.to_sql('table_name', connection, if_exists='replace')
+
+# write to HTML
+df.to_html('output.html')
+
+# write to clipboard
+df.to_clipboard()
+
+
+
+inspect
+=======
+
+# show first/last rows
+df.head()
+df.head(10)
+df.tail()
+
+# dataframe info
+df.info()
+
+# dataframe shape
+df.shape
+
+# column names
+df.columns
+
+# data types
+df.dtypes
+
+# index information
+df.index
+
+# basic statistics
+df.describe()
+
+# value counts for series
+df['column'].value_counts()
+
+# unique values
+df['column'].unique()
+
+# number of unique values
+df['column'].nunique()
+
+# check for missing values
+df.isnull()
+df.isnull().sum()
+
+# check for duplicates
+df.duplicated()
+df.duplicated().sum()
+
+# memory usage
+df.memory_usage()
+
+
+
+select
+======
+
+# select column
+df['column']
+df.column
+
+# select multiple columns
+df[['col1', 'col2']]
+
+# select rows by index
+df.loc[0]
+df.loc[0:2]
+
+# select rows by position
+df.iloc[0]
+df.iloc[0:3]
+
+# select specific rows and columns
+df.loc[0:2, 'col1':'col3']
+df.iloc[0:3, 0:2]
+
+# boolean indexing
+df[df['column'] > 5]
+df[df['column'].isin(['value1', 'value2'])]
+
+# multiple conditions
+df[(df['col1'] > 5) & (df['col2'] < 10)]
+df[(df['col1'] > 5) | (df['col2'] < 10)]
+
+# query method
+df.query('col1 > 5 and col2 < 10')
+
+# select columns by data type
+df.select_dtypes(include=['number'])
+df.select_dtypes(exclude=['object'])
+
+# sample rows
+df.sample(5)
+df.sample(frac=0.1)
+
+
+
+filter
+======
+
+# filter rows
+df[df['column'] > 10]
+
+# filter with multiple conditions
+df[(df['col1'] > 5) & (df['col2'] == 'value')]
+
+# filter with isin
+df[df['column'].isin(['a', 'b', 'c'])]
+
+# filter with string methods
+df[df['column'].str.contains('pattern')]
+df[df['column'].str.startswith('prefix')]
+df[df['column'].str.endswith('suffix')]
+
+# filter with regex
+df[df['column'].str.contains(r'pattern', regex=True)]
+
+# filter null values
+df[df['column'].isnull()]
+df[df['column'].notnull()]
+
+# filter by index
+df[df.index > 10]
+
+# filter columns
+df.filter(items=['col1', 'col2'])
+df.filter(regex='^col')
+df.filter(like='name')
+
+
+
+modify
+======
+
+# add new column
+df['new_col'] = df['col1'] + df['col2']
+
+# modify existing column
+df['column'] = df['column'] * 2
+
+# rename columns
+df.rename(columns={'old_name': 'new_name'})
+
+# rename all columns
+df.columns = ['new1', 'new2', 'new3']
+
+# set index
+df.set_index('column')
+
+# reset index
+df.reset_index()
+
+# drop columns
+df.drop('column', axis=1)
+df.drop(['col1', 'col2'], axis=1)
+
+# drop rows
+df.drop(0, axis=0)  # drop row with index 0
+df.drop([0, 1, 2], axis=0)
+
+# insert column at specific position
+df.insert(1, 'new_col', values)
+
+# reorder columns
+df = df[['col2', 'col1', 'col3']]
+
+
+
+sort
+====
+
+# sort by column
+df.sort_values('column')
+
+# sort by multiple columns
+df.sort_values(['col1', 'col2'])
+
+# sort descending
+df.sort_values('column', ascending=False)
+
+# sort by index
+df.sort_index()
+
+# sort with custom key
+df.sort_values('column', key=lambda x: x.str.lower())
+
+# sort with na position
+df.sort_values('column', na_position='first')
+
+
+
+group
+=====
+
+# group by single column
+df.groupby('column').mean()
+
+# group by multiple columns
+df.groupby(['col1', 'col2']).sum()
+
+# group and apply function
+df.groupby('column').apply(lambda x: x.sum())
+
+# group and aggregate different functions
+df.groupby('column').agg({'col1': 'mean', 'col2': 'sum'})
+
+# group and get specific groups
+grouped = df.groupby('column')
+grouped.get_group('group_name')
+
+# group sizes
+df.groupby('column').size()
+
+# group and transform
+df.groupby('column').transform(lambda x: x - x.mean())
+
+# multiple aggregations
+df.groupby('column').agg(['mean', 'sum', 'count'])
+
+# custom aggregation
+df.groupby('column').agg(
+    mean_col1=('col1', 'mean'),
+    sum_col2=('col2', 'sum')
+)
+
+
+
+join
+====
+
+# merge dataframes
+pd.merge(df1, df2, on='key')
+
+# merge with different join types
+pd.merge(df1, df2, on='key', how='left')
+pd.merge(df1, df2, on='key', how='right')
+pd.merge(df1, df2, on='key', how='outer')
+pd.merge(df1, df2, on='key', how='inner')
+
+# merge on multiple columns
+pd.merge(df1, df2, on=['key1', 'key2'])
+
+# merge with different column names
+pd.merge(df1, df2, left_on='key1', right_on='key2')
+
+# join method (index-based)
+df1.join(df2)
+df1.join(df2, how='left')
+
+# concatenate dataframes
+pd.concat([df1, df2])
+
+# concatenate with keys
+pd.concat([df1, df2], keys=['df1', 'df2'])
+
+# concatenate along columns
+pd.concat([df1, df2], axis=1)
+
+# append rows (deprecated, use concat)
+pd.concat([df1, df2], ignore_index=True)
+
+
+
+pivot
+=====
+
+# pivot table
+df.pivot_table(values='value', index='row', columns='col')
+
+# pivot with aggregation
+df.pivot_table(values='value', index='row', columns='col', aggfunc='mean')
+
+# multiple value columns
+df.pivot_table(values=['val1', 'val2'], index='row', columns='col')
+
+# pivot with margins
+df.pivot_table(values='value', index='row', columns='col', margins=True)
+
+# pivot without aggregation (must have unique combinations)
+df.pivot(index='row', columns='col', values='value')
+
+# melt (unpivot)
+df.melt(id_vars=['id'], value_vars=['col1', 'col2'])
+
+# stack and unstack
+df.stack()    # columns to rows
+df.unstack()  # rows to columns
+
+
+
+missing
+=======
+
+# check for missing values
+df.isnull()
+df.isna()
+
+# count missing values
+df.isnull().sum()
+
+# drop rows with any missing values
+df.dropna()
+
+# drop rows with all missing values
+df.dropna(how='all')
+
+# drop columns with missing values
+df.dropna(axis=1)
+
+# fill missing values
+df.fillna(0)
+df.fillna({'col1': 0, 'col2': 'unknown'})
+
+# forward fill
+df.fillna(method='ffill')
+
+# backward fill
+df.fillna(method='bfill')
+
+# interpolate missing values
+df.interpolate()
+
+# replace values
+df.replace('old_value', 'new_value')
+df.replace(['val1', 'val2'], ['new1', 'new2'])
+
+# replace with regex
+df.replace(r'pattern', 'replacement', regex=True)
+
+
+
+datetime
+========
+
+# convert to datetime
+df['date'] = pd.to_datetime(df['date'])
+
+# create datetime from components
+df['date'] = pd.to_datetime(df[['year', 'month', 'day']])
+
+# extract datetime components
+df['year'] = df['date'].dt.year
+df['month'] = df['date'].dt.month
+df['day'] = df['date'].dt.day
+df['weekday'] = df['date'].dt.dayofweek
+
+# format datetime
+df['date_str'] = df['date'].dt.strftime('%Y-%m-%d')
+
+# filter by date range
+df[df['date'].between('2023-01-01', '2023-12-31')]
+
+# resample time series
+df.set_index('date').resample('M').mean()  # monthly
+df.set_index('date').resample('D').sum()   # daily
+
+# time zone conversion
+df['date'] = df['date'].dt.tz_localize('UTC')
+df['date'] = df['date'].dt.tz_convert('US/Eastern')
+
+# date range
+pd.date_range('2023-01-01', '2023-12-31', freq='D')
+
+
+
+strings
+=======
+
+# string methods
+df['column'].str.upper()
+df['column'].str.lower()
+df['column'].str.title()
+
+# string length
+df['column'].str.len()
+
+# string contains
+df['column'].str.contains('pattern')
+
+# string replace
+df['column'].str.replace('old', 'new')
+
+# string split
+df['column'].str.split(',')
+
+# extract with regex
+df['column'].str.extract(r'(\d+)')
+
+# extract all matches
+df['column'].str.extractall(r'(\d+)')
+
+# string slice
+df['column'].str[:5]  # first 5 characters
+
+# string strip
+df['column'].str.strip()
+
+# string startswith/endswith
+df['column'].str.startswith('prefix')
+df['column'].str.endswith('suffix')
+
+
+
+apply
+=====
+
+# apply function to column
+df['column'].apply(lambda x: x * 2)
+
+# apply function to dataframe
+df.apply(lambda x: x.sum(), axis=0)  # column-wise
+df.apply(lambda x: x.sum(), axis=1)  # row-wise
+
+# apply with additional arguments
+df['column'].apply(lambda x: custom_func(x, arg1, arg2))
+
+# applymap for element-wise operations
+df.applymap(lambda x: x * 2)
+
+# map values
+df['column'].map({'old1': 'new1', 'old2': 'new2'})
+
+# transform
+df.transform(lambda x: (x - x.mean()) / x.std())
+
+# pipe for chaining operations
+df.pipe(func1).pipe(func2)
+
+
+
+stats
+=====
+
+# basic statistics
+df.mean()
+df.median()
+df.sum()
+df.count()
+df.std()
+df.var()
+df.min()
+df.max()
+
+# quantiles
+df.quantile(0.25)
+df.quantile([0.25, 0.5, 0.75])
+
+# correlation
+df.corr()
+df['col1'].corr(df['col2'])
+
+# covariance
+df.cov()
+
+# value counts
+df['column'].value_counts()
+
+# cross tabulation
+pd.crosstab(df['col1'], df['col2'])
+
+# cumulative operations
+df.cumsum()
+df.cumprod()
+df.cummax()
+df.cummin()
+
+# rolling statistics
+df['column'].rolling(window=3).mean()
+df['column'].rolling(window=7).sum()
+
+# expanding statistics
+df['column'].expanding().mean()
+
+
+
+misc
+====
+
+# remove duplicates
+df.drop_duplicates()
+df.drop_duplicates(subset=['col1', 'col2'])
+
+# rename index
+df.index.name = 'new_index_name'
+
+# transpose
+df.T
+
+# copy dataframe
+df.copy()
+
+# get dummy variables
+pd.get_dummies(df['column'])
+
+# cut into bins
+pd.cut(df['column'], bins=5)
+pd.qcut(df['column'], q=4)  # quantile-based
+
+# rank values
+df['column'].rank()
+
+# shift values
+df['column'].shift(1)   # shift down
+df['column'].shift(-1)  # shift up
+
+# difference
+df['column'].diff()
+
+# percent change
+df['column'].pct_change()
+
+# string to categorical
+df['column'] = df['column'].astype('category')
+
+# change data types
+df['column'] = df['column'].astype(int)
+df = df.astype({'col1': int, 'col2': str})
+
+# iteration
+for index, row in df.iterrows():
+    print(index, row)
+
+for row in df.itertuples():
+    print(row)

@@ -1,0 +1,557 @@
+lists
+=====
+
+# create list
+my_list = [1, 2, 3]
+---
+my_list = list([1, 2, 3])
+
+# add element to end
+my_list.append(4)
+
+# add element at specific position
+my_list.insert(0, 'first')
+
+# extend list with another list
+my_list.extend([5, 6, 7])
+---
+my_list += [5, 6, 7]
+
+# remove element by value
+my_list.remove('first')
+
+# remove element by index
+del my_list[0]
+---
+my_list.pop(0)
+
+# remove last element
+my_list.pop()
+
+# find element index
+my_list.index(3)
+
+# count occurrences
+my_list.count(2)
+
+# sort list in place
+my_list.sort()
+
+# sort in reverse
+my_list.sort(reverse=True)
+
+# reverse list in place
+my_list.reverse()
+
+# copy list
+new_list = my_list.copy()
+---
+new_list = my_list[:]
+---
+new_list = list(my_list)
+
+# clear all elements
+my_list.clear()
+
+
+
+tuples
+======
+
+# create tuple
+my_tuple = (1, 2, 3)
+---
+my_tuple = tuple([1, 2, 3])
+
+# single element tuple
+my_tuple = (1,)
+
+# access elements
+first = my_tuple[0]
+last = my_tuple[-1]
+
+# unpack tuple
+a, b, c = my_tuple
+
+# unpack with rest
+first, *rest, last = my_tuple
+
+# named tuple
+from collections import namedtuple
+Point = namedtuple('Point', ['x', 'y'])
+p = Point(1, 2)
+
+# access named tuple fields
+p.x
+p.y
+
+# convert tuple to list
+list(my_tuple)
+
+# concatenate tuples
+tuple1 + tuple2
+
+# repeat tuple
+my_tuple * 3
+
+# check if element exists
+2 in my_tuple
+
+# get length
+len(my_tuple)
+
+
+
+dicts
+=====
+
+# create dictionary
+my_dict = {'key1': 'value1', 'key2': 'value2'}
+---
+my_dict = dict(key1='value1', key2='value2')
+
+# access value
+value = my_dict['key1']
+---
+value = my_dict.get('key1')
+
+# access with default value
+value = my_dict.get('key1', 'default')
+
+# add or update key
+my_dict['new_key'] = 'new_value'
+
+# update multiple keys
+my_dict.update({'key3': 'value3', 'key4': 'value4'})
+
+# remove key
+del my_dict['key1']
+---
+my_dict.pop('key1')
+
+# remove key with default if not found
+my_dict.pop('key1', 'default')
+
+# remove and return arbitrary key-value pair
+my_dict.popitem()
+
+# get all keys
+keys = list(my_dict.keys())
+
+# get all values
+values = list(my_dict.values())
+
+# get all key-value pairs
+items = list(my_dict.items())
+
+# check if key exists
+'key1' in my_dict
+
+# copy dictionary
+new_dict = my_dict.copy()
+
+# clear all items
+my_dict.clear()
+
+# merge dictionaries (Python 3.9+)
+dict1 | dict2
+
+# merge dictionaries (Python 3.5+)
+{**dict1, **dict2}
+
+
+
+sets
+====
+
+# create set
+my_set = {1, 2, 3}
+---
+my_set = set([1, 2, 3])
+
+# create empty set
+my_set = set()
+
+# add element
+my_set.add(4)
+
+# add multiple elements
+my_set.update([5, 6, 7])
+
+# remove element (raises error if not found)
+my_set.remove(1)
+
+# remove element (no error if not found)
+my_set.discard(1)
+
+# remove and return arbitrary element
+my_set.pop()
+
+# check if element exists
+2 in my_set
+
+# set operations - union
+set1 | set2
+---
+set1.union(set2)
+
+# set operations - intersection
+set1 & set2
+---
+set1.intersection(set2)
+
+# set operations - difference
+set1 - set2
+---
+set1.difference(set2)
+
+# set operations - symmetric difference
+set1 ^ set2
+---
+set1.symmetric_difference(set2)
+
+# subset check
+set1.issubset(set2)
+
+# superset check
+set1.issuperset(set2)
+
+# disjoint check
+set1.isdisjoint(set2)
+
+# copy set
+new_set = my_set.copy()
+
+# clear all elements
+my_set.clear()
+
+
+
+deque
+=====
+
+# import and create deque
+from collections import deque
+dq = deque([1, 2, 3])
+
+# add to right end
+dq.append(4)
+
+# add to left end
+dq.appendleft(0)
+
+# remove from right end
+dq.pop()
+
+# remove from left end
+dq.popleft()
+
+# extend right
+dq.extend([5, 6])
+
+# extend left
+dq.extendleft([0, -1])
+
+# rotate elements
+dq.rotate(1)  # rotate right
+dq.rotate(-1) # rotate left
+
+# count occurrences
+dq.count(2)
+
+# reverse in place
+dq.reverse()
+
+# set max length
+dq = deque(maxlen=5)
+
+
+
+counter
+=======
+
+# import and create counter
+from collections import Counter
+counter = Counter([1, 2, 2, 3, 3, 3])
+
+# create from string
+counter = Counter('hello world')
+
+# create from dict
+counter = Counter({'a': 3, 'b': 1})
+
+# get count of element
+counter['a']
+
+# get most common elements
+counter.most_common()
+counter.most_common(2)  # top 2
+
+# add counts
+counter.update([1, 2, 2])
+
+# subtract counts
+counter.subtract([1, 2])
+
+# total of all counts
+sum(counter.values())
+
+# list unique elements
+list(counter)
+
+# convert to list with repetitions
+list(counter.elements())
+
+# arithmetic operations
+counter1 + counter2  # add
+counter1 - counter2  # subtract
+counter1 & counter2  # intersection
+counter1 | counter2  # union
+
+
+
+defaultdict
+===========
+
+# import and create defaultdict
+from collections import defaultdict
+dd = defaultdict(int)  # default value is 0
+
+# create with list as default
+dd = defaultdict(list)
+
+# create with custom default function
+dd = defaultdict(lambda: 'N/A')
+
+# access non-existent key creates default
+dd['new_key']  # returns 0 for int, [] for list
+
+# useful for counting
+counts = defaultdict(int)
+for item in items:
+    counts[item] += 1
+
+# useful for grouping
+groups = defaultdict(list)
+for item in items:
+    groups[item.category].append(item)
+
+# get default factory function
+dd.default_factory
+
+
+
+ordereddict
+===========
+
+# import and create ordereddict
+from collections import OrderedDict
+od = OrderedDict([('a', 1), ('b', 2)])
+
+# maintain insertion order
+od['c'] = 3
+
+# move key to end
+od.move_to_end('a')
+
+# move key to beginning
+od.move_to_end('b', last=False)
+
+# pop last item
+od.popitem()
+
+# pop first item
+od.popitem(last=False)
+
+# reverse order
+od_reversed = OrderedDict(reversed(od.items()))
+
+
+
+array
+=====
+
+# import and create array
+import array
+arr = array.array('i', [1, 2, 3])  # 'i' for integers
+
+# common type codes
+# 'b' - signed char
+# 'B' - unsigned char
+# 'i' - signed int
+# 'I' - unsigned int
+# 'f' - float
+# 'd' - double
+
+# append element
+arr.append(4)
+
+# insert at position
+arr.insert(0, 0)
+
+# remove by value
+arr.remove(2)
+
+# pop by index
+arr.pop(0)
+
+# extend with iterable
+arr.extend([5, 6, 7])
+
+# get buffer info
+arr.buffer_info()
+
+# convert to list
+list(arr)
+
+# convert from list
+arr = array.array('i', [1, 2, 3])
+
+
+
+comprehensions
+==============
+
+# list comprehension
+squares = [x**2 for x in range(10)]
+
+# list comprehension with condition
+evens = [x for x in range(10) if x % 2 == 0]
+
+# nested list comprehension
+matrix = [[j for j in range(3)] for i in range(3)]
+
+# dict comprehension
+square_dict = {x: x**2 for x in range(5)}
+
+# dict comprehension with condition
+even_squares = {x: x**2 for x in range(10) if x % 2 == 0}
+
+# set comprehension
+unique_squares = {x**2 for x in range(10)}
+
+# generator expression
+gen = (x**2 for x in range(10))
+
+# dict from two lists
+dict(zip(keys, values))
+
+# transpose matrix
+list(zip(*matrix))
+
+
+
+advanced
+========
+
+# create 2D list
+matrix = [[0] * cols for _ in range(rows)]
+
+# flatten 2D list
+flat = [item for row in matrix for item in row]
+
+# group consecutive elements
+from itertools import groupby
+grouped = [(k, list(g)) for k, g in groupby(data)]
+
+# chunk list into groups
+def chunks(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+# rotate list
+def rotate(lst, n):
+    return lst[n:] + lst[:n]
+
+# remove duplicates preserving order
+def dedupe(lst):
+    seen = set()
+    return [x for x in lst if not (x in seen or seen.add(x))]
+
+# merge sorted lists
+import heapq
+heapq.merge(list1, list2, list3)
+
+# find intersection of multiple lists
+set.intersection(*map(set, lists))
+
+# find union of multiple lists
+set.union(*map(set, lists))
+
+# create nested defaultdict
+from collections import defaultdict
+nested = lambda: defaultdict(nested)
+tree = nested()
+
+
+
+heap
+====
+
+# import heapq
+import heapq
+
+# create heap from list
+heap = [1, 3, 5, 7, 9]
+heapq.heapify(heap)
+
+# push element
+heapq.heappush(heap, 4)
+
+# pop smallest element
+smallest = heapq.heappop(heap)
+
+# push and pop in one operation
+heapq.heappushpop(heap, 6)
+
+# replace smallest element
+heapq.heapreplace(heap, 8)
+
+# get n largest elements
+largest = heapq.nlargest(3, heap)
+
+# get n smallest elements
+smallest = heapq.nsmallest(3, heap)
+
+# merge sorted iterables
+merged = list(heapq.merge([1, 3, 5], [2, 4, 6]))
+
+
+
+stack_queue
+===========
+
+# stack using list
+stack = []
+stack.append(1)    # push
+item = stack.pop() # pop
+
+# queue using deque
+from collections import deque
+queue = deque()
+queue.append(1)      # enqueue
+item = queue.popleft() # dequeue
+
+# priority queue
+import heapq
+pq = []
+heapq.heappush(pq, (priority, item))
+priority, item = heapq.heappop(pq)
+
+# LIFO queue (stack)
+import queue
+stack = queue.LifoQueue()
+stack.put(item)
+item = stack.get()
+
+# FIFO queue
+import queue
+q = queue.Queue()
+q.put(item)
+item = q.get()
+
+# priority queue with queue module
+import queue
+pq = queue.PriorityQueue()
+pq.put((priority, item))
+priority, item = pq.get()
