@@ -5,13 +5,14 @@ aligning
 mx-auto max-w-screen-lg
 
 # center the element
-flex justify-center
+flex justify-center items-center
 
 # hide element on screen sizes smaller than md
 max-md:hidden
 
 # set space between flex elements
 space-x-3
+space-y-3
 
 # sizes
 sm                640px         @media (min-width: 640px) { ... }
@@ -31,6 +32,34 @@ xl                1280px        @media (min-width: 1280px) { ... }
 # reduce letter spacing in the font
 tracking-tight
 
+# grid with first row centered and second starting from the top
+<div class="grid md:grid-cols-2 gap-5 p-2 mx-auto max-w-screen-lg">
+  <div class="self-center">First row, first column (centered)</div>
+  <div class="self-center">First row, second column (centered)</div>
+  <div class="self-start">Second row, first column (top-aligned)</div>
+  <div class="self-start">Second row, second column (top-aligned)</div>
+</div>
+
+
+
+size
+====
+
+# fill the container width
+min-w-full
+
+# fill the container height
+min-w-full
+
+# available widths (and heights)
+w-96
+w-80
+w-64
+w-48
+w-40
+w-32
+w-24
+
 
 
 shapes
@@ -46,4 +75,44 @@ colors
 
 # change the color of the link in ht emiddle
 <a href="/" class="text-[#547424] font-bold text-xl">Torrent<span class="text-[#547424]">Analytics</span></a>
+
+
+
+fonts
+=====
+
+# font sizes
+text-xs
+text-sm
+text-base
+text-lg
+text-xl
+text-2xl
+text-3xl
+text-4xl
+text-5xl
+text-6xl
+text-7xl
+text-8xl
+text-9xl
+
+
+
+text
+====
+
+# bullet points
+<ul class="list-disc">
+  <li>point 1</li>
+</ul>
+
+# numerated bullet points
+<ol class="list-decimal">
+  <li>point 1</li>
+</ol>
+
+# list of sentences
+<ul class="list-none">
+  <li>point 1</li>
+</ul>
 

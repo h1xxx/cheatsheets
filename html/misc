@@ -35,3 +35,6 @@ syntax
 # a thematic break to separate content with a line
 <hr>
 
+# html comment
+<!-- comment1 -->
+

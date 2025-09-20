@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torrent Data Viewer</title>
+    <!-- AG-Grid Community CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/styles/ag-theme-alpine.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #torrentGrid {
+            height: 600px;
+            width: 100%;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .file-size {
+            text-align: right;
+        }
+        .numeric-column {
+            text-align: right;
+        }
+        .filter-panel {
+            background: #f5f7f7;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Torrent Data Viewer</h1>
+        <p>Showing <span id="rowCount">0</span> torrents</p>
+    </div>
+    
+    <!-- Filter Panel -->
+    <div class="filter-panel">
+        <div class="filter-group">
+            <label for="ruFilter">Russian Origin:</label>
+            <select id="ruFilter">
+                <option value="all">All</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="hanFilter">HAN:</label>
+            <select id="hanFilter">
+                <option value="all">All</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="torrentGrid" class="ag-theme-alpine"></div>
+
+    <!-- AG-Grid Community JS -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/dist/ag-grid-community.min.js"></script>
+    
+    <script>
+        // Your data
+        const torrentData = [ 
+            { hash_id:"b573e7a597f470fc",
+                name: "kali-linux-2024.4-installer-amd64.iso",
+                size: 4373655552,
+                file_count: 1,
+                first_seen: "2024-12-12T00:00:00Z",
+                last_seen: "2025-04-01T00:00:00Z",
+                is_ru: false,
+                is_han: false,
+                category: "misc",
+                dht_hits: 12408,
+                peer_hits: 125,
+            }, 
+            { hash_id:"7b1490474e51536e",
+                name: "kali-linux-2024.3-installer-amd64.iso",
+                size: 4330174464,
+                file_count: 1,
+                first_seen: "2024-09-11T00:00:00Z",
+                last_seen: "2025-04-01T00:00:00Z",
+                is_ru: false,
+                is_han: false,
+                category: "misc",
+                dht_hits: 7948,
+                peer_hits: 88,
+            }, 
+            { hash_id:"9fc151c1873df628",
+                name: "kali-linux-2024.4-live-amd64.iso",
+                size: 5041469440,
+                file_count: 1,
+                first_seen: "2024-12-11T00:00:00Z",
+                last_seen: "2025-04-01T00:00:00Z",
+                is_ru: false,
+                is_han: false,
+                category: "misc",
+                dht_hits: 6404,
+                peer_hits: 136,
+            },
+        ];
+
+        // Format file size to human readable
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Format date to readable format
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        // Column Definitions
+        const columnDefs = [
+            { 
+                headerName: "Hash ID", 
+                field: "hash_id", 
+                filter: 'agTextColumnFilter',
+                width: 180
+            },
+            { 
+                headerName: "Name", 
+                field: "name", 
+                filter: 'agTextColumnFilter',
+                flex: 2,
+                tooltipField: 'name'
+            },
+            { 
+                headerName: "Size", 
+                field: "size", 
+                filter: 'agNumberColumnFilter',
+                valueFormatter: params => formatFileSize(params.value),
+                comparator: (a, b) => a - b,
+                cellClass: 'file-size',
+                width: 120
+            },
+            { 
+                headerName: "Files", 
+                field: "file_count", 
+                filter: 'agNumberColumnFilter',
+                width: 100,
+                cellClass: 'numeric-column'
+            },
+            { 
+                headerName: "First Seen", 
+                field: "first_seen", 
+                filter: 'agDateColumnFilter',
+                valueFormatter: params => formatDate(params.value),
+                width: 150
+            },
+            { 
+                headerName: "Last Seen", 
+                field: "last_seen", 
+                filter: 'agDateColumnFilter',
+                valueFormatter: params => formatDate(params.value),
+                width: 150
+            },
+            { 
+                headerName: "Category", 
+                field: "category", 
+                filter: 'agTextColumnFilter',
+                width: 120
+            },
+            { 
+                headerName: "DHT Hits", 
+                field: "dht_hits", 
+                filter: 'agNumberColumnFilter',
+                cellClass: 'numeric-column',
+                width: 120
+            },
+            { 
+                headerName: "Peer Hits", 
+                field: "peer_hits", 
+                filter: 'agNumberColumnFilter',
+                cellClass: 'numeric-column',
+                width: 120
+            }
+        ];
+
+        // Initialize the grid
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridDiv = document.querySelector('#torrentGrid');
+            
+            // Using createGrid instead of new Grid()
+            const gridApi = agGrid.createGrid(gridDiv, {
+                columnDefs: columnDefs,
+                rowData: torrentData,
+                defaultColDef: {
+                    sortable: true,
+                    resizable: true,
+                    filter: true,
+                },
+                pagination: true,
+                paginationPageSize: 20,
+                domLayout: 'autoHeight',
+                animateRows: true,
+                onGridReady: (params) => {
+                    updateRowCount(params.api);
+                },
+                onFilterChanged: () => updateRowCount(gridApi),
+                onSortChanged: () => updateRowCount(gridApi),
+            });
+
+            // Update row count display
+            function updateRowCount(api) {
+                const rowCount = api.getDisplayedRowCount();
+                document.getElementById('rowCount').textContent = rowCount;
+            }
+
+            // Setup top filter handlers
+            document.getElementById('ruFilter').addEventListener('change', () => applyFilters());
+            document.getElementById('hanFilter').addEventListener('change', () => applyFilters());
+
+            // Apply filters from top panel
+            function applyFilters() {
+                const ruFilter = document.getElementById('ruFilter').value;
+                const hanFilter = document.getElementById('hanFilter').value;
+                
+                // Filter the data directly
+                const filteredData = torrentData.filter(item => {
+                    const ruMatch = ruFilter === 'all' || item.is_ru.toString() === ruFilter;
+                    const hanMatch = hanFilter === 'all' || item.is_han.toString() === hanFilter;
+                    return ruMatch && hanMatch;
+                });
+                
+                // Fixed: Using setGridOption instead of deprecated setRowData
+                gridApi.setGridOption('rowData', filteredData);
+                updateRowCount(gridApi);
+            }
+        });
+    </script>
+</body>
+</html>
+

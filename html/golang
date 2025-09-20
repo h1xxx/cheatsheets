@@ -1,0 +1,6 @@
+templates
+=========
+
+# print default value if variable is empty
+{{if .Country}}{{.Country}}{{else}}Default value{{end}}
+

@@ -1,0 +1,15 @@
+misc
+====
+
+# bullet points example
+<body>
+    <h1>Top header</h1>
+    <div class="intro">
+        <p>Some text</p>
+    </div>
+    <ul>
+        <li>Bullet 1</li>
+        <li>Bullet 2</li>
+    </ul>
+</body>
+
