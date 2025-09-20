@@ -1,0 +1,8 @@
+calibre
+=======
+
+# set correct aspect ratio for images in preferences in viewer -> style -> CSS
+img {
+  max-width: 100%; height: auto; 
+}
+

