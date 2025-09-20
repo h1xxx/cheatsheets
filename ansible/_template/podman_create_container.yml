@@ -1,0 +1,61 @@
+- name: Create Nginx container using Podman from Debian 12
+  hosts: target_servers  # Replace with your target hosts or use 'localhost'
+  become: true  # Use sudo privileges
+  tasks:
+    - name: Ensure Podman is installed
+      ansible.builtin.package:
+        name: podman
+        state: present
+
+    - name: Create directory for Dockerfile
+      ansible.builtin.file:
+        path: /tmp/nginx-container
+        state: directory
+        mode: '0755'
+
+    - name: Create Dockerfile for Nginx on Debian 12
+      ansible.builtin.copy:
+        dest: /tmp/nginx-container/Dockerfile
+        content: |
+          FROM debian:12
+
+          # Update and install nginx
+          RUN apt-get update && \
+              apt-get install -y nginx && \
+              apt-get clean && \
+              rm -rf /var/lib/apt/lists/*
+
+          # Forward request logs to docker log collector
+          RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
+              ln -sf /dev/stderr /var/log/nginx/error.log
+
+          # Expose HTTP port
+          EXPOSE 80
+
+          # Start nginx in foreground
+          CMD ["nginx", "-g", "daemon off;"]
+        mode: '0644'
+
+    - name: Build Nginx container image with Podman
+      containers.podman.podman_image:
+        name: my-nginx-debian
+        path: /tmp/nginx-container
+        state: present
+
+    - name: Run Nginx container with Podman
+      containers.podman.podman_container:
+        name: nginx-debian
+        image: localhost/my-nginx-debian:latest
+        ports:
+          - 8080:80
+        volumes:
+          - "/path/on/host:/path/in/container:Z"
+        state: started
+        restart_policy: always
+
+    - name: Clean up temporary files
+      ansible.builtin.file:
+        path: /tmp/nginx-container
+        state: absent
+      when: ansible_check_mode == false
+

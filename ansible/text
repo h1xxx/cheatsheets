@@ -25,7 +25,6 @@ text
   check_mode: true
   register: grub_cmdline_check
   changed_when: false
-
 - name: insert splash if missing
   lineinfile:
     backrefs: true
@@ -48,6 +47,18 @@ text
       unix_sock_rw_perms = '0600'
       unix_sock_admin_perms = '0600'
       access_drivers = [ ]
+---
+- name: set postgres password file
+  lineinfile:
+    line: "{{ item.host }}:5432:{{ item.db }}:{{ item.user }}:{{ item.pass }}"
+    path: /home/user1/.pgpass
+    group: user1
+    owner: user1
+    mode: 0600
+    create: true
+  loop:
+    - { host: 'db1.lan', db: db1, user: db1, pass: 'pass123' }
+    - { host: 'db2.lan', db: db2, user: db2, pass: 'pass123' }
 
 # replace multiple lines in a config file
 all:
