@@ -1,0 +1,6 @@
+misc
+====
+
+# view font info incl. weights (from fonttools)
+ttx assets/geist_wght.woff2
+

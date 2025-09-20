@@ -1,0 +1,128 @@
+install
+=======
+
+# install with deps
+apt install podman uidmap dbus-x11 slirp4netns
+
+
+
+run
+===
+
+# create and run a container from the image with interactive shell
+podman run -it --name my_debian_container debian:12 /bin/bash
+
+# restart exited container with an interactive shell (also shows error log)
+podman start -ai my_debian_container
+
+# attach interactive session to a running container
+podman exec -it tmp-cnt bash
+
+# attach stdout/stderr to a running container
+podman attach tmp-cnt
+
+# remove a container
+podman rm my_debian_container
+
+# remove all containers
+podman rm -a
+
+# create and run a container in detached mode
+podman run -d --name my_debian_container -p 8080:80 nginx
+
+# run with mounted volume with user ids mapped from host
+podman run -v "/path/in/host:/path/in/cnt:Z" --userns=keep-id -it --name tmp-cnt cnt-image /bin/bash
+
+# list running containers
+podman ps
+
+# list all containers (including stopped ones)
+podman ps -a
+
+# start/stop/restart a container
+podman start my_debian_container
+podman stop my_debian_container
+podman restart my_debian_container
+
+# start/stop/restart all container
+podman start -a
+podman stop -a
+podman restart -a
+
+# forcibly stop a container
+podman kill my_debian_container
+
+# create and start a modified nginx container without a dockerfile
+podman pull debian:12
+podman run -it --name nginx-debian debian:12 bash
+apt-get update
+apt-get install -y nginx
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+ln -sf /dev/stdout /var/log/nginx/access.log
+ln -sf /dev/stderr /var/log/nginx/error.log
+exit
+podman commit nginx-debian new-nginx-debian
+podman rm nginx-debian
+podman run -d -p 8080:80 --name nginx-server new-nginx-debian nginx -g "daemon off;"
+
+# create and start a modified nginx container with a dockerfile
+cat > Dockerfile <<EOF
+FROM debian:12
+RUN apt-get update \\
+    && apt-get install -y nginx \\
+    && apt-get clean \\
+    && rm -rf /var/lib/apt/lists/*
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \\
+    && ln -sf /dev/stderr /var/log/nginx/error.log
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+EOF
+podman build -t my-nginx-debian .
+podman run -d -p 8080:80 --name nginx-debian my-nginx-debian
+
+
+
+info
+====
+
+# show info about the container
+podman inspect cnt1
+
+# show info about the container
+podman stats cnt1
+
+# show logs from the container
+podman logs cnt1
+
+# print more information on a command
+podman --log-level=debug ps -a
+
+
+
+images
+======
+
+# pull a container image from a registry (docker hub by default)
+podman pull debian:12
+
+# list images
+podman image list
+
+# create an image from a modified container
+podman commit nginx-debian modified-nginx-debian
+
+# build a container image from a dockerfile
+podman build -t my-nginx-debian .
+
+# remove an image
+podman image rm new-nginx-debian
+
+
+
+cleanup
+=======
+
+# remove everything
+podman system reset
+

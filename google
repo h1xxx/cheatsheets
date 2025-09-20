@@ -1,0 +1,207 @@
+basic
+=====
+
+# find pages on specific website
+site:example.com
+
+# find login pages
+inurl:login
+
+# find PDF files
+filetype:pdf
+
+# find pages with term in title
+intitle:"confidential report"
+
+# find term in page body text
+intext:"password reset"
+---
+inbody:"password reset"
+
+# view cached version of webpage
+cache:example.com
+
+# find pages linking to specific webpage
+link:example.com
+
+# find related websites
+related:example.com
+
+# get webpage summary information
+info:example.com
+
+# get word definitions
+define:phishing
+
+# search for numbers in range
+site:example.com numrange:1000-2000
+
+# exact phrase search
+"information security policy"
+
+# exclude terms from results
+site:news.com -inurl:sports
+
+
+
+advanced
+========
+
+# find pages with all words in body text
+allintext:admin password reset
+
+# find pages with all words in URL
+allinurl:admin panel
+
+# find pages with all words in title
+allintitle:confidential report 2023
+
+# combine multiple conditions with AND
+site:example.com AND (inurl:admin OR inurl:login)
+
+# search multiple alternatives with OR
+"linux" OR "ubuntu" OR "debian"
+
+# exclude specific terms with NOT
+site:bank.com NOT inurl:login
+
+# wildcard search for any character/word
+site:socialnetwork.com filetype:pdf user* manual
+
+# numerical range search
+site:ecommerce.com "price" 100..500
+
+# find multiple file types
+site:example.com (filetype:xls OR filetype:docx)
+
+# find configuration files by extension
+site:example.com (ext:conf OR ext:cnf)
+
+
+
+dorking
+=======
+
+# find login and admin pages
+site:example.com inurl:login
+---
+site:example.com (inurl:login OR inurl:admin)
+
+# find exposed document files
+site:example.com filetype:pdf
+---
+site:example.com (filetype:xls OR filetype:docx)
+
+# find configuration files
+site:example.com inurl:config.php
+---
+site:example.com (ext:conf OR ext:cnf)
+
+# find database backups
+site:example.com inurl:backup
+---
+site:example.com filetype:sql
+
+# find admin panels
+site:example.com inurl:"admin panel"
+---
+site:example.com intitle:"admin login"
+
+# find directory listings
+site:example.com intitle:"index of"
+
+# find error messages
+site:example.com "fatal error"
+---
+site:example.com "warning: mysql"
+
+# find log files
+site:example.com filetype:log
+---
+site:example.com inurl:log
+
+# find backup files
+site:example.com (filetype:bak OR filetype:backup)
+
+# find database files
+site:example.com (filetype:sql OR filetype:db)
+
+# find credential files
+site:example.com (intext:password OR intext:passwd)
+
+# find version information
+site:example.com "powered by"
+---
+site:example.com "running on"
+
+
+
+operators
+=========
+
+# site operator - limit to domain
+site:example.com
+site:.edu
+site:.gov
+
+# inurl operator - term in URL
+inurl:admin
+inurl:"wp-admin"
+
+# filetype operator - specific file types
+filetype:pdf
+filetype:doc
+filetype:xls
+
+# intitle operator - term in page title
+intitle:login
+intitle:"admin panel"
+
+# intext/inbody operator - term in body text
+intext:password
+inbody:"error message"
+
+# cache operator - cached version
+cache:example.com
+
+# link operator - pages linking to site
+link:example.com
+
+# related operator - similar sites
+related:example.com
+
+# info operator - site information
+info:example.com
+
+# define operator - word definitions
+define:cybersecurity
+
+# allintext operator - all terms in body
+allintext:username password admin
+
+# allinurl operator - all terms in URL
+allinurl:admin login panel
+
+# allintitle operator - all terms in title
+allintitle:private confidential document
+
+# wildcard operator - any character/word
+admin* panel
+"user * guide"
+
+# range operator - numerical ranges
+..
+100..500
+2020..2023
+
+# exact phrase operator - quoted strings
+"exact phrase here"
+
+# exclude operator - minus sign
+-unwanted
+-site:spam.com
+
+# boolean operators - logical operations
+AND
+OR
+NOT
