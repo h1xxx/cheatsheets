@@ -78,6 +78,48 @@ readarray -t arr1 < /path/to/filename
 
 
 
+associative arrays (dictionaries)
+=================================
+
+# declare associative array (dictionary)
+declare -A my_dict
+
+# set values in a dictionaries
+my_dict["key1"]="value1"
+my_dict["key2"]="value2"
+
+# sccess values in a dictionary
+echo ${my_dict["key1"]}
+echo ${my_dict["key2"]}
+
+# check if key exists in a dictionary
+if [[ -n "${my_dict[key1]}" ]]; then
+    echo "key1 exists"
+fi
+
+# iterate over keys in a dictionary
+for key in "${!my_dict[@]}"; do
+    echo "$key: ${my_dict[$key]}"
+done
+
+# get all keys in a dictionary
+echo "Keys: ${!my_dict[@]}"
+
+# get all values in a dictionary
+echo "Values: ${my_dict[@]}"
+
+# pass a dictionary to a function as parameter
+process_dict() {
+     # Create nameref to the array
+    local -n dict_ref=$1
+    # mccess values
+    echo "Name: ${dict_ref[name]}"
+    # modify the original array
+    dict_ref["status"]="processed"
+}
+
+
+
 variables
 =========
 
