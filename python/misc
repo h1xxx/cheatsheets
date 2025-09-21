@@ -1,3 +1,68 @@
+misc
+====
+
+# get user input
+name = input("Enter your name: ")
+
+# pass undefined number of arguments to a function
+def flexible_function(*args, **kwargs):
+    print("Positional arguments:", args)
+    print("Keyword arguments:", kwargs)
+flexible_function(1, 2, 3, name="Alice", age=30)
+
+
+
+lambda
+======
+
+# lambda function example
+square_lambda = lambda x: x**2
+print(square_lambda(2))
+
+# sort list of tuples by second element
+students = [('Alice', 85), ('Bob', 90), ('Charlie', 78)]
+students.sort(key=lambda x: x[1])
+print(students)
+
+# sort dictionary list by a specific field
+people = [{'name': 'John', 'age': 35}, {'name': 'Jane', 'age': 30}]
+people.sort(key=lambda person: person['age'])
+print(people)
+
+# filter even numbers from a list
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+evens = list(filter(lambda x: x % 2 == 0, numbers))
+print(evens)
+
+# filter strings by length from a list
+words = ['python', 'java', 'go', 'javascript', 'rust']
+short_words = list(filter(lambda word: len(word) <= 4, words))
+print(short_words)
+
+# square all numbers in a list
+numbers = [1, 2, 3, 4, 5]
+squares = list(map(lambda x: x**2, numbers))
+print(squares)
+
+# convert to uppercase all elements in a list
+names = ['alice', 'bob', 'charlie']
+upper_names = list(map(lambda name: name.upper(), names))
+print(upper_names)
+
+# sum all numbers in a list
+from functools import reduce
+numbers = [1, 2, 3, 4, 5]
+total = reduce(lambda x, y: x + y, numbers)
+print(total)
+
+# find maximum of elements in a list
+from functools import reduce
+numbers = [1, 2, 3, 4, 5]
+maximum = reduce(lambda x, y: x if x > y else y, numbers)
+print(maximum)
+
+
+
 venv
 ====
 

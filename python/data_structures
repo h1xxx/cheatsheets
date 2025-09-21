@@ -436,6 +436,11 @@ gen = (x**2 for x in range(10))
 # dict from two lists
 dict(zip(keys, values))
 
+# zip - combines iterables into a list of tuples
+names = ['Alice', 'Bob', 'Charlie']
+ages = [25, 30, 35]
+combined = list(zip(names, ages))
+
 # transpose matrix
 list(zip(*matrix))
 
@@ -570,4 +575,73 @@ class Person:
         return f"Hi, I'm {self.name} and I'm {self.age} years old"
 person1 = Person("Alice", 30)
 print(person1.introduce())
+
+# print class string values in different styles
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    def __str__(self):
+        return f"{self.name}, age {self.age}"
+    def __repr__(self):
+        return f"Person('{self.name}', {self.age})"
+p = Person("Alice", 30)
+print(str(p))    # Alice, age 30
+print(repr(p))   # Person('Alice', 30)
+
+
+
+misc
+====
+
+# shallow vs deep copy
+import copy
+original = [[1, 2, 3], [4, 5, 6]]
+shallow = copy.copy(original)
+deep = copy.deepcopy(original)
+original[0][0] = 'X'
+print(original)  # [['X', 2, 3], [4, 5, 6]]
+print(shallow)   # [['X', 2, 3], [4, 5, 6]] - affected
+print(deep)      # [[1, 2, 3], [4, 5, 6]] - not affected
+
+# decorator showing logs for function execution
+def timing_decorator(func):
+    def wrapper(*args, **kwargs):
+        print(f"Calling {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"Finished {func.__name__}")
+        return result
+    return wrapper
+@timing_decorator
+def greet(name):
+    return f"Hello, {name}!"
+
+# cache results of a function for future use with a decorator
+import functools
+import time
+@functools.cache
+def calculate_double(num):
+    # sleep for 1 second to simulate a slow calculation
+    time.sleep(1)
+    return num * 2
+
+# memoization with a decorator for recursive algorithm
+def memoize(func):
+    cache = {}
+    def wrapper(*args, **kwargs):
+        # create a key from arguments
+        key = str(args) + str(sorted(kwargs.items()))
+        if key in cache:
+            print(f"Cache hit for {func.__name__}{args}")
+            return cache[key]
+        print(f"Computing {func.__name__}{args}")
+        result = func(*args, **kwargs)
+        cache[key] = result
+        return result
+    return wrapper
+@memoize
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
 
